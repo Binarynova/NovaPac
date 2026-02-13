@@ -31,3 +31,4 @@
 /home/thomas/Projects/pacman/obj/Debug/net9.0/pacman.pdb
 /home/thomas/Projects/pacman/obj/Debug/net9.0/pacman.genruntimeconfig.cache
 /home/thomas/Projects/pacman/obj/Debug/net9.0/ref/pacman.dll
+/home/thomas/Projects/pacman/obj/Debug/net9.0/pacman.sourcelink.json
