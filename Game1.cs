@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -45,7 +46,6 @@ public class Game1 : Game
         Console.WriteLine("------------");
         Console.Write(" > "); menuChoice = Console.ReadKey();
         Console.WriteLine("");
-
         if(menuChoice.Key == ConsoleKey.D1)
         {
             mode = 1;
@@ -53,7 +53,6 @@ public class Game1 : Game
         else if(menuChoice.Key == ConsoleKey.D2)
         {
             mode = 2;
-            Environment.Exit(0);
         }
         else
         {
@@ -104,7 +103,8 @@ public class Game1 : Game
         }
         else if(mode == 2)
         {
-            
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
         }
         
         base.Update(gameTime);
@@ -154,7 +154,7 @@ public class Game1 : Game
         }
         else if(mode == 2)
         {
-            
+            GraphicsDevice.Clear(Color.Black);
         }
     }        
 }
