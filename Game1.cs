@@ -21,6 +21,8 @@ public class Game1 : Game
     long totalCyclesExecuted = 0;
     double emuTimer = 0;
     double emulationSpeedPercent = 0;
+    
+    int[,] tile = new int[8,8];
 
     public Game1()
     {
@@ -67,8 +69,27 @@ public class Game1 : Game
         // Create a 1x1 white texture
         pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData([Color.White]);
-        
+
         cpu.Reset();
+
+        for(int i = 0; i < 8; i++)
+        {
+            byte pixelQuad = machine.charROM[i];
+            for(int r = 0; r < 4; r++)
+            {
+                tile[r,7-i] = 0;
+                byte lowBitMask = (byte)Math.Pow(2, r);
+                byte highBitMask = (byte)Math.Pow(2,r+4);
+                if((pixelQuad & highBitMask) != 0)
+                {
+                    tile[r,7-i] += 2;
+                }
+                if((pixelQuad & lowBitMask) != 0)
+                {
+                    tile[r,7-i] += 1;
+                }                
+            }
+        }
     }
 
     protected override void Update(GameTime gameTime)
