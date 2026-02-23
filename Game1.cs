@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -8,27 +8,34 @@ namespace pacman;
 
 public class Game1 : Game
 {
-    private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+    private KeyboardState _previousKeyboardState;
     Texture2D pixelTexture;
     private int resScale = 3;
     ConsoleKeyInfo menuChoice;
-    int mode = 0;
-
+    int mode = 1;
+    bool SteppingThrough;
+    
     Machine machine;
     z80Cpu cpu;
 
-    long totalCyclesExecuted = 0;
-    double emuTimer = 0;
-    double emulationSpeedPercent = 0;
+    long totalCyclesExecuted;
+    int interruptCycleCounter;
+    double emuTimer;
+    double emulationSpeedPercent;
+    const int pixelScale = 3; // one pixel per tile, scaled up for visibility
+    const int tileWidth = 8;
+    const int spriteWidth = 16;
+    const int CYCLES_PER_INTERRUPT = 25600;
     
-    int[,] tile = new int[8,8];
+    List<int[,]> tiles = new List<int[,]>();
+    List<int[,]> sprites = new List<int[,]>();
 
     public Game1()
     {
-        _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = 224 * resScale;
-        _graphics.PreferredBackBufferHeight = 288 * resScale;
+        var graphics = new GraphicsDeviceManager(this);
+        graphics.PreferredBackBufferWidth = 224 * resScale;
+        graphics.PreferredBackBufferHeight = 288 * resScale;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -36,30 +43,33 @@ public class Game1 : Game
     protected override void Initialize()
     {
         machine = new Machine();
-        cpu = new z80Cpu(machine);
+        cpu = new z80Cpu(machine);        
 
         base.Initialize();
 
-        Console.WriteLine("Pac-Man Menu");
-        Console.WriteLine("------------");
-        Console.WriteLine(" 1) Play ROM");
-        Console.WriteLine(" 2) Display Char ROM");
-        Console.WriteLine(" Anything else) Quit");
-        Console.WriteLine("------------");
-        Console.Write(" > "); menuChoice = Console.ReadKey();
-        Console.WriteLine("");
-        if(menuChoice.Key == ConsoleKey.D1)
+        if(mode == 0)
         {
-            mode = 1;
-        }
-        else if(menuChoice.Key == ConsoleKey.D2)
-        {
-            mode = 2;
-        }
-        else
-        {
-            Environment.Exit(0);
-        }
+            Console.WriteLine("Pac-Man Menu");
+            Console.WriteLine("------------");
+            Console.WriteLine(" 1) Play ROM");
+            Console.WriteLine(" 2) Display Char ROM");
+            Console.WriteLine(" Anything else) Quit");
+            Console.WriteLine("------------");
+            Console.Write(" > "); menuChoice = Console.ReadKey();
+            Console.WriteLine("");
+            if(menuChoice.Key == ConsoleKey.D1)
+            {
+                mode = 1;
+            }
+            else if(menuChoice.Key == ConsoleKey.D2)
+            {
+                mode = 2;
+            }
+            else
+            {
+                Environment.Exit(0);
+            }
+        }        
     }
 
     protected override void LoadContent()
@@ -71,44 +81,37 @@ public class Game1 : Game
         pixelTexture.SetData([Color.White]);
 
         cpu.Reset();
-
-        for(int i = 0; i < 8; i++)
-        {
-            byte pixelQuad = machine.charROM[i];
-            for(int r = 0; r < 4; r++)
-            {
-                tile[r,7-i] = 0;
-                byte lowBitMask = (byte)Math.Pow(2, r);
-                byte highBitMask = (byte)Math.Pow(2,r+4);
-                if((pixelQuad & highBitMask) != 0)
-                {
-                    tile[r,7-i] += 2;
-                }
-                if((pixelQuad & lowBitMask) != 0)
-                {
-                    tile[r,7-i] += 1;
-                }                
-            }
-        }
+        ReadTiles();
+        ReadSprites();
     }
 
     protected override void Update(GameTime gameTime)
     {
+        KeyboardState keyboardState = Keyboard.GetState();
         if(mode == 1)
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                SteppingThrough = true;
 
             int cyclesThisFrame = 0;
             const int CYCLES_PER_FRAME = 51200; // 3_072_000 cycles per second / 60 frames per second
 
             while (cyclesThisFrame < CYCLES_PER_FRAME)
             {
-                cyclesThisFrame += cpu.Step();
+                int cycles = cpu.Step(SteppingThrough);
+                cyclesThisFrame += cycles;
+                interruptCycleCounter += cycles;
+
+                if(interruptCycleCounter >= CYCLES_PER_INTERRUPT)
+                {
+                    cpu.RequestInterrupt();
+                    interruptCycleCounter -= CYCLES_PER_INTERRUPT;
+                }
             }
 
             totalCyclesExecuted += cyclesThisFrame;
-            cpu.InterruptPending = true;
 
             emuTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -122,12 +125,26 @@ public class Game1 : Game
                 emuTimer = 0;            
             }
         }
-        else if(mode == 2)
-        {
+        else if(mode == 2 || mode == 3)
+        {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            else if (keyboardState.IsKeyDown(Keys.Tab) && _previousKeyboardState.IsKeyUp(Keys.Tab))
+            {
+                // switch ROMs to view
+                switch(mode)
+                {
+                    case 2:
+                        mode = 3;
+                        break;
+                    case 3:
+                        mode = 2;
+                        break;
+                }
+            }
         }
         
+        _previousKeyboardState = keyboardState;
         base.Update(gameTime);
     }
 
@@ -139,36 +156,49 @@ public class Game1 : Game
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            const ushort VRAM_START = 0x4C00; // or the actual base address
-            const ushort VRAM_END   = 0x4FFF; // tile numbers only for now
+            // draw in three sections
+            // 1: vram 4000 to 403F is the bottom two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
+            // 2: vram 43c0 to 43ff is the top two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
+            // 3: vram 4040 to 43bf is the main grid of the game, top-to-bottom, right-to-left, starting on screen at the top-right below section 2
 
-            int tilesPerRow = 32; // how many tiles per row in this tiny debug view
-            int totalTiles = VRAM_END - VRAM_START + 1;
+            // 224x288 game pixels -> 896x1152 screen pixels
+            // 912 is two tiles off-screen right
+            // -16 is two tiles off-screen left
 
-            // The "screen rectangle" size in pixels
-            int pixelSize = 4; // one pixel per tile, scaled up for visibility
-
-            for (int i = 0; i < totalTiles; i++)
+            for(int tileRow = 0; tileRow < 2; tileRow++)
             {
-                int row = i / tilesPerRow;
-                int col = i % tilesPerRow;
+                for(int tileCol = 0; tileCol < 32; tileCol++)
+                {
+                    ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
+                    int xPos = 696 - (tileCol * 8 * pixelScale);
+                    int yPos = tileRow * 8 * pixelScale;
+                    byte tileNumber = machine.ReadByte(vram);
+                    DrawTile(tileNumber, xPos, yPos);
+                }
+            }
 
-                ushort addr = (ushort)(VRAM_START + i);
-                byte tileNumber = machine.ReadByte(addr);
+            for(int tileRow = 0; tileRow < 32; tileRow++) // main grid
+            {
+                for(int tileCol = 0; tileCol < 28; tileCol++)
+                {
+                    ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
+                    int xPos = 648 - (tileCol * 8 * pixelScale);
+                    int yPos = 48 + (tileRow * 8 * pixelScale);
+                    byte tileNumber = machine.ReadByte(vram);
+                    DrawTile(tileNumber, xPos, yPos);
+                }
+            }
 
-                // Map tile number to a simple color for debug
-                Color pixelColor = new Color(
-                    r: (tileNumber * 7) % 256,
-                    g: (tileNumber * 13) % 256,
-                    b: (tileNumber * 3) % 256
-                );
-
-                int x = col * pixelSize;
-                int y = row * pixelSize;
-
-                _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x, y, pixelSize, pixelSize),
-                    pixelColor);
+            for(int tileRow = 0; tileRow < 2; tileRow++)
+            {
+                for(int tileCol = 0; tileCol < 32; tileCol++)
+                {
+                    ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
+                    int xPos = 696 - (tileCol * 8 * pixelScale);
+                    int yPos = 816 + (tileRow * 8 * pixelScale);
+                    byte tileNumber = machine.ReadByte(vram);
+                    DrawTile(tileNumber, xPos, yPos);
+                }
             }
 
             _spriteBatch.End();
@@ -176,6 +206,253 @@ public class Game1 : Game
         else if(mode == 2)
         {
             GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Gray); // tile grid
+            int offset = 3;
+            for(int i = 0; i < 16; i++)
+            {
+                for(int j = 0; j < 16; j++)
+                {
+                    int tileIndex = j * 16 + i;
+                    int tileXPos = i * (tileWidth * pixelScale + offset) + offset;
+                    int tileYPos = j * (tileWidth * pixelScale + offset) + offset;
+                    DrawTile(tileIndex, tileXPos, tileYPos);
+                }
+            }
+
+            _spriteBatch.End();
         }
-    }        
+        else if(mode == 3)
+        {
+            GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 411, 411), Color.Gray); // tile grid
+            int offset = 3;
+            for(int i = 0; i < 8; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    int spriteIndex = j * 8 + i;
+                    int spriteXPos = i * (spriteWidth * pixelScale + offset) + offset;
+                    int spriteYPos = j * (spriteWidth * pixelScale + offset) + offset;
+                    DrawSprite(spriteIndex, spriteXPos, spriteYPos);
+                }
+            }
+
+            _spriteBatch.End();
+        }
+    }
+
+    int GetPixelValue(byte pixelData, int pixelIndex)
+    {
+        int paletteValue = 0;
+        // returns the palette value of a pixel
+        switch(pixelIndex)
+        {
+            case 0 or 4:
+                if((pixelData & 0x80) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x08) != 0)
+                    paletteValue += 1;
+                break;
+            case 1 or 5:
+                if((pixelData & 0x40) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x04) != 0)
+                    paletteValue += 1;
+                break;
+            case 2 or 6:
+                if((pixelData & 0x20) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x02) != 0)
+                    paletteValue += 1;
+                break;
+            case 3 or 7:
+                if((pixelData & 0x10) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x01) != 0)
+                    paletteValue += 1;
+                break;
+        }
+
+        return paletteValue;
+    }
+
+    void DrawTile(int tileIndex, int xPos, int yPos)
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            int x = (i * pixelScale);
+            for(int j = 0; j < 8; j++)
+            {
+                int y = (j * pixelScale);
+                if(tiles[tileIndex][i,j] == 0)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(0,0,0));
+                }
+                else if(tiles[tileIndex][i,j] == 1)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(222,222,225));
+                }
+                else if(tiles[tileIndex][i,j] == 2)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(33,33,255));
+                }
+                else if(tiles[tileIndex][i,j] == 3)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(255,0,0));
+                }
+            }
+        }
+    }
+
+    void DrawSprite(int spriteIndex, int xPos, int yPos)
+    {
+        for(int i = 0; i < 16; i++)
+        {
+            int x = (i * pixelScale);
+            for(int j = 0; j < 16; j++)
+            {
+                int y = (j * pixelScale);
+                if(sprites[spriteIndex][i,j] == 0)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(0,0,0));
+                }
+                else if(sprites[spriteIndex][i,j] == 1)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(222,222,225));
+                }
+                else if(sprites[spriteIndex][i,j] == 2)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(33,33,255));
+                }
+                else if(sprites[spriteIndex][i,j] == 3)
+                {
+                    _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Color(255,0,0));
+                }
+            }
+        }
+    }
+
+    void ReadSprites()
+    {
+        for(int spIndex = 0; spIndex < 64; spIndex++)
+        {
+            int[,] sprite = new int[16,16];
+            for(int i = 0; i < 8; i++) // bottom right
+            {
+                byte spriteQuad = machine.spriteROM[(0x00 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right
+            {
+                byte spriteQuad = machine.spriteROM[(0x08 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 2
+            {
+                byte spriteQuad = machine.spriteROM[(0x10 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 3
+            {
+                byte spriteQuad = machine.spriteROM[(0x18 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // bottom right
+            {
+                byte spriteQuad = machine.spriteROM[(0x20 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right
+            {
+                byte spriteQuad = machine.spriteROM[(0x28 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 2
+            {
+                byte spriteQuad = machine.spriteROM[(0x30 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 3
+            {
+                byte spriteQuad = machine.spriteROM[(0x38 + i) + (0x40 * spIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+            sprites.Add(sprite);
+        }
+    }
+
+    void ReadTiles()
+    {
+        for(int tileIndex = 0; tileIndex < 256; tileIndex++)
+        {
+            int[,] tile = new int[8,8];
+            for(int i = 0; i < 8; i++) // first 8 bytes of tile
+            {
+                byte pixelQuad = machine.charROM[i + (tileIndex * 16)];
+                for(int r = 4; r < 8; r++)
+                {
+                    tile[7-i,r] = GetPixelValue(pixelQuad,r);
+                }
+            }
+            for(int i = 8; i < 16; i++) // second 8 bytes of tile
+            {
+                byte pixelQuad = machine.charROM[i + (tileIndex * 16)];
+                for(int r = 0; r < 4; r++)
+                {
+                    tile[15-i,r] = GetPixelValue(pixelQuad, r);
+                }
+            }
+            
+            tiles.Add(tile);
+        }
+    }
 }

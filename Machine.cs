@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 public class Machine
 {
-    byte[] RAM = new byte[0x10000];
+    private byte[] RAM = new byte[0x10000];
+    private byte[] paletteROM;
     public byte[] charROM;
-    byte[] paletteROM;
-    const ushort ROM_START = 0x0000;
-    const ushort VRAM_START = 0x4000;
-    const ushort VRAM_END = 0x43FF;
-    public int InterruptMode;
-
-    List<string> romFiles = new List<string> {"rom/pacman.6e", "rom/pacman.6f", "rom/pacman.6h", "rom/pacman.6j"};
+    public byte[] spriteROM;
+    private const ushort TILES_START = 0x4000;
+    private const ushort TILES_END = 0x43FF;
+    private const ushort PALETTE_START = 0x4400;
+    private const ushort PALETTE_END = 0x47FF;
 
     public byte ReadByte(ushort address)
     {
@@ -26,19 +24,29 @@ public class Machine
 
     public void WriteByte(ushort address, byte value)
     {
-        byte oldValue = RAM[address];
         if(address < 0x4000)
             return;
         RAM[address] = value;
-        if (oldValue != value)
-        {
-            Console.WriteLine($"VRAM write at {address:X4}: {oldValue:X2} -> {value:X2}");
-        }
-    }
+        
+        // debug to fill tiles with numbers
+        //for(int loc = 0x43C0; loc <= 0x43FF; loc++)
+        //    RAM[loc] = 0x0;
+        //for(int loc = 0x4040; loc <= 0x43BF; loc++)
+        //    RAM[loc] = 0x1;
+        //for(int loc = 0x4000; loc <= 0x403F; loc++)
+        //    RAM[loc] = 0x2;
 
-    public byte ReadVRAM(ushort address)
-    {
-        return RAM[address];
+        switch (address)
+        {
+            case >= TILES_START and < TILES_END:
+                Console.WriteLine($"VRAM write at {address:X4}: {value:X2}");
+                //Console.ReadKey();    
+                break;
+            case >= PALETTE_START and < PALETTE_END:
+                Console.WriteLine($"PALETTE write at {address:X4}: {value:X2}");
+                //Console.ReadKey();    
+                break;
+        }
     }
 
     public void ReadROMsIntoMemory()
@@ -48,29 +56,38 @@ public class Machine
         LoadRom("rom/pacman.6h", RAM, 0x2000);
         LoadRom("rom/pacman.6j", RAM, 0x3000);
         LoadCharROM("rom/pacman.5e");
+        LoadSpriteROM("rom/pacman.5f");
         LoadPaletteROM("rom/82s126.4a");
     }
 
-    void LoadRom(string file, byte[] memory, int address)
+    private static void LoadRom(string file, byte[] memory, int address)
     {
         using var fs = File.OpenRead(file);
-        fs.Read(memory, address, (int)fs.Length);
+        fs.ReadExactly(memory, address, (int)fs.Length);
     }
     
-    void LoadPaletteROM(string path)
+    private void LoadPaletteROM(string path)
     {
         paletteROM = File.ReadAllBytes(path);
 
         if (paletteROM.Length != 256)
-            throw new Exception($"Unexpected ROM size: {charROM.Length} bytes");
+            throw new Exception($"Unexpected ROM size: {paletteROM.Length} bytes");
     }
 
-    void LoadCharROM(string path)
+    private void LoadCharROM(string path)
     {
         charROM = File.ReadAllBytes(path);
 
         if (charROM.Length != 4096)
             throw new Exception($"Unexpected ROM size: {charROM.Length} bytes");
+    }
+
+    private void LoadSpriteROM(string path)
+    {
+        spriteROM = File.ReadAllBytes(path);
+
+        if (spriteROM.Length != 4096)
+            throw new Exception($"Unexpected ROM size: {spriteROM.Length} bytes");
     }
 
     public void ClearRAM()

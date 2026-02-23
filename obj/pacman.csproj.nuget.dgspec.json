@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/thomas/Projects/pacman/pacman.csproj": {}
+    "/var/home/thomas/Projects/pacman/pacman.csproj": {}
   },
   "projects": {
-    "/home/thomas/Projects/pacman/pacman.csproj": {
+    "/var/home/thomas/Projects/pacman/pacman.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/thomas/Projects/pacman/pacman.csproj",
+        "projectUniqueName": "/var/home/thomas/Projects/pacman/pacman.csproj",
         "projectName": "pacman",
-        "projectPath": "/home/thomas/Projects/pacman/pacman.csproj",
+        "projectPath": "/var/home/thomas/Projects/pacman/pacman.csproj",
         "packagesPath": "/home/thomas/.nuget/packages/",
-        "outputPath": "/home/thomas/Projects/pacman/obj/",
+        "outputPath": "/var/home/thomas/Projects/pacman/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/thomas/.nuget/NuGet/NuGet.Config"
@@ -38,12 +38,16 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Json.Net": {
+              "target": "Package",
+              "version": "[1.0.33, )"
+            },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
               "version": "[3.8.*, )"
@@ -64,12 +68,26 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/var/home/thomas/.dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
