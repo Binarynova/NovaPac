@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Metadata;
 using Reg = Registers;
 
 public class z80Cpu(Machine machine)
@@ -29,30 +30,33 @@ public class z80Cpu(Machine machine)
     {
         InterruptPending = true;
     }
+
+    public void HandleInterrupt()
+    {
+        PushWord(Reg.PC);
+        InterruptPending = _halted = false;
+        _iff1 = false;
+
+        switch(_interruptMode)
+        {
+            case 0:
+                break;
+            case 1:
+                Reg.PC = 0x38;
+                break;
+            case 2:
+                ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
+                ushort handler = machine.ReadWord(vectorAddress);
+                Reg.PC = handler;
+                break;
+        }
+    }
     
     public int Step(bool SteppingThrough)
     {
         if(InterruptPending && _iff1) // InterruptPending turned on in Game1.cs at the end of a frame, mimicking VBLANK
         {
-            // handle interrupt
-            
-            PushWord(Reg.PC);
-            InterruptPending = _halted = false;
-            _iff1 = false;
-
-            switch(_interruptMode)
-            {
-                case 0:
-                    break;
-                case 1:
-                    Reg.PC = 0x38;
-                    break;
-                case 2:
-                    ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
-                    ushort handler = machine.ReadWord(vectorAddress);
-                    Reg.PC = handler;
-                    break;
-            }
+            HandleInterrupt();
         }
 
         if (_halted)
