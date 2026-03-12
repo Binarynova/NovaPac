@@ -109,6 +109,9 @@ public class Game1 : Game
                 Exit();
             }
 
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                SteppingThrough = true;
+
             int cyclesThisFrame = 0;
             const int CYCLES_PER_FRAME = 51200; // 3_072_000 cycles per second / 60 frames per second
 
