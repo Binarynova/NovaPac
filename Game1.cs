@@ -15,7 +15,7 @@ public class Game1 : Game
     Texture2D pixelTexture;
     const int resScale = 3;
     ConsoleKeyInfo menuChoice;
-    int mode = 1;
+    int mode = 0;
     bool SteppingThrough;
     StreamWriter trace;
     
