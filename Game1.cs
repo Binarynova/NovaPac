@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -8,13 +9,15 @@ namespace pacman;
 
 public class Game1 : Game
 {
+    private string[] Args;
     private SpriteBatch _spriteBatch;
     private KeyboardState _previousKeyboardState;
     Texture2D pixelTexture;
-    private int resScale = 3;
+    const int resScale = 3;
     ConsoleKeyInfo menuChoice;
     int mode = 1;
     bool SteppingThrough;
+    StreamWriter trace;
     
     Machine machine;
     z80Cpu cpu;
@@ -23,16 +26,17 @@ public class Game1 : Game
     int interruptCycleCounter;
     double emuTimer;
     double emulationSpeedPercent;
-    const int pixelScale = 3; // one pixel per tile, scaled up for visibility
+    const int pixelScale = 3;
     const int tileWidth = 8;
     const int spriteWidth = 16;
     const int CYCLES_PER_INTERRUPT = 25600;
     
-    List<int[,]> tiles = new List<int[,]>();
-    List<int[,]> sprites = new List<int[,]>();
+    List<int[,]> tiles = [];
+    List<int[,]> sprites = [];
 
-    public Game1()
+    public Game1(string[] args)
     {
+        Args = args;
         var graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -46,7 +50,12 @@ public class Game1 : Game
         cpu = new z80Cpu(machine);        
 
         base.Initialize();
-
+        if (Args.Length != 0)
+        {
+            if (Args[0] == "-debug")
+                SteppingThrough = true;
+        }
+        
         if(mode == 0)
         {
             Console.WriteLine("Pac-Man Menu");
@@ -57,23 +66,26 @@ public class Game1 : Game
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
             Console.WriteLine("");
-            if(menuChoice.Key == ConsoleKey.D1)
+            switch (menuChoice.Key)
             {
-                mode = 1;
-            }
-            else if(menuChoice.Key == ConsoleKey.D2)
-            {
-                mode = 2;
-            }
-            else
-            {
-                Environment.Exit(0);
+                case ConsoleKey.D1:
+                    mode = 1;
+                    break;
+                case ConsoleKey.D2:
+                    mode = 2;
+                    break;
+                default:
+                    Environment.Exit(0);
+                    break;
             }
         }        
     }
 
     protected override void LoadContent()
     {
+        trace = new StreamWriter("trace.txt");
+        trace.AutoFlush = false;
+        cpu.SetTraceWriter(trace);
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         // Create a 1x1 white texture
@@ -89,11 +101,13 @@ public class Game1 : Game
     {
         KeyboardState keyboardState = Keyboard.GetState();
         if(mode == 1)
-        {            
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                trace?.Close();
                 Exit();
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                SteppingThrough = true;
+            }
 
             int cyclesThisFrame = 0;
             const int CYCLES_PER_FRAME = 51200; // 3_072_000 cycles per second / 60 frames per second
@@ -125,7 +139,7 @@ public class Game1 : Game
                 emuTimer = 0;            
             }
         }
-        else if(mode == 2 || mode == 3)
+        else if(mode is 2 or 3)
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();

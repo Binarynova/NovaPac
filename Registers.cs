@@ -1,7 +1,7 @@
 public static class Registers
 {
     public static byte A, F, B, C, D, E, H, L;
-    public static byte Aa, Fa, Ba, Ca, Da, Ea, Ha, La;
+    public static byte A2, F2, B2, C2, D2, E2, H2, L2;
     public static byte I, R;
     public static ushort PC, SP, IX, IY;
 
@@ -52,6 +52,46 @@ public static class Registers
         {
             H = HighByte(value);
             L = LowByte(value);
+        }
+    }
+    
+    public static ushort AF2
+    {
+        get => (ushort)((A2 << 8) | F2);
+        set
+        {
+            A2 = HighByte(value);
+            F2 = LowByte(value);
+        }
+    }
+
+    public static ushort BC2
+    {
+        get => (ushort)((B2 << 8) | C2);
+        set
+        {
+            B2 = HighByte(value);
+            C2 = LowByte(value);
+        }
+    }
+
+    public static ushort DE2
+    {
+        get => (ushort)((D2 << 8) | E2);
+        set
+        {
+            D2 = HighByte(value);
+            E2 = LowByte(value);
+        }
+    }
+
+    public static ushort HL2
+    {
+        get => (ushort)((H2 << 8) | L2);
+        set
+        {
+            H2 = HighByte(value);
+            L2 = LowByte(value);
         }
     }
 }

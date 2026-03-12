@@ -1,5 +1,5 @@
 using System;
-using System.Reflection.Metadata;
+using System.IO;
 using Reg = Registers;
 
 public class z80Cpu(Machine machine)
@@ -8,11 +8,14 @@ public class z80Cpu(Machine machine)
     private bool _iff1;
     private bool _halted;
 
+    private StreamWriter trace;
+
     private delegate int OpcodeHandler();
     private readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
     private readonly OpcodeHandler[] _ddOpcodes = new OpcodeHandler[256];
     private readonly OpcodeHandler[] _edOpcodes = new OpcodeHandler[256];
     private readonly OpcodeHandler[] _fdOpcodes = new OpcodeHandler[256];
+    private readonly OpcodeHandler[] _cbOpcodes = new OpcodeHandler[256];
 
     // Interrupts
     private int _interruptMode;
@@ -23,7 +26,16 @@ public class z80Cpu(Machine machine)
     [Flags]
     private enum Flags : byte
     {
-        C = 1 << 0, N = 1 << 1, PV = 1 << 2, H = 1 << 4, Z = 1 << 6, S = 1 << 7
+        C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
+    }
+
+    public void SetTraceWriter(StreamWriter writer)
+    {
+        trace = writer;
+    }
+    private void IncrementRegisterR()
+    {
+        Reg.R = (byte)((Reg.R & 0x80) | (((Reg.R & 0x7f) + 1) & 0x7f));
     }
 
     public void RequestInterrupt()
@@ -46,8 +58,9 @@ public class z80Cpu(Machine machine)
                 break;
             case 2:
                 ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
-                ushort handler = machine.ReadWord(vectorAddress);
-                Reg.PC = handler;
+                byte low = machine.ReadByte(vectorAddress);
+                byte high = machine.ReadByte(((ushort)(vectorAddress + 1)));
+                Reg.PC = (ushort)((high << 8) | low);
                 break;
         }
     }
@@ -61,22 +74,50 @@ public class z80Cpu(Machine machine)
 
         if (_halted)
         {
-            return 4; // basically perform NOP with no change to PC
+            if (InterruptPending)
+            {
+                _halted = false;       // resume from HALT
+            }
+            else
+            {
+                return 4;              // stay halted, do not fetch opcode
+            }
         }
         
         byte opcode = machine.ReadByte(Reg.PC);
+
+        if (trace != null)
+        {
+            trace.WriteLine($"{Reg.PC:X4}");
+        }
+        
         if(SteppingThrough)
         {
-            Console.WriteLine("");
-            Console.WriteLine($"PC: 0x{Reg.PC:X4} Opcode:{opcode:X2}");
-            Console.WriteLine($"Z:{GetFlag(Flags.Z)}");
-            Console.WriteLine($"AF: {Reg.AF:X4} BC:{Reg.BC:X4} DE:{Reg.DE:X4} HL:{Reg.HL:X4}");
+            Console.Clear();
+            Console.WriteLine($"Flags: {GetFlagDebugValue(Flags.S)}{GetFlagDebugValue(Flags.Z)}.{GetFlagDebugValue(Flags.H)}.{GetFlagDebugValue(Flags.P)}{GetFlagDebugValue(Flags.N)}{GetFlagDebugValue(Flags.C)}");
+            Console.WriteLine();
+            Console.WriteLine($"   PC: {Reg.PC:X4}");
+            Console.WriteLine($"   SP: {Reg.SP:X4}");
+            Console.WriteLine();
+            Console.WriteLine($"   AF: {Reg.AF:X4}");
+            Console.WriteLine($"   BC: {Reg.BC:X4}");
+            Console.WriteLine($"   DE: {Reg.DE:X4}");
+            Console.WriteLine($"   HL: {Reg.HL:X4}");
+            Console.WriteLine($"   IX: {Reg.IX:X4}");
+            Console.WriteLine($"   IY: {Reg.IY:X4}");
+            Console.WriteLine($"    R: {Reg.R:X2}");
+            Console.WriteLine($"    I: {Reg.I:X2}");
+            Console.WriteLine($" IFF1: {_iff1}");
+            Console.WriteLine($" HALT: {_halted : 1 ? 0}");
+            Console.WriteLine();
+            Console.WriteLine($"Next Opcode: {opcode:X2}");
             if(Console.ReadKey().Key == ConsoleKey.Escape)
                 Environment.Exit(0);
         }
         else
             Console.WriteLine($"0x{Reg.PC:X4} - {opcode:X2}");
 
+        IncrementRegisterR();
         int cycles = _mainOpcodes[opcode]();
 
         if (!EI_Pending) return cycles;
@@ -85,6 +126,11 @@ public class z80Cpu(Machine machine)
         _iff1 = true;
 
         return cycles;
+    }
+
+    private static ushort LEWord(byte highByte, byte lowByte)
+    {
+        return (ushort)((highByte << 8) | lowByte);
     }
 
     private void PushWord(ushort value)
@@ -101,7 +147,7 @@ public class z80Cpu(Machine machine)
         byte high = machine.ReadByte(Reg.SP);
         Reg.SP++;
         
-        ushort value = (ushort)((high << 8) | low);
+        ushort value = LEWord(high, low);
         return value;
     }
 
@@ -180,6 +226,7 @@ public class z80Cpu(Machine machine)
         _mainOpcodes[0x36] = Op_LD_ptrHL_n;
         _mainOpcodes[0x38] = Op_JR_C_e;
         _mainOpcodes[0x3A] = Op_LD_A_ptrNN;
+        _mainOpcodes[0x3B] = Op_DEC_SP;
         _mainOpcodes[0x3C] = Op_INC_A;
         _mainOpcodes[0x3D] = Op_DEC_A;
         _mainOpcodes[0x3E] = Op_LD_A_n;
@@ -311,12 +358,15 @@ public class z80Cpu(Machine machine)
 
         _mainOpcodes[0xC0] = Op_RET_NZ;
         _mainOpcodes[0xC1] = Op_POP_BC;
+        _mainOpcodes[0xC2] = Op_JP_NZ_nn;
         _mainOpcodes[0xC3] = Op_JP_nn;
         _mainOpcodes[0xC5] = Op_PUSH_BC;
+        _mainOpcodes[0xC6] = Op_ADD_A_n;
         _mainOpcodes[0xC7] = () => Op_RST(0x00);
         _mainOpcodes[0xC8] = Op_RET_Z;
         _mainOpcodes[0xC9] = Op_RET;
         _mainOpcodes[0xCA] = Op_JP_Z_nn;
+        _mainOpcodes[0xCB] = Op_CB;
         _mainOpcodes[0xCD] = Op_CALL_nn;
         _mainOpcodes[0xCF] = () => Op_RST(0x08);
 
@@ -326,6 +376,8 @@ public class z80Cpu(Machine machine)
         _mainOpcodes[0xD3] = Op_OUT_ptrn_A;
         _mainOpcodes[0xD5] = Op_PUSH_DE;
         _mainOpcodes[0xD7] = () => Op_RST(0x10);
+        _mainOpcodes[0xD9] = Op_EXX;
+        _mainOpcodes[0xDA] = Op_JP_C_nn;
         _mainOpcodes[0xDD] = Op_DD;
         _mainOpcodes[0xDF] = () => Op_RST(0x18);
 
@@ -339,6 +391,7 @@ public class z80Cpu(Machine machine)
         _mainOpcodes[0xEE] = Op_XOR_A_n;
         _mainOpcodes[0xEF] = () => Op_RST(0x28);
 
+        _mainOpcodes[0xF0] = Op_RET_P;
         _mainOpcodes[0xF1] = Op_POP_AF;
         _mainOpcodes[0xF3] = Op_DI;
         _mainOpcodes[0xF5] = Op_PUSH_AF;
@@ -362,6 +415,7 @@ public class z80Cpu(Machine machine)
         _ddOpcodes[0x77] = Op_LD_ptrIXd_A;
         _ddOpcodes[0x7E] = Op_LD_A_ptrIXd;
         _ddOpcodes[0xE1] = Op_POP_IX;
+        _ddOpcodes[0xE5] = Op_PUSH_IX;
 
         _edOpcodes[0x42] = Op_SBC_HL_BC;
         _edOpcodes[0x46] = Op_IM_0;
@@ -376,6 +430,8 @@ public class z80Cpu(Machine machine)
         _fdOpcodes[0x21] = Op_LD_IY_nn;
         _fdOpcodes[0x6E] = Op_LD_L_ptrIYd;
         _fdOpcodes[0xE1] = Op_POP_IY;
+
+        _cbOpcodes[0x7E] = Op_BIT_7_ptrHL;
     }
 
     private void InitParity()
@@ -392,21 +448,21 @@ public class z80Cpu(Machine machine)
     private void SetParity(byte value)
     {
         //flags.ParityOverflow = parity[value];
-        WriteFlag(Flags.PV, _parity[value]);
+        WriteFlag(Flags.P, _parity[value]);
     }
     private static void CheckINCOverflow(byte value)
     {
         if (value == 0x7F)
-            SetFlag(Flags.PV);
+            SetFlag(Flags.P);
         else
-            ClearFlag(Flags.PV);
+            ClearFlag(Flags.P);
     }
     private static void CheckDECOverflow(byte value)
     {
         if (value == 0x7F)
-            SetFlag(Flags.PV);
+            SetFlag(Flags.P);
         else
-            ClearFlag(Flags.PV);
+            ClearFlag(Flags.P);
     }
 
     public void Reset()
@@ -415,9 +471,10 @@ public class z80Cpu(Machine machine)
         machine.ClearRAM();
         Reg.PC = 0x0000;
         Reg.A = Reg.B = Reg.C = Reg.D = Reg.E = 0;
-        Reg.HL = 0x4000;
-        Reg.F = 0;
-        Reg.SP = 0xFFFF;
+        Reg.HL = 0x0000;
+        Reg.IX = Reg.IY = 0xFFFF;
+        Reg.F = 0x40;
+        Reg.SP = 0x0000;
         _iff1 = false;
         _halted = false;
         machine.ReadROMsIntoMemory();
@@ -439,6 +496,11 @@ public class z80Cpu(Machine machine)
     {
         return (Reg.F & (byte)f) != 0;
     }
+
+    private static string GetFlagDebugValue(Flags f)
+    {
+        return (Reg.F & (byte)f) != 0 ? f.ToString() : ".";
+    }
     private static void ToggleFlag(Flags f)
     {
         Reg.F = (byte)(Reg.F ^ (byte)f);
@@ -453,6 +515,8 @@ public class z80Cpu(Machine machine)
     {
         WriteFlag(Flags.Z, value == 0);
         WriteFlag(Flags.S, (value & 0x80) != 0);
+        WriteFlag(Flags.F5, (value & 0x20) != 0);
+        WriteFlag(Flags.F3, (value & 0x08) != 0);
     }
     
     private byte ImmediateValue() => machine.ReadByte((ushort)(Reg.PC + 1));
@@ -461,10 +525,10 @@ public class z80Cpu(Machine machine)
         // read word (little-endian direction)
         byte low = machine.ReadByte(addr);
         byte high = machine.ReadByte((ushort)(addr + 1));
-        return (ushort)((high << 8) | low);
+        return LEWord(high, low);
     }
 
-    private sbyte ReadSignedOffset() => (sbyte)ImmediateValue(); // needs to be sbyte to properly handled sign, allow for backward jumps
+    private sbyte ReadSignedOffset() => (sbyte)ImmediateValue(); // needs to be sbyte to properly handled sign
     
     // OPCODES AND HELPERS
     private int Op_UNK()
@@ -478,6 +542,7 @@ public class z80Cpu(Machine machine)
         byte opcode = ImmediateValue();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
+        IncrementRegisterR();
         return _ddOpcodes[opcode]();
     }
     private int Op_ED()
@@ -485,6 +550,7 @@ public class z80Cpu(Machine machine)
         byte opcode = ImmediateValue();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
+        IncrementRegisterR();
         return _edOpcodes[opcode]();
     }
     private int Op_FD()
@@ -492,7 +558,16 @@ public class z80Cpu(Machine machine)
         byte opcode = ImmediateValue();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
+        IncrementRegisterR();
         return _fdOpcodes[opcode]();
+    }
+    private int Op_CB()
+    {
+        byte opcode = ImmediateValue();
+        // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
+        Reg.PC++;
+        IncrementRegisterR();
+        return _cbOpcodes[opcode]();
     }
         
     private int AND(byte value, int cycles)
@@ -527,7 +602,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, ((acc & 0x0F) + (value & 0x0F)) > 0x0F);                
         ClearFlag(Flags.N);        
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((acc ^ result) & (value ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((acc ^ result) & (value ^ result) & 0x80) != 0);
 
         return (byte)sum;
     }
@@ -549,7 +624,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (acc & 0x0F) < (value & 0x0F));
         SetFlag(Flags.N); 
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
 
         return result;
     }
@@ -563,7 +638,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, ((acc & 0x0F) + (value & 0x0F) + carry) > 0x0F);                
         ClearFlag(Flags.N);        
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((acc ^ result) & (value ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((acc ^ result) & (value ^ result) & 0x80) != 0);
 
         return (byte)sum;        
     }
@@ -576,7 +651,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (acc & 0x0F) < ((value & 0x0F) + carry));
         SetFlag(Flags.N); 
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
 
         return result;
     }
@@ -591,7 +666,7 @@ public class z80Cpu(Machine machine)
 
         // 16-bit signed overflow detection
         bool overflow = ((acc ^ value) & (acc ^ result) & 0x8000) != 0;
-        WriteFlag(Flags.PV, overflow);
+        WriteFlag(Flags.P, overflow);
 
         // S/Z for 16-bit
         WriteFlag(Flags.S, (result & 0x8000) != 0);
@@ -599,6 +674,24 @@ public class z80Cpu(Machine machine)
 
         return result;
     }
+    private int BIT(byte n, byte value, bool isMemory = false)
+    {
+        // Test the bit
+        bool bitSet = (value & (1 << n)) != 0;
+
+        // Flags
+        ClearFlag(Flags.N);            // N always cleared
+        WriteFlag(Flags.H, true);              // H always set
+        WriteFlag(Flags.S, n == 7 && bitSet); // S only set for bit 7
+        WriteFlag(Flags.Z, !bitSet);         // Z set if bit is 0
+        WriteFlag(Flags.P, !bitSet);       // PV mirrors Z
+        WriteFlag(Flags.F5, (value & 0x20) != 0); // undocumented F5
+        WriteFlag(Flags.F3, (value & 0x08) != 0); // undocumented F3
+
+        // Return cycles
+        return isMemory ? 12 : 8; // 12 cycles if operand is (HL), else 8
+    }
+    
     private void LOAD_ptrIXd(byte reg)
     {
         sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
@@ -621,11 +714,11 @@ public class z80Cpu(Machine machine)
         Reg.BC -= 1;
         if(Reg.BC != 0)
         {
-            SetFlag(Flags.PV);
+            SetFlag(Flags.P);
         }
         else
         {
-            ClearFlag(Flags.PV);
+            ClearFlag(Flags.P);
             Reg.PC += 1;
         }
 
@@ -664,7 +757,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (n & 0x0F));
         SetFlag(Flags.N);
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((Reg.A ^ n) & (Reg.A ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((Reg.A ^ n) & (Reg.A ^ result) & 0x80) != 0);
 
         Reg.PC += 2;
         return 7;
@@ -677,7 +770,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (Reg.C & 0x0F));
         SetFlag(Flags.N);
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((Reg.A ^ Reg.C) & (Reg.A ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((Reg.A ^ Reg.C) & (Reg.A ^ result) & 0x80) != 0);
 
         Reg.PC += 1;
         return 4;
@@ -691,12 +784,19 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
         SetFlag(Flags.N);
         SetSZFlags(result);
-        WriteFlag(Flags.PV, ((Reg.A ^ value) & (Reg.A ^ result) & 0x80) != 0);
+        WriteFlag(Flags.P, ((Reg.A ^ value) & (Reg.A ^ result) & 0x80) != 0);
 
         Reg.PC += 1;
         return 7;
     }
-    
+
+    private int Op_ADD_A_n()
+    {
+        Reg.A = ADD(Reg.A, ImmediateValue());
+        Reg.PC += 2;
+        return 7;
+    }
+
     private static int Op_ADD_A_A() { Reg.A = ADD(Reg.A, Reg.A); Reg.PC += 1; return 4; }
     private static int Op_ADD_A_B() { Reg.A = ADD(Reg.A, Reg.B); Reg.PC += 1; return 4; }
     private static int Op_ADD_A_C() { Reg.A = ADD(Reg.A, Reg.C); Reg.PC += 1; return 4; }
@@ -842,6 +942,12 @@ public class z80Cpu(Machine machine)
     private int Op_OR_L() => OR(Reg.L, 4);
     private int Op_OR_ptrHL() => OR(machine.ReadByte(Reg.HL), 7);
 
+    private int Op_BIT_7_ptrHL()
+    {
+        byte value = machine.ReadByte(Reg.HL);
+        return BIT(7, value, isMemory: true);
+    }
+    
     private int Op_XOR_A_A()
     {
         // xor the accumulator with itself
@@ -883,6 +989,8 @@ public class z80Cpu(Machine machine)
     private int Op_PUSH_DE() { PushWord(Reg.DE); Reg.PC += 1; return 11; }
     private int Op_PUSH_HL() { PushWord(Reg.HL); Reg.PC += 1; return 11; }
     private int Op_PUSH_AF() { PushWord(Reg.AF); Reg.PC += 1; return 11; }
+
+    private int Op_PUSH_IX() { PushWord(Reg.IX); Reg.PC += 2; return 15; }
 
     private int Op_DI() { _iff1 = false; Reg.PC += 1; return 4; }
     private int Op_EI() { EI_Pending = true; Reg.PC += 1; return 4; }
@@ -974,6 +1082,9 @@ public class z80Cpu(Machine machine)
     private static int Op_DEC_E() { SetDecFlags(Reg.E); Reg.E--; Reg.PC += 1; return 4; }
     private static int Op_DEC_H() { SetDecFlags(Reg.H); Reg.H--; Reg.PC += 1; return 4; }
     private static int Op_DEC_L() { SetDecFlags(Reg.L); Reg.L--; Reg.PC += 1; return 4; }
+
+    private static int Op_DEC_SP() { Reg.SP--; Reg.PC += 1; return 6; }
+
     private int Op_DEC_ptrHL()
     {
         byte value = machine.ReadByte(Reg.HL);
@@ -1010,6 +1121,19 @@ public class z80Cpu(Machine machine)
         Reg.PC += 3;
         return 10;
     }
+    private int Op_JP_NZ_nn()
+    {
+        if(!GetFlag(Flags.Z))
+        {
+            // jump to address nn
+            ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            Reg.PC = address;
+            return 10;            
+        }
+
+        Reg.PC += 3;
+        return 10;
+    }
     private int Op_JP_M_nn()
     {
         if(GetFlag(Flags.S))
@@ -1019,6 +1143,18 @@ public class z80Cpu(Machine machine)
         else
         {
             Reg.PC += 3;
+        }
+        return 10;
+    }
+    private int Op_JP_C_nn()
+    {
+        if(GetFlag(Flags.C))
+        {
+            Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        }
+        else
+        {
+            Reg.PC += 3;            
         }
         return 10;
     }
@@ -1151,7 +1287,7 @@ public class z80Cpu(Machine machine)
     private int Op_OUT_ptrn_A()
     {
         byte n = ImmediateValue();
-        ushort port = (ushort)((Reg.I << 8) | n);
+        ushort port = LEWord(Reg.I, n);
         WritePort(port, Reg.A);
         Reg.PC += 2;
         return 11;
@@ -1205,6 +1341,16 @@ public class z80Cpu(Machine machine)
     private int Op_RET_M()
     {
         if(GetFlag(Flags.S))
+        {            
+            Reg.PC = PopWord();
+            return 11;
+        }       
+        Reg.PC += 1; 
+        return 5;
+    }
+    private int Op_RET_P()
+    {
+        if(!GetFlag(Flags.S))
         {            
             Reg.PC = PopWord();
             return 11;
@@ -1288,6 +1434,15 @@ public class z80Cpu(Machine machine)
         }        
         
         ClearFlag(Flags.N | Flags.H);
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private static int Op_EXX()
+    {
+        Reg.BC = Reg.BC2;
+        Reg.DE = Reg.DE2;
+        Reg.HL = Reg.HL2;
         Reg.PC += 1;
         return 4;
     }
