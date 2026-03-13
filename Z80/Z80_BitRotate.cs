@@ -2,38 +2,8 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    private int Op_CB()
-    {
-        byte opcode = PeekOpcode();
-        IncrementRegisterR();
-        return _cbOpcodes[opcode]();
-    }
     
-    private int BIT(byte n, byte value, bool isMemory = false)
-    {
-        // Test the bit
-        bool bitSet = (value & (1 << n)) != 0;
-
-        // Flags
-        ClearFlag(Flags.N);            // N always cleared
-        WriteFlag(Flags.H, true);              // H always set
-        WriteFlag(Flags.S, n == 7 && bitSet); // S only set for bit 7
-        WriteFlag(Flags.Z, !bitSet);         // Z set if bit is 0
-        WriteFlag(Flags.P, !bitSet);       // PV mirrors Z
-        WriteFlag(Flags.F5, (value & 0x20) != 0); // undocumented F5
-        WriteFlag(Flags.F3, (value & 0x08) != 0); // undocumented F3
-
-        // Return cycles
-        return isMemory ? 12 : 8; // 12 cycles if operand is (HL), else 8
-    }
-    
-    private int Op_BIT_7_ptrHL()
-    {
-        byte value = machine.ReadByte(Reg.HL);
-        Reg.PC += 2;
-        return BIT(7, value, isMemory: true);
-    }
-    private static int Op_RLCA()
+    private static int Op_RLCA() // Opcode: 07
     {
         if((Reg.A & 0x80) != 0)
         {
@@ -50,7 +20,7 @@ public partial class Z80
         Reg.PC += 1;
         return 4;
     }
-    private static int Op_RRCA()
+    private static int Op_RRCA() // Opcode: 0F
     {
         if((Reg.A & 0x01) != 0)
         {
@@ -68,7 +38,7 @@ public partial class Z80
         return 4;
     }
 
-    private static int Op_RRA()
+    private static int Op_RRA() // Opcode: 1F
     {
         int oldBit0 = Reg.A & 0x01;
         int carry = GetFlag(Flags.C) ? 1 : 0;
@@ -86,4 +56,6 @@ public partial class Z80
         Reg.PC += 1;
         return 4;
     }
+    
+    
 }

@@ -4,7 +4,7 @@ public partial class Z80
 {
     private int Op_FD()
     {
-        byte opcode = PeekOpcode();
+        byte opcode = PeekNextByte();
         IncrementRegisterR();
         return _fdOpcodes[opcode]();
     }

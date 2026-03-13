@@ -92,7 +92,6 @@ public partial class Z80(Machine machine)
             {
                 Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
             }
-            //Console.Clear();
         }
         byte opcode = machine.ReadByte(Reg.PC);
         
@@ -496,8 +495,8 @@ public partial class Z80(Machine machine)
     }
     private static void WriteFlag(Flags f, bool value)
     {
-        if (value) SetFlag(f);
-        else ClearFlag(f);
+        if (value) Reg.F |= (byte)f;
+        else Reg.F &= (byte)~f;
     }
 
     private static void SetSZFlags(byte value)
@@ -518,7 +517,7 @@ public partial class Z80(Machine machine)
                        (machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
     }
 
-    private byte PeekOpcode() => ReadImmediateByte();
+    private byte PeekNextByte() => ReadImmediateByte();
     private sbyte ReadSignedOffset() => (sbyte)ReadImmediateByte(); // needs to be sbyte to properly handled sign
     
     private int Op_UNK()

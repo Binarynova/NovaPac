@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Text.Json;
 
 namespace pacman;
 
@@ -56,6 +58,8 @@ public class Game1 : Game
         {
             if (Args[0] == "-debug")
                 SteppingThrough = true;
+            else if (Args[0] == "-sst")
+                RunSingleStepTests("tests/00.json");
         }
         
         if(mode == 0)
@@ -65,7 +69,6 @@ public class Game1 : Game
             Console.WriteLine(" 1) Play ROM");
             Console.WriteLine(" 2) Display Char ROM");
             Console.WriteLine(" 3) Display Sprite ROM");
-            Console.WriteLine(" 4) Single-Step Tests");
             Console.WriteLine(" Anything else) Quit");
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -80,9 +83,6 @@ public class Game1 : Game
                     break;
                 case ConsoleKey.D3:
                     mode = 3;
-                    break;
-                case ConsoleKey.D4:
-                    mode = 4;
                     break;
                 default:
                     Environment.Exit(0);
@@ -107,6 +107,7 @@ public class Game1 : Game
         ReadSprites();
         ReadColors();
         ReadPalettes();
+
     }
 
     protected override void Update(GameTime gameTime)
@@ -516,5 +517,37 @@ public class Game1 : Game
                 colors[machine.paletteROM[4*i + 3]]
             ]);
         }
+        // second 32 palettes are just black
+        for (int i = 0; i < 32; i++)
+        {
+            palettes.Add([
+            new Color(0,0,0,0),
+            new Color(0,0,0,0),
+            new Color(0,0,0,0),
+            new Color(0,0,0,0)]);
+        }
+    }
+
+    private void RunSingleStepTests(string testFile)
+    {
+        // Load
+        string json = File.ReadAllText(testFile);
+        var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+        
+        Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
+
+        Z80 cpu = new Z80(machine);
+        int passed = 0;
+        int failed = 0;
+
+        foreach (var test in tests)
+        {
+            // initialize CPU and memory from test.Initial
+            cpu.Reset();
+        }
+        
+        Console.WriteLine("Tests done. Press a key to QUIT.");
+        Console.ReadKey();
+        Environment.Exit(0);
     }
 }
