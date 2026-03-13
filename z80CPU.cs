@@ -550,6 +550,8 @@ public class z80Cpu(Machine machine)
         return (ushort)(machine.ReadByte((ushort)(Reg.PC + 1)) | 
                        (machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
     }
+
+    private byte PeekOpcode() => ReadImmediateByte();
     private sbyte ReadSignedOffset() => (sbyte)ReadImmediateByte(); // needs to be sbyte to properly handled sign
     
     // OPCODES AND HELPERS
@@ -561,33 +563,25 @@ public class z80Cpu(Machine machine)
     }
     private int Op_DD()
     {
-        byte opcode = ReadImmediateByte();
-        // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
-        Reg.PC++;
+        byte opcode = PeekOpcode();
         IncrementRegisterR();
         return _ddOpcodes[opcode]();
     }
     private int Op_ED()
     {
-        byte opcode = ReadImmediateByte();
-        // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
-        Reg.PC++;
+        byte opcode = PeekOpcode();
         IncrementRegisterR();
         return _edOpcodes[opcode]();
     }
     private int Op_FD()
     {
-        byte opcode = ReadImmediateByte();
-        // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
-        Reg.PC++;
+        byte opcode = PeekOpcode();
         IncrementRegisterR();
         return _fdOpcodes[opcode]();
     }
     private int Op_CB()
     {
-        byte opcode = ReadImmediateByte();
-        // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
-        Reg.PC++;
+        byte opcode = PeekOpcode();
         IncrementRegisterR();
         return _cbOpcodes[opcode]();
     }
@@ -725,7 +719,6 @@ public class z80Cpu(Machine machine)
  
     private int Op_LDIR()
     {
-        Reg.PC--;
         // Transfer one byte
         byte value = machine.ReadByte(Reg.HL);
         machine.WriteByte(Reg.DE, value, Reg.PC);
@@ -752,28 +745,28 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_IX_nn()
     {
+        // Bytes: 4, Cycles: 14
         // Fetch > Execute (registers, memory, flags) > Advance PC > Return cycles
-        
         ushort operand = ReadImmediateWord();
         Reg.IX = operand;
-        Reg.PC += 3;
+        Reg.PC += 4;
         return 14;
     }
     
-    private int Op_LD_ptrIXd_A() { LOAD_ptrIXd(Reg.A); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_B() { LOAD_ptrIXd(Reg.B); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_C() { LOAD_ptrIXd(Reg.C); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_D() { LOAD_ptrIXd(Reg.D); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_E() { LOAD_ptrIXd(Reg.E); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_H() { LOAD_ptrIXd(Reg.H); Reg.PC += 2; return 19; }
-    private int Op_LD_ptrIXd_L() { LOAD_ptrIXd(Reg.L); Reg.PC += 2; return 19; }
+    private int Op_LD_ptrIXd_A() { LOAD_ptrIXd(Reg.A); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_B() { LOAD_ptrIXd(Reg.B); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_C() { LOAD_ptrIXd(Reg.C); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_D() { LOAD_ptrIXd(Reg.D); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_E() { LOAD_ptrIXd(Reg.E); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_H() { LOAD_ptrIXd(Reg.H); Reg.PC += 3; return 19; }
+    private int Op_LD_ptrIXd_L() { LOAD_ptrIXd(Reg.L); Reg.PC += 3; return 19; }
     private int Op_LD_A_ptrIXd()
     {
         sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
         Reg.A = machine.ReadByte(addr);
         
-        Reg.PC += 2;
+        Reg.PC += 3;
         return 19;
     }
     
@@ -834,7 +827,7 @@ public class z80Cpu(Machine machine)
     private static int Op_ADD_A_H() { Reg.A = ADD(Reg.A, Reg.H); Reg.PC += 1; return 4; }
     private static int Op_ADD_A_L() { Reg.A = ADD(Reg.A, Reg.L); Reg.PC += 1; return 4; }
     private int Op_ADD_A_ptrHL() { Reg.A = ADD(Reg.A, machine.ReadByte(Reg.HL)); Reg.PC += 1; return 7; }
-    private static int Op_ADD_IX_DE() { Reg.IX = ADDWord(Reg.IX, Reg.DE); Reg.PC += 1; return 15; }
+    private static int Op_ADD_IX_DE() { Reg.IX = ADDWord(Reg.IX, Reg.DE); Reg.PC += 2; return 15; }
     private static int Op_ADD_HL_DE() { Reg.HL = ADDWord(Reg.HL, Reg.DE); Reg.PC += 1; return 11; }
 
     private static int Op_ADC_A_A() { Reg.A = ADC(Reg.A, Reg.A); Reg.PC += 1; return 4; }
@@ -870,10 +863,10 @@ public class z80Cpu(Machine machine)
     private static int Op_SBC_A_L() { Reg.A = SBC(Reg.A, Reg.L); Reg.PC += 1; return 4; }
     private int Op_SBC_A_ptrHL() { Reg.A = SBC(Reg.A, machine.ReadByte(Reg.HL)); Reg.PC += 1; return 7; }
 
-    private static int Op_SBC_HL_BC() { Reg.HL = SBCWord(Reg.HL, Reg.BC); Reg.PC += 1; return 15; }
-    private static int Op_SBC_HL_DE() { Reg.HL = SBCWord(Reg.HL, Reg.DE); Reg.PC += 1; return 15; }
-    private static int Op_SBC_HL_HL() { Reg.HL = SBCWord(Reg.HL, Reg.HL); Reg.PC += 1; return 15; }
-    private static int Op_SBC_HL_SP() { Reg.HL = SBCWord(Reg.HL, Reg.SP); Reg.PC += 1; return 15; }
+    private static int Op_SBC_HL_BC() { Reg.HL = SBCWord(Reg.HL, Reg.BC); Reg.PC += 2; return 15; }
+    private static int Op_SBC_HL_DE() { Reg.HL = SBCWord(Reg.HL, Reg.DE); Reg.PC += 2; return 15; }
+    private static int Op_SBC_HL_HL() { Reg.HL = SBCWord(Reg.HL, Reg.HL); Reg.PC += 2; return 15; }
+    private static int Op_SBC_HL_SP() { Reg.HL = SBCWord(Reg.HL, Reg.SP); Reg.PC += 2; return 15; }
 
     private static int Op_NOP() { Reg.PC += 1; return 4; }
 
@@ -940,7 +933,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_L_L() { Reg.PC += 1; return 4; }
     private int Op_LD_L_n() { Reg.L = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
-    private static int Op_LD_I_A() { Reg.I = Reg.A; Reg.PC += 1; return 9; }    
+    private static int Op_LD_I_A() { Reg.I = Reg.A; Reg.PC += 2; return 9; }    
 
     private int Op_LD_ptrHL_A() { machine.WriteByte(Reg.HL, Reg.A, Reg.PC); Reg.PC += 1; return 7; }
     private int Op_LD_ptrHL_B() { machine.WriteByte(Reg.HL, Reg.B, Reg.PC); Reg.PC += 1; return 7; }
@@ -985,7 +978,7 @@ public class z80Cpu(Machine machine)
     private int Op_BIT_7_ptrHL()
     {
         byte value = machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
+        Reg.PC += 2;
         return BIT(7, value, isMemory: true);
     }
     
@@ -1023,23 +1016,23 @@ public class z80Cpu(Machine machine)
     private int Op_POP_DE() { Reg.DE = PopWord(); Reg.PC += 1; return 10; }
     private int Op_POP_HL() { Reg.HL = PopWord(); Reg.PC += 1; return 10; }
     private int Op_POP_AF() { Reg.AF = PopWord(); Reg.F &= 0xD7; Reg.PC += 1; return 10; }
-    private int Op_POP_IX() { Reg.IX = PopWord(); Reg.PC += 1; return 14; }
-    private int Op_POP_IY() { Reg.IY = PopWord(); Reg.PC += 1; return 14; }
+    private int Op_POP_IX() { Reg.IX = PopWord(); Reg.PC += 2; return 14; }
+    private int Op_POP_IY() { Reg.IY = PopWord(); Reg.PC += 2; return 14; }
 
     private int Op_PUSH_BC() { PushWord(Reg.BC); Reg.PC += 1; return 11; }
     private int Op_PUSH_DE() { PushWord(Reg.DE); Reg.PC += 1; return 11; }
     private int Op_PUSH_HL() { PushWord(Reg.HL); Reg.PC += 1; return 11; }
     private int Op_PUSH_AF() { PushWord(Reg.AF); Reg.PC += 1; return 11; }
 
-    private int Op_PUSH_IX() { PushWord(Reg.IX); Reg.PC += 1; return 15; }
-    private int Op_PUSH_IY() { PushWord(Reg.IY); Reg.PC += 1; return 15; }
+    private int Op_PUSH_IX() { PushWord(Reg.IX); Reg.PC += 2; return 15; }
+    private int Op_PUSH_IY() { PushWord(Reg.IY); Reg.PC += 2; return 15; }
 
     private int Op_DI() { _iff1 = false; Reg.PC += 1; return 4; }
     private int Op_EI() { EI_Pending = true; Reg.PC += 1; return 4; }
 
-    private int Op_IM_0() { _interruptMode = 0; Reg.PC += 1; return 8; }
-    private int Op_IM_1() { _interruptMode = 1; Reg.PC += 1; return 8; }
-    private int Op_IM_2() { _interruptMode = 2; Reg.PC += 1; return 8; }
+    private int Op_IM_0() { _interruptMode = 0; Reg.PC += 2; return 8; }
+    private int Op_IM_1() { _interruptMode = 1; Reg.PC += 2; return 8; }
+    private int Op_IM_2() { _interruptMode = 2; Reg.PC += 2; return 8; }
     
     private int JR_Cond(Func<bool> condition)
     {
@@ -1292,7 +1285,7 @@ public class z80Cpu(Machine machine)
     private int Op_LD_IY_nn()
     {
         Reg.IY = ReadImmediateWord();
-        Reg.PC += 3;
+        Reg.PC += 4;
         return 14;
     }
     private int Op_LD_HL_ptrnn()
@@ -1307,7 +1300,7 @@ public class z80Cpu(Machine machine)
         ushort addr = (ushort)(Reg.IX + d);
         Reg.L = machine.ReadByte(addr);
         
-        Reg.PC += 2;
+        Reg.PC += 3;
         return 19;
     }
     private int Op_LD_DE_A()
