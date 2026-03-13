@@ -541,16 +541,16 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.F3, (value & 0x08) != 0);
     }
     
-    private byte ImmediateValue() => machine.ReadByte((ushort)(Reg.PC + 1));
-    private static ushort ImmediateExtendedValue(Machine machine, ushort addr)
+    byte ReadImmediateByte()
     {
-        // read word (little-endian direction)
-        byte low = machine.ReadByte(addr);
-        byte high = machine.ReadByte((ushort)(addr + 1));
-        return LEWord(high, low);
+        return machine.ReadByte((ushort)(Reg.PC + 1));
     }
-
-    private sbyte ReadSignedOffset() => (sbyte)ImmediateValue(); // needs to be sbyte to properly handled sign
+    ushort ReadImmediateWord()
+    {
+        return (ushort)(machine.ReadByte((ushort)(Reg.PC + 1)) | 
+                       (machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
+    }
+    private sbyte ReadSignedOffset() => (sbyte)ReadImmediateByte(); // needs to be sbyte to properly handled sign
     
     // OPCODES AND HELPERS
     private int Op_UNK()
@@ -561,7 +561,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_DD()
     {
-        byte opcode = ImmediateValue();
+        byte opcode = ReadImmediateByte();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
         IncrementRegisterR();
@@ -569,7 +569,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_ED()
     {
-        byte opcode = ImmediateValue();
+        byte opcode = ReadImmediateByte();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
         IncrementRegisterR();
@@ -577,7 +577,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_FD()
     {
-        byte opcode = ImmediateValue();
+        byte opcode = ReadImmediateByte();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
         IncrementRegisterR();
@@ -585,7 +585,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_CB()
     {
-        byte opcode = ImmediateValue();
+        byte opcode = ReadImmediateByte();
         // prefix opcodes increment Reg.PC by 1, remaining bytes should be incremented in suffix opcode
         Reg.PC++;
         IncrementRegisterR();
@@ -752,8 +752,14 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_IX_nn()
     {
-        Reg.IX = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        // 1. Fetch operands
+        // 2. Advance PC
+        // 3. Execute
+        // 4. Return cycles
+        
+        ushort operand = ReadImmediateWord();
         Reg.PC += 3;
+        Reg.IX = operand;
         return 14;
     }
     
@@ -776,7 +782,7 @@ public class z80Cpu(Machine machine)
     
     private int Op_CP_n()
     {
-        byte n = ImmediateValue();
+        byte n = ReadImmediateByte();
         byte result = (byte)(Reg.A - n);        
 
         WriteFlag(Flags.C, Reg.A < n);
@@ -818,7 +824,7 @@ public class z80Cpu(Machine machine)
 
     private int Op_ADD_A_n()
     {
-        Reg.A = ADD(Reg.A, ImmediateValue());
+        Reg.A = ADD(Reg.A, ReadImmediateByte());
         Reg.PC += 2;
         return 7;
     }
@@ -853,7 +859,7 @@ public class z80Cpu(Machine machine)
     private int Op_SUB_A_ptrHL() { Reg.A = SUB(Reg.A, machine.ReadByte(Reg.HL)); Reg.PC += 1; return 7; }
     private int Op_SUB_n()
     {
-        byte value = ImmediateValue();
+        byte value = ReadImmediateByte();
         Reg.A = SUB(Reg.A, value);
         Reg.PC += 2;
         return 7;
@@ -881,7 +887,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_A_E() { Reg.A = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_A_H() { Reg.A = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_A_L() { Reg.A = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_A_n() { Reg.A = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_A_n() { Reg.A = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_B_A() { Reg.B = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_B_B() { Reg.PC += 1; return 4; }
@@ -890,7 +896,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_B_E() { Reg.B = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_B_H() { Reg.B = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_B_L() { Reg.B = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_B_n() { Reg.B = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_B_n() { Reg.B = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_C_A() { Reg.C = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_C_B() { Reg.C = Reg.B; Reg.PC += 1; return 4; }
@@ -899,7 +905,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_C_E() { Reg.C = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_C_H() { Reg.C = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_C_L() { Reg.C = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_C_n() { Reg.C = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_C_n() { Reg.C = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_D_A() { Reg.D = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_D_B() { Reg.D = Reg.B; Reg.PC += 1; return 4; }
@@ -908,7 +914,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_D_E() { Reg.D = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_D_H() { Reg.D = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_D_L() { Reg.D = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_D_n() { Reg.D = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_D_n() { Reg.D = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_E_A() { Reg.E = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_E_B() { Reg.E = Reg.B; Reg.PC += 1; return 4; }
@@ -917,7 +923,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_E_E() { Reg.PC += 1; return 4; }
     private static int Op_LD_E_H() { Reg.E = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_E_L() { Reg.E = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_E_n() { Reg.E = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_E_n() { Reg.E = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_H_A() { Reg.H = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_H_B() { Reg.H = Reg.B; Reg.PC += 1; return 4; }
@@ -926,7 +932,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_H_E() { Reg.H = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_H_H() { Reg.PC += 1; return 4; }
     private static int Op_LD_H_L() { Reg.H = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_H_n() { Reg.H = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_H_n() { Reg.H = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_L_A() { Reg.L = Reg.A; Reg.PC += 1; return 4; }
     private static int Op_LD_L_B() { Reg.L = Reg.B; Reg.PC += 1; return 4; }
@@ -935,7 +941,7 @@ public class z80Cpu(Machine machine)
     private static int Op_LD_L_E() { Reg.L = Reg.E; Reg.PC += 1; return 4; }
     private static int Op_LD_L_H() { Reg.L = Reg.H; Reg.PC += 1; return 4; }
     private static int Op_LD_L_L() { Reg.PC += 1; return 4; }
-    private int Op_LD_L_n() { Reg.L = ImmediateValue(); Reg.PC += 2; return 7; }
+    private int Op_LD_L_n() { Reg.L = ReadImmediateByte(); Reg.PC += 2; return 7; }
 
     private static int Op_LD_I_A() { Reg.I = Reg.A; Reg.PC += 1; return 9; }    
 
@@ -965,7 +971,7 @@ public class z80Cpu(Machine machine)
     private int Op_AND_ptrHL() => AND(machine.ReadByte(Reg.HL), 7);
     private int Op_AND_n()
     {
-        byte value = ImmediateValue();
+        byte value = ReadImmediateByte();
         Reg.PC += 1;
         return AND(value, 7);
     }
@@ -1001,7 +1007,7 @@ public class z80Cpu(Machine machine)
     private int Op_XOR_A_n()
     {
         // xor the accumulator with itself
-        Reg.A = (byte)(Reg.A ^ ImmediateValue());
+        Reg.A = (byte)(Reg.A ^ ReadImmediateByte());
         Reg.PC += 2;
 
         SetSZFlags(Reg.A);
@@ -1040,7 +1046,7 @@ public class z80Cpu(Machine machine)
     
     private int JR_Cond(Func<bool> condition)
     {
-        sbyte offset = (sbyte)ImmediateValue();
+        sbyte offset = (sbyte)ReadImmediateByte();
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         if (condition())
@@ -1056,7 +1062,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_JR_e()
     {
-        sbyte offset = (sbyte)ImmediateValue();
+        sbyte offset = (sbyte)ReadImmediateByte();
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         Reg.PC = (ushort)(nextPC + offset);
@@ -1150,7 +1156,7 @@ public class z80Cpu(Machine machine)
     private int Op_JP_nn()
     {
         // jump to address nn
-        ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        ushort address = ReadImmediateWord();
         Reg.PC = address;
         return 10;
     }
@@ -1159,7 +1165,7 @@ public class z80Cpu(Machine machine)
         if(!GetFlag(Flags.C))
         {
             // jump to address nn
-            ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            ushort address = ReadImmediateWord();
             Reg.PC = address;
             return 10;            
         }
@@ -1172,7 +1178,7 @@ public class z80Cpu(Machine machine)
         if(!GetFlag(Flags.Z))
         {
             // jump to address nn
-            ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            ushort address = ReadImmediateWord();
             Reg.PC = address;
             return 10;            
         }
@@ -1184,7 +1190,7 @@ public class z80Cpu(Machine machine)
     {
         if(GetFlag(Flags.S))
         {
-            Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            Reg.PC = ReadImmediateWord();
         }
         else
         {
@@ -1196,7 +1202,7 @@ public class z80Cpu(Machine machine)
     {
         if(GetFlag(Flags.C))
         {
-            Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            Reg.PC = ReadImmediateWord();
         }
         else
         {
@@ -1208,7 +1214,7 @@ public class z80Cpu(Machine machine)
     {
         if(GetFlag(Flags.Z))
         {
-            Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            Reg.PC = ReadImmediateWord();
         }
         else
         {
@@ -1231,7 +1237,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_A_ptrNN()
     {
-        ushort addr = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        ushort addr = ReadImmediateWord();
         Reg.A = machine.ReadByte(addr);
         Reg.PC += 3;
         return 13;
@@ -1239,40 +1245,40 @@ public class z80Cpu(Machine machine)
     private int Op_LD_HL_nn()
     {
         // load nn into HL
-        Reg.HL = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.HL = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }    
     private int Op_LD_SP_nn()
     {
         // load nn into SP
-        Reg.SP = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.SP = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
     private int Op_LD_BC_nn()
     {
         // load nn into BC
-        Reg.BC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.BC = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
     private int Op_LD_ptrHL_n()
     {
-        machine.WriteByte(Reg.HL, ImmediateValue(), Reg.PC);
+        machine.WriteByte(Reg.HL, ReadImmediateByte(), Reg.PC);
         Reg.PC += 2;
         return 10;
     }
     private int Op_LD_DE_nn()
     {
-        Reg.DE = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.DE = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
     private int Op_LD_ptrnn_A()
     {
         // store value of Accumulator in memory at the location nn
-        ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        ushort address = ReadImmediateWord();
         machine.WriteByte(address, Reg.A, Reg.PC);
         Reg.PC += 3;
         return 13;
@@ -1280,7 +1286,7 @@ public class z80Cpu(Machine machine)
     private int Op_LD_ptrnn_HL()
     {
         // store value of HL in memory at the location nn
-        ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        ushort address = ReadImmediateWord();
         machine.WriteByte(address, Reg.L, Reg.PC);
         machine.WriteByte((ushort)(address + 1), Reg.H, Reg.PC);
         Reg.PC += 3;
@@ -1288,13 +1294,13 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_IY_nn()
     {
-        Reg.IY = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.IY = ReadImmediateWord();
         Reg.PC += 3;
         return 14;
     }
     private int Op_LD_HL_ptrnn()
     {
-        Reg.HL = machine.ReadByte(ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1)));
+        Reg.HL = machine.ReadByte(ReadImmediateWord());
         Reg.PC += 3;
         return 16;
     }
@@ -1332,7 +1338,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_OUT_ptrn_A()
     {
-        byte n = ImmediateValue();
+        byte n = ReadImmediateByte();
         ushort port = LEWord(Reg.I, n);
         WritePort(port, Reg.A);
         Reg.PC += 2;
@@ -1425,7 +1431,7 @@ public class z80Cpu(Machine machine)
     private int Op_CALL_nn()
     {
         PushWord((ushort)(Reg.PC + 3));
-        Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+        Reg.PC = ReadImmediateWord();
         return 17;
     }
     private int Op_CALL_M_nn()
@@ -1433,7 +1439,7 @@ public class z80Cpu(Machine machine)
         if(GetFlag(Flags.S))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
+            Reg.PC = ReadImmediateWord();
             return 17;
         }
         else
