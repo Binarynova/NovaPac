@@ -46,7 +46,7 @@ public class Machine
                 Console.WriteLine($"PALETTE write at {address:X4}: {value:X2}. PC:{PC:X4}");
                 if (value > 0x1F)
                 {
-                    Console.Clear();
+                    //Console.Clear();
                 }
                 //Console.ReadKey();    
                 break;

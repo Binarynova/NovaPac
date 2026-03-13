@@ -93,7 +93,7 @@ public class z80Cpu(Machine machine)
             {
                 Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
             }
-            Console.Clear();
+            //Console.Clear();
         }
         byte opcode = machine.ReadByte(Reg.PC);
         
@@ -586,7 +586,7 @@ public class z80Cpu(Machine machine)
         return _cbOpcodes[opcode]();
     }
         
-    private int AND(byte value, int cycles)
+    private void AND(byte value)
     {
         Reg.A &= value;
 
@@ -597,19 +597,14 @@ public class z80Cpu(Machine machine)
         
         WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
         WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
-        Reg.PC += 1;
-        return cycles;
     }
-    private int OR(byte value, int cycles)
+    private void OR(byte value)
     {
         Reg.A |= value;
 
         ClearFlag(Flags.C | Flags.N | Flags.H);
         SetSZFlags(Reg.A);
         SetParity(Reg.A);
-
-        Reg.PC += 1;
-        return cycles;
     }
     private static byte ADD(byte acc, byte value)
     {
@@ -951,29 +946,30 @@ public class z80Cpu(Machine machine)
     private int Op_LD_H_ptrHL() { Reg.H = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
     private int Op_LD_L_ptrHL() { Reg.L = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
 
-    private int Op_AND_A() => AND(Reg.A, 4);
-    private int Op_AND_B() => AND(Reg.B, 4);
-    private int Op_AND_C() => AND(Reg.C, 4);
-    private int Op_AND_D() => AND(Reg.D, 4);
-    private int Op_AND_E() => AND(Reg.E, 4);
-    private int Op_AND_H() => AND(Reg.H, 4);
-    private int Op_AND_L() => AND(Reg.L, 4);
-    private int Op_AND_ptrHL() => AND(machine.ReadByte(Reg.HL), 7);
+    private int Op_AND_A() { AND(Reg.A); Reg.PC += 1; return 4; }
+    private int Op_AND_B() { AND(Reg.B); Reg.PC += 1; return 4; }
+    private int Op_AND_C() { AND(Reg.C); Reg.PC += 1; return 4; }
+    private int Op_AND_D() { AND(Reg.D); Reg.PC += 1; return 4; }
+    private int Op_AND_E() { AND(Reg.E); Reg.PC += 1; return 4; }
+    private int Op_AND_H() { AND(Reg.H); Reg.PC += 1; return 4; }
+    private int Op_AND_L() { AND(Reg.L); Reg.PC += 1; return 4; }
+    private int Op_AND_ptrHL() { AND(machine.ReadByte(Reg.HL)); Reg.PC += 1; return 7; }
+
     private int Op_AND_n()
     {
         byte value = ReadImmediateByte();
+        AND(value);
         Reg.PC += 1;
-        return AND(value, 7);
+        return 7;
     }
-
-    private int Op_OR_A() => OR(Reg.A, 4);
-    private int Op_OR_B() => OR(Reg.B, 4);
-    private int Op_OR_C() => OR(Reg.C, 4);
-    private int Op_OR_D() => OR(Reg.D, 4);
-    private int Op_OR_E() => OR(Reg.E, 4);
-    private int Op_OR_H() => OR(Reg.H, 4);
-    private int Op_OR_L() => OR(Reg.L, 4);
-    private int Op_OR_ptrHL() => OR(machine.ReadByte(Reg.HL), 7);
+    private int Op_OR_A() { OR(Reg.A); Reg.PC += 1; return 4; }
+    private int Op_OR_B() { OR(Reg.B); Reg.PC += 1; return 4; }
+    private int Op_OR_C() { OR(Reg.C); Reg.PC += 1; return 4; }
+    private int Op_OR_D() { OR(Reg.D); Reg.PC += 1; return 4; }
+    private int Op_OR_E() { OR(Reg.E); Reg.PC += 1; return 4; }
+    private int Op_OR_H() { OR(Reg.H); Reg.PC += 1; return 4; }
+    private int Op_OR_L() { OR(Reg.L); Reg.PC += 1; return 4; }
+    private int Op_OR_ptrHL() { OR(machine.ReadByte(Reg.HL)); Reg.PC += 1; return 7; }
 
     private int Op_BIT_7_ptrHL()
     {
