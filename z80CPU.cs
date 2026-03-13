@@ -752,14 +752,11 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_IX_nn()
     {
-        // 1. Fetch operands
-        // 2. Advance PC
-        // 3. Execute
-        // 4. Return cycles
+        // Fetch > Execute (registers, memory, flags) > Advance PC > Return cycles
         
         ushort operand = ReadImmediateWord();
-        Reg.PC += 3;
         Reg.IX = operand;
+        Reg.PC += 3;
         return 14;
     }
     
