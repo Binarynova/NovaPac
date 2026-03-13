@@ -28,19 +28,10 @@ public class Machine
             return;
         RAM[address] = value;
         
-        // debug to fill tiles with numbers
-        //for(int loc = 0x43C0; loc <= 0x43FF; loc++)
-        //    RAM[loc] = 0x0;
-        //for(int loc = 0x4040; loc <= 0x43BF; loc++)
-        //    RAM[loc] = 0x1;
-        //for(int loc = 0x4000; loc <= 0x403F; loc++)
-        //    RAM[loc] = 0x2;
-
         switch (address)
         {
             case >= TILES_START and < TILES_END:
                 Console.WriteLine($"VRAM write at {address:X4}: {value:X2}");
-                //Console.ReadKey();    
                 break;
             case >= PALETTE_START and < PALETTE_END:
                 Console.WriteLine($"PALETTE write at {address:X4}: {value:X2}. PC:{PC:X4}");

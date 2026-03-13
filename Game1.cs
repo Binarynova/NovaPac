@@ -64,6 +64,8 @@ public class Game1 : Game
             Console.WriteLine("------------");
             Console.WriteLine(" 1) Play ROM");
             Console.WriteLine(" 2) Display Char ROM");
+            Console.WriteLine(" 3) Display Sprite ROM");
+            Console.WriteLine(" 4) Single-Step Tests");
             Console.WriteLine(" Anything else) Quit");
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -75,6 +77,12 @@ public class Game1 : Game
                     break;
                 case ConsoleKey.D2:
                     mode = 2;
+                    break;
+                case ConsoleKey.D3:
+                    mode = 3;
+                    break;
+                case ConsoleKey.D4:
+                    mode = 4;
                     break;
                 default:
                     Environment.Exit(0);
@@ -164,6 +172,12 @@ public class Game1 : Game
                 }
             }
         }
+        else if (mode is 4)
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
+        }
+            
         
         _previousKeyboardState = keyboardState;
         base.Update(gameTime);
@@ -196,8 +210,6 @@ public class Game1 : Game
                     int yPos = tileRow * 8 * pixelScale;
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    if(paletteNumber > 0x1A)
-                        Console.Clear();
                     DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
@@ -212,8 +224,6 @@ public class Game1 : Game
                     int yPos = 48 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    if(paletteNumber > 0x1A)
-                        Console.Clear();
                     DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
@@ -228,8 +238,6 @@ public class Game1 : Game
                     int yPos = 816 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    if(paletteNumber > 0x1A)
-                        Console.Clear();
                     DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
