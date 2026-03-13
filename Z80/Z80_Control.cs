@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class z80Cpu
+public partial class Z80
 {
     private static int Op_NOP() { Reg.PC += 1; return 4; }
     private int Op_HALT() { _halted = true; return 4; }

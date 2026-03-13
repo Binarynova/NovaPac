@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Reg = Registers;
 
-public partial class z80Cpu(Machine machine)
+public partial class Z80(Machine machine)
 {
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;

@@ -1,7 +1,7 @@
 using System;
 using Reg = Registers;
 
-public partial class z80Cpu
+public partial class Z80
 {
     private int JR_Cond(Func<bool> condition)
     {

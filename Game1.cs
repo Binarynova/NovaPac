@@ -20,7 +20,7 @@ public class Game1 : Game
     StreamWriter trace;
     
     Machine machine;
-    z80Cpu cpu;
+    Z80 cpu;
 
     long totalCyclesExecuted;
     int interruptCycleCounter;
@@ -49,7 +49,7 @@ public class Game1 : Game
     protected override void Initialize()
     {
         machine = new Machine();
-        cpu = new z80Cpu(machine);        
+        cpu = new Z80(machine);        
 
         base.Initialize();
         if (Args.Length != 0)

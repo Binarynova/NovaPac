@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class z80Cpu
+public partial class Z80
 {
     private int Op_CB()
     {
