@@ -4,7 +4,7 @@ using System.IO;
 public class Machine
 {
     private byte[] RAM = new byte[0x10000];
-    private byte[] paletteROM;
+    public byte[] paletteROM;
     public byte[] charROM;
     public byte[] spriteROM;
     private const ushort TILES_START = 0x4000;
@@ -22,7 +22,7 @@ public class Machine
         return (ushort)(RAM[address] << 8 | RAM[address+1]);
     }
 
-    public void WriteByte(ushort address, byte value)
+    public void WriteByte(ushort address, byte value, ushort PC)
     {
         if(address < 0x4000)
             return;
@@ -43,7 +43,11 @@ public class Machine
                 //Console.ReadKey();    
                 break;
             case >= PALETTE_START and < PALETTE_END:
-                Console.WriteLine($"PALETTE write at {address:X4}: {value:X2}");
+                Console.WriteLine($"PALETTE write at {address:X4}: {value:X2}. PC:{PC:X4}");
+                if (value > 0x1F)
+                {
+                    Console.Clear();
+                }
                 //Console.ReadKey();    
                 break;
         }

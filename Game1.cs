@@ -33,6 +33,8 @@ public class Game1 : Game
     
     List<int[,]> tiles = [];
     List<int[,]> sprites = [];
+    List<Color> colors = [];
+    List<List<Color>> palettes = [];
 
     public Game1(string[] args)
     {
@@ -95,6 +97,8 @@ public class Game1 : Game
         cpu.Reset();
         ReadTiles();
         ReadSprites();
+        ReadColors();
+        ReadPalettes();
     }
 
     protected override void Update(GameTime gameTime)
@@ -187,10 +191,14 @@ public class Game1 : Game
                 for(int tileCol = 0; tileCol < 32; tileCol++)
                 {
                     ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
+                    ushort pram = (ushort)(vram + 0x400);
                     int xPos = 696 - (tileCol * 8 * pixelScale);
                     int yPos = tileRow * 8 * pixelScale;
                     byte tileNumber = machine.ReadByte(vram);
-                    DrawTile(tileNumber, xPos, yPos);
+                    byte paletteNumber = machine.ReadByte(pram);
+                    if(paletteNumber > 0x1A)
+                        Console.Clear();
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -199,10 +207,14 @@ public class Game1 : Game
                 for(int tileCol = 0; tileCol < 28; tileCol++)
                 {
                     ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
+                    ushort pram = (ushort)(vram + 0x400);
                     int xPos = 648 - (tileCol * 8 * pixelScale);
                     int yPos = 48 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
-                    DrawTile(tileNumber, xPos, yPos);
+                    byte paletteNumber = machine.ReadByte(pram);
+                    if(paletteNumber > 0x1A)
+                        Console.Clear();
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -211,10 +223,14 @@ public class Game1 : Game
                 for(int tileCol = 0; tileCol < 32; tileCol++)
                 {
                     ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
+                    ushort pram = (ushort)(vram + 0x400);
                     int xPos = 696 - (tileCol * 8 * pixelScale);
                     int yPos = 816 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
-                    DrawTile(tileNumber, xPos, yPos);
+                    byte paletteNumber = machine.ReadByte(pram);
+                    if(paletteNumber > 0x1A)
+                        Console.Clear();
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -233,7 +249,7 @@ public class Game1 : Game
                     int tileIndex = j * 16 + i;
                     int tileXPos = i * (tileWidth * pixelScale + offset) + offset;
                     int tileYPos = j * (tileWidth * pixelScale + offset) + offset;
-                    DrawTile(tileIndex, tileXPos, tileYPos);
+                    DrawTile(tileIndex, 1, tileXPos, tileYPos);
                 }
             }
 
@@ -295,38 +311,18 @@ public class Game1 : Game
         return paletteValue;
     }
 
-    void DrawTile(int tileIndex, int xPos, int yPos)
+    void DrawTile(int tileIndex, int paletteIndex, int xPos, int yPos)
     {
         for(int i = 0; i < 8; i++)
         {
-            int x = (i * pixelScale);
+            int x = i * pixelScale;
             for(int j = 0; j < 8; j++)
             {
-                int y = (j * pixelScale);
-                if(tiles[tileIndex][i,j] == 0)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
-                    new Color(0,0,0));
-                }
-                else if(tiles[tileIndex][i,j] == 1)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
-                    new Color(222,222,225));
-                }
-                else if(tiles[tileIndex][i,j] == 2)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
-                    new Color(33,33,255));
-                }
-                else if(tiles[tileIndex][i,j] == 3)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
-                    new Color(255,0,0));
-                }
+                int y = j * pixelScale;
+                int colorIndex = tiles[tileIndex][i, j];
+                _spriteBatch.Draw(pixelTexture,
+                    new Rectangle(x + xPos, y + yPos, pixelScale, pixelScale),
+                    palettes[paletteIndex][colorIndex]);
             }
         }
     }
@@ -470,6 +466,47 @@ public class Game1 : Game
             }
             
             tiles.Add(tile);
+        }
+    }
+
+    void ReadColors()
+    {
+        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
+        colors =
+        [
+            new Color(0, 0, 0),
+            new Color(255, 0, 0),
+            new Color(222, 151, 81),
+            new Color(255, 184, 255),
+            new Color(0, 0, 0),
+            new Color(0, 255, 255),
+            new Color(71, 184, 255),
+            new Color(255, 184, 81),
+            new Color(0, 0, 0),
+            new Color(255, 255, 0),
+            new Color(0, 0, 0),
+            new Color(33, 33, 255),
+            new Color(0, 255, 0),
+            new Color(71, 184, 174),
+            new Color(255, 184, 174),
+            new Color(222, 222, 255)
+        ];
+        for (int i = 16; i < 32; i++)
+        {
+            colors.Add(new Color(0, 0, 0));
+        }
+    }
+
+    void ReadPalettes()
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            palettes.Add([
+                colors[machine.paletteROM[4*i + 0]],
+                colors[machine.paletteROM[4*i + 1]],
+                colors[machine.paletteROM[4*i + 2]],
+                colors[machine.paletteROM[4*i + 3]]
+            ]);
         }
     }
 }

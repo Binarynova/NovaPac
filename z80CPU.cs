@@ -9,7 +9,7 @@ public class z80Cpu(Machine machine)
     private bool _iff1;
     private bool _halted;
     int traceCount = 0;
-    int traceLimit = 1000000;
+    int traceLimit = 2700000;
 
     private StreamWriter trace;
 
@@ -60,9 +60,6 @@ public class z80Cpu(Machine machine)
                 Reg.PC = 0x38;
                 break;
             case 2:
-                trace.WriteLine();
-                trace.WriteLine($"   (interrupted at {Reg.PC+1:X4}, IRQ 0)");
-                trace.WriteLine();
                 ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
                 byte low = machine.ReadByte(vectorAddress);
                 byte high = machine.ReadByte(((ushort)(vectorAddress + 1)));
@@ -90,8 +87,12 @@ public class z80Cpu(Machine machine)
             }
         }
 
-        if (traceCount == 104895)
+        if (traceCount > 1870700)
         {
+            if(Reg.PC == 0x3055)
+            {
+                Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
+            }
             Console.Clear();
         }
         byte opcode = machine.ReadByte(Reg.PC);
@@ -154,9 +155,9 @@ public class z80Cpu(Machine machine)
     private void PushWord(ushort value)
     {
         Reg.SP--;                     // decrement stack pointer
-        machine.WriteByte(Reg.SP, Reg.HighByte(value)); // write high byte first
+        machine.WriteByte(Reg.SP, Reg.HighByte(value), Reg.PC); // write high byte first
         Reg.SP--;
-        machine.WriteByte(Reg.SP, Reg.LowByte(value));  // then low byte
+        machine.WriteByte(Reg.SP, Reg.LowByte(value), Reg.PC);  // then low byte
     }
     private ushort PopWord()
     {
@@ -234,6 +235,7 @@ public class z80Cpu(Machine machine)
         _mainOpcodes[0x2C] = Op_INC_L;
         _mainOpcodes[0x2D] = Op_DEC_L;
         _mainOpcodes[0x2E] = Op_LD_L_n;
+        _mainOpcodes[0x2F] = Op_RRA;
 
         _mainOpcodes[0x30] = Op_JR_NC_e;
         _mainOpcodes[0x31] = Op_LD_SP_nn;
@@ -449,6 +451,7 @@ public class z80Cpu(Machine machine)
         _fdOpcodes[0x21] = Op_LD_IY_nn;
         _fdOpcodes[0x6E] = Op_LD_L_ptrIYd;
         _fdOpcodes[0xE1] = Op_POP_IY;
+        _fdOpcodes[0xE5] = Op_PUSH_IY;
 
         _cbOpcodes[0x7E] = Op_BIT_7_ptrHL;
     }
@@ -597,8 +600,10 @@ public class z80Cpu(Machine machine)
         SetFlag(Flags.H);       
         SetSZFlags(Reg.A);
         SetParity(Reg.A);
-
-        Reg.PC += 1;        
+        
+        WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
+        WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
+        Reg.PC += 1;
         return cycles;
     }
     private int OR(byte value, int cycles)
@@ -715,33 +720,35 @@ public class z80Cpu(Machine machine)
     {
         sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
-        machine.WriteByte(addr, reg);
+        machine.WriteByte(addr, reg, Reg.PC);
     }
  
     private int Op_LDIR()
-    {        
-        ClearFlag(Flags.N | Flags.H);
-        if(Reg.BC == 0)
-        {
-            Reg.PC += 1;
-            return 16;
-        }
+    {
+        Reg.PC--;
+        // Transfer one byte
+        byte value = machine.ReadByte(Reg.HL);
+        machine.WriteByte(Reg.DE, value, Reg.PC);
 
-        machine.WriteByte(Reg.DE, machine.ReadByte(Reg.HL));
-        Reg.HL += 1;
-        Reg.DE += 1;
-        Reg.BC -= 1;
-        if(Reg.BC != 0)
+        Reg.HL++;
+        Reg.DE++;
+        Reg.BC--;
+
+        // Flags
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, Reg.BC != 0);  // repeat flag
+
+        // PC handling
+        if (Reg.BC == 0)
         {
-            SetFlag(Flags.P);
+            Reg.PC += 2;  // move past ED B0
+            return 16;    // last iteration cycles
         }
         else
         {
-            ClearFlag(Flags.P);
-            Reg.PC += 1;
+            // stay on ED B0 until BC == 0
+            return 21;    // cycles per iteration
         }
-
-        return (Reg.BC != 0) ? 21 : 16;
     }
     private int Op_LD_IX_nn()
     {
@@ -932,13 +939,13 @@ public class z80Cpu(Machine machine)
 
     private static int Op_LD_I_A() { Reg.I = Reg.A; Reg.PC += 1; return 9; }    
 
-    private int Op_LD_ptrHL_A() { machine.WriteByte(Reg.HL, Reg.A); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_B() { machine.WriteByte(Reg.HL, Reg.B); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_C() { machine.WriteByte(Reg.HL, Reg.C); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_D() { machine.WriteByte(Reg.HL, Reg.D); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_E() { machine.WriteByte(Reg.HL, Reg.E); Reg.PC += 1; return 7; }    
-    private int Op_LD_ptrHL_H() { machine.WriteByte(Reg.HL, Reg.H); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_L() { machine.WriteByte(Reg.HL, Reg.L); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_A() { machine.WriteByte(Reg.HL, Reg.A, Reg.PC); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_B() { machine.WriteByte(Reg.HL, Reg.B, Reg.PC); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_C() { machine.WriteByte(Reg.HL, Reg.C, Reg.PC); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_D() { machine.WriteByte(Reg.HL, Reg.D, Reg.PC); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_E() { machine.WriteByte(Reg.HL, Reg.E, Reg.PC); Reg.PC += 1; return 7; }    
+    private int Op_LD_ptrHL_H() { machine.WriteByte(Reg.HL, Reg.H, Reg.PC); Reg.PC += 1; return 7; }
+    private int Op_LD_ptrHL_L() { machine.WriteByte(Reg.HL, Reg.L, Reg.PC); Reg.PC += 1; return 7; }
 
     private int Op_LD_A_ptrHL() { Reg.A = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
     private int Op_LD_B_ptrHL() { Reg.B = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
@@ -975,6 +982,7 @@ public class z80Cpu(Machine machine)
     private int Op_BIT_7_ptrHL()
     {
         byte value = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
         return BIT(7, value, isMemory: true);
     }
     
@@ -1020,7 +1028,8 @@ public class z80Cpu(Machine machine)
     private int Op_PUSH_HL() { PushWord(Reg.HL); Reg.PC += 1; return 11; }
     private int Op_PUSH_AF() { PushWord(Reg.AF); Reg.PC += 1; return 11; }
 
-    private int Op_PUSH_IX() { PushWord(Reg.IX); Reg.PC += 2; return 15; }
+    private int Op_PUSH_IX() { PushWord(Reg.IX); Reg.PC += 1; return 15; }
+    private int Op_PUSH_IY() { PushWord(Reg.IY); Reg.PC += 1; return 15; }
 
     private int Op_DI() { _iff1 = false; Reg.PC += 1; return 4; }
     private int Op_EI() { EI_Pending = true; Reg.PC += 1; return 4; }
@@ -1090,7 +1099,7 @@ public class z80Cpu(Machine machine)
         CheckINCOverflow(target);
         Reg.PC += 1;
 
-        machine.WriteByte(Reg.HL, target);
+        machine.WriteByte(Reg.HL, target, Reg.PC);
         return 11;
     }
     
@@ -1128,7 +1137,7 @@ public class z80Cpu(Machine machine)
         WriteFlag(Flags.H, (value & 0x0F) == 0);       
         
         value--;
-        machine.WriteByte(Reg.HL, value);
+        machine.WriteByte(Reg.HL, value, Reg.PC);
 
         CheckDECOverflow(value);
         SetFlag(Flags.N);
@@ -1250,7 +1259,7 @@ public class z80Cpu(Machine machine)
     }
     private int Op_LD_ptrHL_n()
     {
-        machine.WriteByte(Reg.HL, ImmediateValue());
+        machine.WriteByte(Reg.HL, ImmediateValue(), Reg.PC);
         Reg.PC += 2;
         return 10;
     }
@@ -1264,7 +1273,7 @@ public class z80Cpu(Machine machine)
     {
         // store value of Accumulator in memory at the location nn
         ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
-        machine.WriteByte(address, Reg.A);
+        machine.WriteByte(address, Reg.A, Reg.PC);
         Reg.PC += 3;
         return 13;
     }
@@ -1272,8 +1281,8 @@ public class z80Cpu(Machine machine)
     {
         // store value of HL in memory at the location nn
         ushort address = ImmediateExtendedValue(machine, (ushort)(Reg.PC + 1));
-        machine.WriteByte(address, Reg.L);
-        machine.WriteByte((ushort)(address + 1), Reg.H);
+        machine.WriteByte(address, Reg.L, Reg.PC);
+        machine.WriteByte((ushort)(address + 1), Reg.H, Reg.PC);
         Reg.PC += 3;
         return 16;
     }
@@ -1301,7 +1310,7 @@ public class z80Cpu(Machine machine)
     private int Op_LD_DE_A()
     {
         // stores the value of A into RAM at address DE
-        machine.WriteByte(Reg.DE, Reg.A);
+        machine.WriteByte(Reg.DE, Reg.A, Reg.PC);
         Reg.PC += 1;
         return 7;
     }
@@ -1475,11 +1484,36 @@ public class z80Cpu(Machine machine)
         return 4;
     }
 
+    private static int Op_RRA()
+    {
+        int oldBit0 = Reg.A & 0x01;
+        int carry = GetFlag(Flags.C) ? 1 : 0;
+
+        if(oldBit0 == 0)
+            ClearFlag(Flags.C);
+        else
+            SetFlag(Flags.C);
+        
+        Reg.A = (byte)((Reg.A >> 1) | (carry << 7));
+
+        WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
+        WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
+        ClearFlag(Flags.H | Flags.N);
+        Reg.PC += 1;
+        return 4;
+    }
+
     private static int Op_EXX()
     {
+        ushort temp = Reg.BC;
+        ushort temp2 = Reg.DE;
+        ushort temp3 = Reg.HL;
         Reg.BC = Reg.BC2;
         Reg.DE = Reg.DE2;
         Reg.HL = Reg.HL2;
+        Reg.BC2 = temp;
+        Reg.DE2 = temp2;
+        Reg.HL2 = temp3;
         Reg.PC += 1;
         return 4;
     }
