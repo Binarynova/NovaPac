@@ -2,135 +2,222 @@ using Reg = Registers;
 
 public partial class Z80
 {
+    private static int Op_LD_A(byte register) // Opcode: 78 79 7A 7B 7C 7D 7F
+    {
+        Reg.A = register;
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private int Op_LD_A_n() // Opcode: 3E
+    {
+        Reg.A = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
     
+    private static int Op_LD_B(byte register) // Opcode: 40 41 42 43 44 45 47
+    {
+        Reg.B = register;
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private int Op_LD_B_n() // Opcode: 06
+    {
+        Reg.B = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
     
-    private static int Op_LD_A_A() { Reg.PC += 1; return 4; }
-    private static int Op_LD_A_B() { Reg.A = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_A_C() { Reg.A = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_A_D() { Reg.A = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_A_E() { Reg.A = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_A_H() { Reg.A = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_A_L() { Reg.A = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_A_n() { Reg.A = ReadImmediateByte(); Reg.PC += 2; return 7; }
+    private static int Op_LD_C(byte register) // Opcode: 48 49 4A 4B 4C 4D 4F
+    {
+        Reg.C = register;
+        Reg.PC += 1;
+        return 4;
+    }
 
-    private static int Op_LD_B_A() { Reg.B = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_B_B() { Reg.PC += 1; return 4; }
-    private static int Op_LD_B_C() { Reg.B = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_B_D() { Reg.B = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_B_E() { Reg.B = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_B_H() { Reg.B = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_B_L() { Reg.B = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_B_n() { Reg.B = ReadImmediateByte(); Reg.PC += 2; return 7; }
+    private int Op_LD_C_n() // Opcode: 0E
+    {
+        Reg.C = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
 
-    private static int Op_LD_C_A() { Reg.C = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_C_B() { Reg.C = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_C_C() { Reg.PC += 1; return 4; }
-    private static int Op_LD_C_D() { Reg.C = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_C_E() { Reg.C = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_C_H() { Reg.C = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_C_L() { Reg.C = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_C_n() { Reg.C = ReadImmediateByte(); Reg.PC += 2; return 7; }
+    private static int Op_LD_D(byte register) // Opcode: 50 51 52 53 54 55 57
+    {
+        Reg.D = register;
+        Reg.PC += 1;
+        return 4;
+    }
 
-    private static int Op_LD_D_A() { Reg.D = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_D_B() { Reg.D = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_D_C() { Reg.D = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_D_D() { Reg.PC += 1; return 4; }
-    private static int Op_LD_D_E() { Reg.D = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_D_H() { Reg.D = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_D_L() { Reg.D = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_D_n() { Reg.D = ReadImmediateByte(); Reg.PC += 2; return 7; }
-
-    private static int Op_LD_E_A() { Reg.E = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_E_B() { Reg.E = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_E_C() { Reg.E = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_E_D() { Reg.E = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_E_E() { Reg.PC += 1; return 4; }
-    private static int Op_LD_E_H() { Reg.E = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_E_L() { Reg.E = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_E_n() { Reg.E = ReadImmediateByte(); Reg.PC += 2; return 7; }
-
-    private static int Op_LD_H_A() { Reg.H = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_H_B() { Reg.H = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_H_C() { Reg.H = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_H_D() { Reg.H = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_H_E() { Reg.H = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_H_H() { Reg.PC += 1; return 4; }
-    private static int Op_LD_H_L() { Reg.H = Reg.L; Reg.PC += 1; return 4; }
-    private int Op_LD_H_n() { Reg.H = ReadImmediateByte(); Reg.PC += 2; return 7; }
-
-    private static int Op_LD_L_A() { Reg.L = Reg.A; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_B() { Reg.L = Reg.B; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_C() { Reg.L = Reg.C; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_D() { Reg.L = Reg.D; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_E() { Reg.L = Reg.E; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_H() { Reg.L = Reg.H; Reg.PC += 1; return 4; }
-    private static int Op_LD_L_L() { Reg.PC += 1; return 4; }
-    private int Op_LD_L_n() { Reg.L = ReadImmediateByte(); Reg.PC += 2; return 7; }
-  
+    private int Op_LD_D_n() // Opcode: 16
+    {
+        Reg.D = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
     
-    private int Op_LD_ptrHL_A() { machine.WriteByte(Reg.HL, Reg.A, Reg.PC); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_B() { machine.WriteByte(Reg.HL, Reg.B, Reg.PC); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_C() { machine.WriteByte(Reg.HL, Reg.C, Reg.PC); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_D() { machine.WriteByte(Reg.HL, Reg.D, Reg.PC); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_E() { machine.WriteByte(Reg.HL, Reg.E, Reg.PC); Reg.PC += 1; return 7; }    
-    private int Op_LD_ptrHL_H() { machine.WriteByte(Reg.HL, Reg.H, Reg.PC); Reg.PC += 1; return 7; }
-    private int Op_LD_ptrHL_L() { machine.WriteByte(Reg.HL, Reg.L, Reg.PC); Reg.PC += 1; return 7; }
+    private static int Op_LD_E(byte register) // Opcode: 58 59 5A 5B 5C 5D 5F
+    {
+        Reg.E = register;
+        Reg.PC += 1;
+        return 4;
+    }
 
-    private int Op_LD_A_ptrHL() { Reg.A = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_B_ptrHL() { Reg.B = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_C_ptrHL() { Reg.C = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_D_ptrHL() { Reg.D = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_E_ptrHL() { Reg.E = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_H_ptrHL() { Reg.H = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
-    private int Op_LD_L_ptrHL() { Reg.L = machine.ReadByte(Reg.HL); Reg.PC += 1; return 7; }
+    private int Op_LD_E_n() // Opcode: 1E
+    {
+        Reg.E = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
     
-    private int Op_LD_A_ptrDE()
+    private static int Op_LD_H(byte register) // Opcode: 60 61 62 63 64 65 67
+    {
+        Reg.H = register;
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private int Op_LD_H_n() // Opcode: 26
+    {
+        Reg.H = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
+
+    private static int Op_LD_L(byte register) // Opcode: 68 69 6A 6B 6C 6D 6F
+    {
+        Reg.L = register;
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private int Op_LD_L_n() // Opcode: 2E
+    {
+        Reg.L = ReadImmediateByte();
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_ptrHL(byte register) // Opcode: 70 71 72 73 74 75 77
+    {
+        machine.WriteByte(Reg.HL, register, Reg.PC);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_A_ptrHL() // Opcode: 7E
+    {
+        Reg.A = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_B_ptrHL() // Opcode: 46
+    {
+        Reg.B = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_C_ptrHL() // Opcode: 4E
+    {
+        Reg.C = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_D_ptrHL() // Opcode: 56
+    {
+        Reg.D = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_E_ptrHL() // Opcode: 5E
+    {
+        Reg.E = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_H_ptrHL() // Opcode: 66
+    {
+        Reg.H = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_L_ptrHL() // Opcode: 6E
+    {
+        Reg.L = machine.ReadByte(Reg.HL);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_A_ptrDE() // Opcode: 1A
     {
         Reg.A = machine.ReadByte(Reg.DE);
         Reg.PC += 1;
         return 7;
     }
-    private int Op_LD_A_ptrNN()
+
+    private int Op_LD_A_ptrNN() // Opcode: 3A
     {
         ushort addr = ReadImmediateWord();
         Reg.A = machine.ReadByte(addr);
         Reg.PC += 3;
         return 13;
     }
-    private int Op_LD_HL_nn()
+
+    private int Op_LD_HL_nn() // Opcode: 2A
     {
         // load nn into HL
         Reg.HL = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
-    }    
-    private int Op_LD_SP_nn()
+    }
+
+    private int Op_LD_SP_nn() // Opcode: 31
     {
         // load nn into SP
         Reg.SP = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
-    private int Op_LD_BC_nn()
+
+    private int Op_LD_BC_nn() // Opcode: 01
     {
         // load nn into BC
         Reg.BC = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
-    private int Op_LD_ptrHL_n()
+
+    private int Op_LD_ptrHL_n() // Opcode: 36
     {
         machine.WriteByte(Reg.HL, ReadImmediateByte(), Reg.PC);
         Reg.PC += 2;
         return 10;
     }
-    private int Op_LD_DE_nn()
+
+    private int Op_LD_DE_nn() // Opcode: 11
     {
         Reg.DE = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
-    private int Op_LD_ptrnn_A()
+
+    private int Op_LD_DE_A() // Opcode: 12
+    {
+        // stores the value of A into RAM at address DE
+        machine.WriteByte(Reg.DE, Reg.A, Reg.PC);
+        Reg.PC += 1;
+        return 7;
+    }
+
+    private int Op_LD_ptrnn_A() // Opcode: 32
     {
         // store value of Accumulator in memory at the location nn
         ushort address = ReadImmediateWord();
@@ -138,7 +225,8 @@ public partial class Z80
         Reg.PC += 3;
         return 13;
     }
-    private int Op_LD_ptrnn_HL()
+
+    private int Op_LD_ptrnn_HL() // Opcode: 22
     {
         // store value of HL in memory at the location nn
         ushort address = ReadImmediateWord();
@@ -147,19 +235,11 @@ public partial class Z80
         Reg.PC += 3;
         return 16;
     }
-    
-    private int Op_LD_HL_ptrnn()
+
+    private int Op_LD_HL_ptrnn() // Opcode: 2A
     {
         Reg.HL = machine.ReadByte(ReadImmediateWord());
         Reg.PC += 3;
         return 16;
-    }
-    
-    private int Op_LD_DE_A()
-    {
-        // stores the value of A into RAM at address DE
-        machine.WriteByte(Reg.DE, Reg.A, Reg.PC);
-        Reg.PC += 1;
-        return 7;
     }
 }
