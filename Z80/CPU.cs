@@ -178,11 +178,15 @@ public partial class Z80(Machine machine)
 
         _mainOpcodes[0x00] = Op_NOP;
         _mainOpcodes[0x01] = Op_LD_BC_nn;
+        _mainOpcodes[0x02] = Op_LD_ptrBC_A;
         _mainOpcodes[0x03] = Op_INC_BC;
         _mainOpcodes[0x04] = Op_INC_B;
         _mainOpcodes[0x05] = Op_DEC_B;
         _mainOpcodes[0x06] = Op_LD_B_n;
         _mainOpcodes[0x07] = Op_RLCA;
+        _mainOpcodes[0x08] = Op_EX_AF_AF2;
+        _mainOpcodes[0x09] = Op_ADD_HL_BC;
+        _mainOpcodes[0x0A] = Op_LD_A_ptrBC;
         _mainOpcodes[0x0B] = Op_DEC_BC;
         _mainOpcodes[0x0C] = Op_INC_C;
         _mainOpcodes[0x0D] = Op_DEC_C;
@@ -191,7 +195,7 @@ public partial class Z80(Machine machine)
 
         _mainOpcodes[0x10] = Op_DJNZ_e;
         _mainOpcodes[0x11] = Op_LD_DE_nn;
-        _mainOpcodes[0x12] = Op_LD_DE_A;
+        _mainOpcodes[0x12] = Op_LD_ptrDE_A;
         _mainOpcodes[0x13] = Op_INC_DE;
         _mainOpcodes[0x14] = Op_INC_D;
         _mainOpcodes[0x15] = Op_DEC_D;

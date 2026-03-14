@@ -35,6 +35,14 @@ public partial class Z80
         Reg.PC += 1;
         return 4;
     }
+    
+    private static int Op_EX_AF_AF2() // Opcode: 08
+    {
+        (Reg.AF, Reg.AF2) = (Reg.AF2, Reg.AF); // tuples from .NET 7 allow swapping values without a temp var
+
+        Reg.PC += 1;
+        return 4;
+    }
 
     private static int Op_EX_DE_HL() // Opcode: EB
     {

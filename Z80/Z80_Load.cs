@@ -156,6 +156,13 @@ public partial class Z80
         return 7;
     }
 
+    private int Op_LD_A_ptrBC() // Opcode: 0A
+    {
+        Reg.A = machine.ReadByte(Reg.BC);
+        Reg.PC += 1;
+        return 7;
+    }
+
     private int Op_LD_A_ptrDE() // Opcode: 1A
     {
         Reg.A = machine.ReadByte(Reg.DE);
@@ -193,8 +200,15 @@ public partial class Z80
         Reg.PC += 3;
         return 10;
     }
+    
+    private int Op_LD_ptrBC_A() // Opcode: 02
+    {
+        machine.WriteByte(Reg.BC, Reg.A, Reg.PC);
+        Reg.PC += 1;
+        return 7;
+    }
 
-    private int Op_LD_DE_A() // Opcode: 12
+    private int Op_LD_ptrDE_A() // Opcode: 12
     {
         // stores the value of A into RAM at address DE
         machine.WriteByte(Reg.DE, Reg.A, Reg.PC);

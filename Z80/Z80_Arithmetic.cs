@@ -60,6 +60,13 @@ public partial class Z80
         return 7;
     }
 
+    private static int Op_ADD_HL_BC() // Opcode: 09
+    {
+        Reg.HL = ADDWord(Reg.HL, Reg.BC);
+        Reg.PC += 1;
+        return 11;
+    }
+
     private static int Op_ADD_HL_DE() // Opcode: 19
     {
         Reg.HL = ADDWord(Reg.HL, Reg.DE);
