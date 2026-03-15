@@ -4,51 +4,9 @@ public partial class Z80
 {
     #region ADD
 
-    private static int Op_ADD_A_A() // Opcode: 87
+    private int Op_ADD_A(byte register)
     {
-        Reg.A = ADD(Reg.A, Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_B() // Opcode: 80
-    {
-        Reg.A = ADD(Reg.A, Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_C() // Opcode: 81
-    {
-        Reg.A = ADD(Reg.A, Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_D() // Opcode: 82
-    {
-        Reg.A = ADD(Reg.A, Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_E() // Opcode: 83
-    {
-        Reg.A = ADD(Reg.A, Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_H() // Opcode: 84
-    {
-        Reg.A = ADD(Reg.A, Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADD_A_L() // Opcode: 85
-    {
-        Reg.A = ADD(Reg.A, Reg.L);
+        Reg.A = ADD(Reg.A, register);
         Reg.PC += 1;
         return 4;
     }
@@ -70,6 +28,13 @@ public partial class Z80
     private static int Op_ADD_HL_DE() // Opcode: 19
     {
         Reg.HL = ADDWord(Reg.HL, Reg.DE);
+        Reg.PC += 1;
+        return 11;
+    }
+
+    private static int Op_ADD_HL_HL() // Opcode: 29
+    {
+        Reg.HL = ADDWord(Reg.HL, Reg.HL);
         Reg.PC += 1;
         return 11;
     }
@@ -380,62 +345,14 @@ public partial class Z80
 
     #region DEC
 
-    private static int Op_DEC_A() // Opcode: 3D
+    private static int Op_DEC_Reg(ref byte register)
     {
-        SetDecFlags(Reg.A);
-        Reg.A--;
+        SetDecFlags(register);
+        register--;
         Reg.PC += 1;
         return 4;
     }
-
-    private static int Op_DEC_B() // Opcode: 05
-    {
-        SetDecFlags(Reg.B);
-        Reg.B--;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_DEC_C() // Opcode: 0D
-    {
-        SetDecFlags(Reg.C);
-        Reg.C--;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_DEC_D() // Opcode: 15
-    {
-        SetDecFlags(Reg.D);
-        Reg.D--;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_DEC_E() // Opcode: 1D
-    {
-        SetDecFlags(Reg.E);
-        Reg.E--;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_DEC_H() // Opcode: 25
-    {
-        SetDecFlags(Reg.H);
-        Reg.H--;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_DEC_L() // Opcode: 2D
-    {
-        SetDecFlags(Reg.L);
-        Reg.L--;
-        Reg.PC += 1;
-        return 4;
-    }
-
+    
     private static int Op_DEC_SP() // Opcode: 3B
     {
         Reg.SP--;
@@ -446,6 +363,20 @@ public partial class Z80
     private static int Op_DEC_BC() // Opcode: 0B
     {
         Reg.BC--;
+        Reg.PC += 1;
+        return 6;
+    }
+    
+    private static int Op_DEC_DE() // Opcode: 1B
+    {
+        Reg.DE--;
+        Reg.PC += 1;
+        return 6;
+    }
+    
+    private static int Op_DEC_HL() // Opcode: 1B
+    {
+        Reg.HL--;
         Reg.PC += 1;
         return 6;
     }
