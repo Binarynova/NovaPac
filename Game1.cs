@@ -540,23 +540,37 @@ public class Game1 : Game
 
         machine = new Machine();
         cpu = new Z80(machine);
-        
-        int passed = 0;
-        int failed = 0;
+        Console.WriteLine("To run a specific test, enter the index and press ENTER.");
+        Console.WriteLine("Otherwise, press ENTER to run all tests.");
+        Console.Write("Test number? ");
 
-        //foreach (var test in tests)
-        //{
-            // initialize CPU and memory from test.
-            cpu.Reset();
-            cpu.SetInitialCPUState(tests[0]);
-            cpu.Step();
-            cpu.GetActualCPUState(tests[0]);
-            cpu.GetExpectedCPUState(tests[0]);
-            cpu.CheckFinalCPUState(tests[0]);
-        //}
+        string testInput = Console.ReadLine();
+        int testIndex = string.IsNullOrWhiteSpace(testInput) ? -1 : int.Parse(testInput);
+
+        if (testIndex == -1)
+        {
+            foreach (var test in tests)
+            {
+                cpu.Reset();
+                cpu.SetInitialCPUState(test);
+                cpu.Step();
+                cpu.GetActualCPUState(test);
+                cpu.GetExpectedCPUState(test);
+                cpu.CheckFinalCPUState(test);
+            }
+            
+            Console.WriteLine("\nTests done.");
+            Environment.Exit(0);
+        }
         
-        Console.WriteLine("\nTests done. Press a key to QUIT.");
-        Console.ReadKey();
+        cpu.Reset();
+        cpu.SetInitialCPUState(tests[testIndex]);
+        cpu.Step();
+        cpu.GetActualCPUState(tests[testIndex]);
+        cpu.GetExpectedCPUState(tests[testIndex]);
+        cpu.CheckFinalCPUState(tests[testIndex]);
+        
+        Console.WriteLine("\nTests done.");
         Environment.Exit(0);
     }
 }

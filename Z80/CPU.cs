@@ -778,11 +778,11 @@ public partial class Z80(Machine machine)
         {
             Console.WriteLine($"\nErrors in test {test.Name}:");
             foreach(var e in errors)
-                Console.WriteLine(e);
+                Console.WriteLine($"  {e}");
         }
         else
         {
-            Console.WriteLine($"Test {test.Name} passed!");
+            Console.WriteLine($"\nTest {test.Name} passed!");
         }
     }
 }
