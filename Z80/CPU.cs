@@ -782,7 +782,7 @@ public partial class Z80(Machine machine)
         }
         else
         {
-            Console.WriteLine($"\nTest {test.Name} passed!");
+            Console.WriteLine($"Test {test.Name} passed!");
         }
     }
 }

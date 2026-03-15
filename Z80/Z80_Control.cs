@@ -5,7 +5,6 @@ public partial class Z80
 {
     private static int Op_NOP() // Opcode: 00
     {
-        Reg.P = 0;
         Reg.PC += 1;
         return 4;
     }
