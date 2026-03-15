@@ -132,10 +132,9 @@ public partial class Z80
 
     #region XOR
 
-    private int Op_XOR_A_A() // Opcode: AF
+    private int Op_XOR_A(byte register)
     {
-        // Opcode: xor the accumulator with itself
-        Reg.A = (byte)(Reg.A ^ Reg.A);
+        Reg.A = (byte)(Reg.A ^ register);
 
         SetSZFlags(Reg.A);
         ClearFlag(Flags.C | Flags.H | Flags.N);
@@ -155,6 +154,18 @@ public partial class Z80
         SetParity(Reg.A);
 
         Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_XOR_A_ptrHL() // Opcode: AE
+    {
+        Reg.A = (byte)(Reg.A ^ machine.ReadByte(Reg.HL));
+
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.C | Flags.H | Flags.N);
+        SetParity(Reg.A);
+
+        Reg.PC += 1;
         return 7;
     }
 

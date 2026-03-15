@@ -320,7 +320,6 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0x85] = () => Op_ADD_A(Reg.L);
         _mainOpcodes[0x86] = Op_ADD_A_ptrHL;
         _mainOpcodes[0x87] = () => Op_ADD_A(Reg.A);
-
         _mainOpcodes[0x88] = Op_ADC_A_B;
         _mainOpcodes[0x89] = Op_ADC_A_C;
         _mainOpcodes[0x8A] = Op_ADC_A_D;
@@ -355,7 +354,14 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xA5] = Op_AND_L;
         _mainOpcodes[0xA6] = Op_AND_ptrHL;
         _mainOpcodes[0xA7] = Op_AND_A;
-        _mainOpcodes[0xAF] = Op_XOR_A_A;
+        _mainOpcodes[0xA8] = () => Op_XOR_A(Reg.B);
+        _mainOpcodes[0xA9] = () => Op_XOR_A(Reg.C);
+        _mainOpcodes[0xAA] = () => Op_XOR_A(Reg.D);
+        _mainOpcodes[0xAB] = () => Op_XOR_A(Reg.E);
+        _mainOpcodes[0xAC] = () => Op_XOR_A(Reg.H);
+        _mainOpcodes[0xAD] = () => Op_XOR_A(Reg.L);
+        _mainOpcodes[0xAD] = Op_XOR_A_ptrHL;
+        _mainOpcodes[0xAF] = () => Op_XOR_A(Reg.A);
 
         _mainOpcodes[0xB0] = Op_OR_B;
         _mainOpcodes[0xB1] = Op_OR_C;
