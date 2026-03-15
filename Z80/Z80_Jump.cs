@@ -131,6 +131,18 @@ public partial class Z80
         Reg.PC += 1;
         return 5;
     }
+    
+    private int Op_RET_C() // Opcode: D8
+    {
+        if (GetFlag(Flags.C))
+        {
+            Reg.PC = PopWord();
+            return 11;
+        }
+
+        Reg.PC += 1;
+        return 5;
+    }
 
     private int Op_RET_M() // Opcode: F8
     {
@@ -193,6 +205,36 @@ public partial class Z80
     private int Op_CALL_Z_nn() // Opcode: CC
     {
         if (GetFlag(Flags.Z))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_NC_nn() // Opcode: C4
+    {
+        if (!GetFlag(Flags.C))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_C_nn() // Opcode: C4
+    {
+        if (GetFlag(Flags.C))
         {
             PushWord((ushort)(Reg.PC + 3));
             Reg.PC = ReadImmediateWord();

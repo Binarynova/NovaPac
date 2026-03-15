@@ -150,6 +150,17 @@ public partial class Z80(Machine machine)
         return (ushort)((highByte << 8) | lowByte);
     }
 
+    private byte ReadPort(ushort port)
+    {
+        switch (port & 0xFF)
+        {
+            case 0x00: return 0xFF; // IN0
+            case 0x01: return 0xFF; // IN1
+            case 0x02: return 0xFF; // dip switches
+            default: return 0xFF;
+        }
+    }
+
     private void WritePort(ushort port, byte value)
     {
         switch (port & 0xFF)
@@ -337,14 +348,14 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0x95] = Op_SUB_A_L;
         _mainOpcodes[0x96] = Op_SUB_A_ptrHL;
         _mainOpcodes[0x97] = Op_SUB_A_A;
-        _mainOpcodes[0x98] = Op_SBC_A_B;
-        _mainOpcodes[0x99] = Op_SBC_A_C;
-        _mainOpcodes[0x9A] = Op_SBC_A_D;
-        _mainOpcodes[0x9B] = Op_SBC_A_E;
-        _mainOpcodes[0x9C] = Op_SBC_A_H;
-        _mainOpcodes[0x9D] = Op_SBC_A_L;
+        _mainOpcodes[0x98] = () => Op_SBC_A(Reg.B);
+        _mainOpcodes[0x99] = () => Op_SBC_A(Reg.C);
+        _mainOpcodes[0x9A] = () => Op_SBC_A(Reg.D);
+        _mainOpcodes[0x9B] = () => Op_SBC_A(Reg.E);
+        _mainOpcodes[0x9C] = () => Op_SBC_A(Reg.H);
+        _mainOpcodes[0x9D] = () => Op_SBC_A(Reg.L);
         _mainOpcodes[0x9E] = Op_SBC_A_ptrHL;
-        _mainOpcodes[0x9F] = Op_SBC_A_A;
+        _mainOpcodes[0x9F] = () => Op_SBC_A(Reg.A);
 
         _mainOpcodes[0xA0] = Op_AND_B;
         _mainOpcodes[0xA1] = Op_AND_C;
@@ -401,17 +412,17 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xD1] = Op_POP_DE;
         _mainOpcodes[0xD2] = Op_JP_NC_nn;
         _mainOpcodes[0xD3] = Op_OUT_ptrn_A;
-        _mainOpcodes[0xD4] = null;
+        _mainOpcodes[0xD4] = Op_CALL_NC_nn;
         _mainOpcodes[0xD5] = Op_PUSH_DE;
         _mainOpcodes[0xD6] = Op_SUB_n;
         _mainOpcodes[0xD7] = () => Op_RST(0x10);
-        _mainOpcodes[0xD8] = null;
+        _mainOpcodes[0xD8] = Op_RET_C;
         _mainOpcodes[0xD9] = Op_EXX;
         _mainOpcodes[0xDA] = Op_JP_C_nn;
-        _mainOpcodes[0xDB] = null;
-        _mainOpcodes[0xDC] = null;
+        _mainOpcodes[0xDB] = Op_IN_A_n;
+        _mainOpcodes[0xDC] = Op_CALL_C_nn;
         _mainOpcodes[0xDD] = Op_DD;
-        _mainOpcodes[0xDE] = null;
+        _mainOpcodes[0xDE] = Op_SBC_n;
         _mainOpcodes[0xDF] = () => Op_RST(0x18);
 
         _mainOpcodes[0xE0] = null;

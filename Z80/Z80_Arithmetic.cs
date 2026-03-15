@@ -192,51 +192,9 @@ public partial class Z80
 
     #region SBC
 
-    private static int Op_SBC_A_A() // Opcode: 9F
+    private static int Op_SBC_A(byte register)
     {
-        Reg.A = SBC(Reg.A, Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_B() // Opcode: 98
-    {
-        Reg.A = SBC(Reg.A, Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_C() // Opcode: 99
-    {
-        Reg.A = SBC(Reg.A, Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_D() // Opcode: 9A
-    {
-        Reg.A = SBC(Reg.A, Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_E()  // Opcode: 9B
-    {
-        Reg.A = SBC(Reg.A, Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_H() // Opcode: 9C
-    {
-        Reg.A = SBC(Reg.A, Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SBC_A_L() // Opcode: 9D
-    {
-        Reg.A = SBC(Reg.A, Reg.L);
+        Reg.A = SBC(Reg.A, register);
         Reg.PC += 1;
         return 4;
     }
@@ -245,6 +203,14 @@ public partial class Z80
     {
         Reg.A = SBC(Reg.A, machine.ReadByte(Reg.HL));
         Reg.PC += 1;
+        return 7;
+    }
+    
+    private int Op_SBC_n() // Opcode: D6
+    {
+        byte value = ReadImmediateByte();
+        Reg.A = SBC(Reg.A, value);
+        Reg.PC += 2;
         return 7;
     }
 

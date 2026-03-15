@@ -52,6 +52,15 @@ public partial class Z80
         return 4;
     }
 
+    private int Op_IN_A_n()
+    {
+        byte port = ReadImmediateByte();
+        Reg.A = ReadPort(port);
+
+        Reg.PC += 2;
+        return 11;
+    }
+
     private int Op_OUT_ptrn_A() // Opcode: D3
     {
         byte n = ReadImmediateByte();
