@@ -41,8 +41,8 @@ public class Game1 : Game
     public Game1(string[] args)
     {
         Args = args;
-        Args = new string[1];
-        Args[0] = "-sst";
+        //Args = new string[1];
+        //Args[0] = "-sst";
         var graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -546,13 +546,16 @@ public class Game1 : Game
 
         //foreach (var test in tests)
         //{
-            // initialize CPU and memory from test.Initial
+            // initialize CPU and memory from test.
             cpu.Reset();
             cpu.SetInitialCPUState(tests[0]);
-            cpu.Step(SteppingThrough: true);
+            cpu.Step();
+            cpu.GetActualCPUState(tests[0]);
+            cpu.GetExpectedCPUState(tests[0]);
+            cpu.CheckFinalCPUState(tests[0]);
         //}
         
-        Console.WriteLine("Tests done. Press a key to QUIT.");
+        Console.WriteLine("\nTests done. Press a key to QUIT.");
         Console.ReadKey();
         Environment.Exit(0);
     }

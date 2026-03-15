@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices.Marshalling;
+using static CPUState;
 using Reg = Registers;
 
 public partial class Z80(Machine machine)
@@ -69,7 +71,7 @@ public partial class Z80(Machine machine)
         }
     }
     
-    public int Step(bool SteppingThrough)
+    public int Step(bool SteppingThrough = false)
     {
         if(InterruptPending && _iff1) // InterruptPending turned on in Game1.cs at the end of a frame, mimicking VBLANK
         {
@@ -517,7 +519,7 @@ public partial class Z80(Machine machine)
         Reg.A = Reg.B = Reg.C = Reg.D = Reg.E = 0;
         Reg.HL = 0x0000;
         Reg.IX = Reg.IY = 0xFFFF;
-        Reg.F = 0x40;
+        Reg.F = 0x00;
         Reg.SP = 0x0000;
         _iff1 = false;
         _halted = false;
@@ -617,12 +619,170 @@ public partial class Z80(Machine machine)
         {
             machine.WriteByte((ushort)entry[0], (byte)entry[1], Reg.PC);
         }
+    }
+    
+    public static List<string> CompareStates(CPUState expected, CPUState actual)
+    {
+        var errors = new List<string>();
+
+        void Check(string name, int exp, int act)
+        {
+            if (exp != act)
+                errors.Add($"{name}: expected {exp:X} got {act:X}");
+        }
         
-        Console.WriteLine($"PC: {Reg.PC}");
+        Check("F", expected.F, actual.F);
+        Check("A", expected.A, actual.A);
+        Check("B", expected.B, actual.B);
+        Check("C", expected.C, actual.C);
+        Check("D", expected.D, actual.D);
+        Check("E", expected.E, actual.E);
+        Check("H", expected.H, actual.H);
+        Check("L", expected.L, actual.L);
+        
+        Check("I", expected.I, actual.I);
+        Check("R", expected.R, actual.R);
+        Check("EI", expected.EI, actual.EI);
+        Check("Q", expected.Q, actual.Q);
+        Check("P", expected.P, actual.P);
+        
+        Check("AF_", expected.AF_, actual.AF_);
+        Check("BC_", expected.BC_, actual.BC_);
+        Check("DE_", expected.DE_, actual.DE_);
+        Check("HL_", expected.HL_, actual.HL_);
+        
+        Check("PC", expected.PC, actual.PC);
+        Check("SP", expected.SP, actual.SP);
+        Check("IX", expected.IX, actual.IX);
+        Check("IY", expected.IY, actual.IY);
+        Check("WZ", expected.WZ, actual.WZ);
+        
+        Check("IFF1", expected.IFF1, actual.IFF1);
+        Check("IFF2", expected.IFF2, actual.IFF2);
+        Check("IM", expected.IM, actual.IM);
+
+        for (int i = 0; i < expected.RAM.Count; i++)
+        {
+            ushort address = (ushort)expected.RAM[i][0];
+            byte expectedValue = (byte)expected.RAM[i][1];
+            byte actualValue = (byte)actual.RAM[i][1];
+
+            if (expectedValue != actualValue)
+            {
+                errors.Add($"RAM mismatch at {address:X4}: expected {expectedValue:X2}, actual {actualValue:X2}");
+            }
+        }
+        
+        return errors;
+    }
+
+    public CPUState GetActualCPUState(Z80SingleStepTest test)
+    {
+        CPUState actualCPUState = new CPUState();
+        
+        actualCPUState.F = Reg.F;
+        actualCPUState.A = Reg.A;
+        actualCPUState.B = Reg.B;
+        actualCPUState.C = Reg.C;
+        actualCPUState.D = Reg.D;
+        actualCPUState.E = Reg.E;
+        actualCPUState.H = Reg.H;
+        actualCPUState.L = Reg.L;
+        
+        actualCPUState.I = Reg.I;
+        actualCPUState.R = Reg.R;
+        
+        actualCPUState.Q = Reg.Q;
+        actualCPUState.P = Reg.P;
+
+        actualCPUState.AF_ = Reg.AF2;
+        actualCPUState.BC_ = Reg.BC2;
+        actualCPUState.DE_ = Reg.DE2;
+        actualCPUState.HL_ = Reg.HL2;
+        
+        actualCPUState.PC = Reg.PC;
+        actualCPUState.SP = Reg.SP;
+        actualCPUState.IX = Reg.IX;
+        actualCPUState.IY = Reg.IY;
+        actualCPUState.WZ = Reg.WZ;
+        actualCPUState.EI = (byte)(EI_Pending ? 1 : 0);
+        actualCPUState.IFF1 = (byte)(_iff1 ? 1 : 0);
+        actualCPUState.IFF2 = (byte)(_iff2 ? 1 : 0);
+        actualCPUState.IM = (byte)_interruptMode;
+
+        actualCPUState.RAM = new List<List<int>>();
+        
+        foreach (var entry in test.Initial.RAM)
+        {
+            ushort address = (ushort)entry[0];
+            byte value = machine.ReadByte(address);
+            
+            actualCPUState.RAM.Add(new List<int> {address, value});
+        }
+        
+        return actualCPUState;
+    }
+    
+    public CPUState GetExpectedCPUState(Z80SingleStepTest test)
+    {
+        CPUState expectedCPUState = new CPUState();
+        
+        expectedCPUState.F = test.Final.F;
+        expectedCPUState.A = test.Final.A;
+        expectedCPUState.B = test.Final.B;
+        expectedCPUState.C = test.Final.C;
+        expectedCPUState.D = test.Final.D;
+        expectedCPUState.E = test.Final.E;
+        expectedCPUState.H = test.Final.H;
+        expectedCPUState.L = test.Final.L;
+        
+        expectedCPUState.I = test.Final.I;
+        expectedCPUState.R = test.Final.R;
+        
+        expectedCPUState.Q = test.Final.Q;
+        expectedCPUState.P = test.Final.P;
+
+        expectedCPUState.AF_ = test.Final.AF_;
+        expectedCPUState.BC_ = test.Final.BC_;
+        expectedCPUState.DE_ = test.Final.DE_;
+        expectedCPUState.HL_ = test.Final.HL_;
+        
+        expectedCPUState.PC = test.Final.PC;
+        expectedCPUState.SP = test.Final.SP;
+        expectedCPUState.IX = test.Final.IX;
+        expectedCPUState.IY = test.Final.IY;
+        expectedCPUState.WZ = test.Final.WZ;
+        expectedCPUState.EI = test.Final.EI;
+        expectedCPUState.IFF1 = test.Final.IFF1;
+        expectedCPUState.IFF2 = test.Final.IFF2;
+        expectedCPUState.IM = test.Final.IM;
+
+        expectedCPUState.RAM = new List<List<int>>();
+        
+        foreach (var entry in test.Final.RAM)
+        {
+            expectedCPUState.RAM.Add(new List<int> {entry[0], entry[1]});
+        }
+        
+        return expectedCPUState;
     }
 
     public void CheckFinalCPUState(Z80SingleStepTest test)
     {
+        CPUState actualCPUState = GetActualCPUState(test);
+        CPUState expectedCPUState = GetExpectedCPUState(test);
         
+        var errors = CompareStates(expectedCPUState, actualCPUState);
+
+        if (errors.Count > 0)
+        {
+            Console.WriteLine($"\nErrors in test {test.Name}:");
+            foreach(var e in errors)
+                Console.WriteLine(e);
+        }
+        else
+        {
+            Console.WriteLine($"Test {test.Name} passed!");
+        }
     }
 }
