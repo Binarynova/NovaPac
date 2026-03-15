@@ -172,7 +172,9 @@ public partial class Z80
     
     private int Op_LD_HL_ptrNN() // Opcode: 2A
     {
-        Reg.HL = machine.ReadByte(ReadImmediateWord());
+        ushort addr = ReadImmediateWord();
+        Reg.L = machine.ReadByte(addr);
+        Reg.H = machine.ReadByte((ushort)(addr + 1));
         Reg.PC += 3;
         return 16;
     }
@@ -253,7 +255,7 @@ public partial class Z80
     
     private int Op_LD_SP_HL() // Opcode: F9
     {
-        Reg.SP = machine.ReadWord(Reg.HL);
+        Reg.SP = Reg.HL;
         Reg.PC += 3;
         return 10;
     }
