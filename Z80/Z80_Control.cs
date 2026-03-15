@@ -66,15 +66,6 @@ public partial class Z80
         return 19;
     }
 
-    private int Op_IN_A_n() // Opcode: DB
-    {
-        byte port = ReadImmediateByte();
-        Reg.A = ReadPort(port);
-
-        Reg.PC += 2;
-        return 11;
-    }
-
     private int Op_OUT_ptrn_A() // Opcode: D3
     {
         byte n = ReadImmediateByte();
@@ -84,10 +75,29 @@ public partial class Z80
         return 11;
     }
 
-    private static int Op_SCF()
+    private int Op_IN_A_n() // Opcode: DB
+    {
+        byte port = ReadImmediateByte();
+        Reg.A = ReadPort(port);
+
+        Reg.PC += 2;
+        return 11;
+    }
+
+    private static int Op_SCF() // Opcode: 37
     {
         SetFlag(Flags.C);
         ClearFlag(Flags.N | Flags.H);
+
+        Reg.PC += 1;
+        return 4;
+    }
+
+    private static int Op_CCF() // Opcode: 3F
+    {
+        WriteFlag(Flags.H, GetFlag(Flags.C));
+        ClearFlag(Flags.N);
+        ToggleFlag(Flags.C);
 
         Reg.PC += 1;
         return 4;

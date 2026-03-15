@@ -4,51 +4,9 @@ public partial class Z80
 {
     #region AND
 
-    private int Op_AND_A() // Opcode: A7
+    private int Op_AND(byte register) // Opcodes: A0 A1 A2 A3 A4 A5 A7
     {
-        AND(Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_B() // Opcode: A0
-    {
-        AND(Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_C() // Opcode: A1
-    {
-        AND(Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_D() // Opcode: A2
-    {
-        AND(Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_E() // Opcode: A3
-    {
-        AND(Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_H() // Opcode: A4
-    {
-        AND(Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_AND_L() // Opcode: A5
-    {
-        AND(Reg.L);
+        AND(register);
         Reg.PC += 1;
         return 4;
     }
@@ -72,51 +30,9 @@ public partial class Z80
 
     #region OR
 
-    private int Op_OR_A() // Opcode: B7
+    private int Op_OR(byte register) // Opcodes: B0 B1 B2 B3 B4 B5 B7
     {
-        OR(Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_B() // Opcode: B0
-    {
-        OR(Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_C() // Opcode: B1
-    {
-        OR(Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_D() // Opcode: B2
-    {
-        OR(Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_E() // Opcode: B3
-    {
-        OR(Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_H() // Opcode: B4
-    {
-        OR(Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_OR_L() // Opcode: B5
-    {
-        OR(Reg.L);
+        OR(register);
         Reg.PC += 1;
         return 4;
     }
@@ -140,7 +56,7 @@ public partial class Z80
 
     #region XOR
 
-    private int Op_XOR_A(byte register)
+    private int Op_XOR_A(byte register) // Opcodes: A8 A9 AA AB AC AD AF
     {
         Reg.A = (byte)(Reg.A ^ register);
 
@@ -178,16 +94,6 @@ public partial class Z80
     }
 
     #endregion
-
-    private static int Op_CCF() // Opcode: 3F
-    {
-        WriteFlag(Flags.H, GetFlag(Flags.C));
-        ClearFlag(Flags.N);
-        ToggleFlag(Flags.C);
-
-        Reg.PC += 1;
-        return 4;
-    }
 
     #region Helper Methods
 

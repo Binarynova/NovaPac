@@ -169,6 +169,13 @@ public partial class Z80
         Reg.PC += 1;
         return 7;
     }
+    
+    private int Op_LD_HL_ptrNN() // Opcode: 2A
+    {
+        Reg.HL = machine.ReadByte(ReadImmediateWord());
+        Reg.PC += 3;
+        return 16;
+    }
 
     private int Op_LD_A_ptrNN() // Opcode: 3A
     {
@@ -176,29 +183,6 @@ public partial class Z80
         Reg.A = machine.ReadByte(addr);
         Reg.PC += 3;
         return 13;
-    }
-
-    private int Op_LD_HL_nn() // Opcode: 2A
-    {
-        // load nn into HL
-        Reg.HL = ReadImmediateWord();
-        Reg.PC += 3;
-        return 10;
-    }
-
-    private int Op_LD_HL_ptrnn() // Opcode: 2A
-    {
-        Reg.HL = machine.ReadByte(ReadImmediateWord());
-        Reg.PC += 3;
-        return 16;
-    }
-
-    private int Op_LD_BC_nn() // Opcode: 01
-    {
-        // load nn into BC
-        Reg.BC = ReadImmediateWord();
-        Reg.PC += 3;
-        return 10;
     }
     
     private int Op_LD_ptrBC_A() // Opcode: 02
@@ -210,10 +194,33 @@ public partial class Z80
 
     private int Op_LD_ptrDE_A() // Opcode: 12
     {
-        // stores the value of A into RAM at address DE
         machine.WriteByte(Reg.DE, Reg.A, Reg.PC);
         Reg.PC += 1;
         return 7;
+    }
+
+    private int Op_LD_ptrNN_HL() // Opcode: 22
+    {
+        ushort address = ReadImmediateWord();
+        machine.WriteByte(address, Reg.L, Reg.PC);
+        machine.WriteByte((ushort)(address + 1), Reg.H, Reg.PC);
+        Reg.PC += 3;
+        return 16;
+    }
+
+    private int Op_LD_ptrNN_A() // Opcode: 32
+    {
+        ushort address = ReadImmediateWord();
+        machine.WriteByte(address, Reg.A, Reg.PC);
+        Reg.PC += 3;
+        return 13;
+    }
+
+    private int Op_LD_BC_nn() // Opcode: 01
+    {
+        Reg.BC = ReadImmediateWord();
+        Reg.PC += 3;
+        return 10;
     }
 
     private int Op_LD_DE_nn() // Opcode: 11
@@ -222,18 +229,17 @@ public partial class Z80
         Reg.PC += 3;
         return 10;
     }
-
-    private int Op_LD_SP_nn() // Opcode: 31
+    
+    private int Op_LD_HL_nn() // Opcode: 21
     {
-        // load nn into SP
-        Reg.SP = ReadImmediateWord();
+        Reg.HL = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
-    
-    private int Op_LD_SP_HL() // Opcode: F9
+
+    private int Op_LD_SP_nn() // Opcode: 31
     {
-        Reg.SP = machine.ReadWord(Reg.HL);
+        Reg.SP = ReadImmediateWord();
         Reg.PC += 3;
         return 10;
     }
@@ -244,23 +250,11 @@ public partial class Z80
         Reg.PC += 2;
         return 10;
     }
-
-    private int Op_LD_ptrnn_A() // Opcode: 32
+    
+    private int Op_LD_SP_HL() // Opcode: F9
     {
-        // store value of Accumulator in memory at the location nn
-        ushort address = ReadImmediateWord();
-        machine.WriteByte(address, Reg.A, Reg.PC);
+        Reg.SP = machine.ReadWord(Reg.HL);
         Reg.PC += 3;
-        return 13;
-    }
-
-    private int Op_LD_ptrnn_HL() // Opcode: 22
-    {
-        // store value of HL in memory at the location nn
-        ushort address = ReadImmediateWord();
-        machine.WriteByte(address, Reg.L, Reg.PC);
-        machine.WriteByte((ushort)(address + 1), Reg.H, Reg.PC);
-        Reg.PC += 3;
-        return 16;
+        return 10;
     }
 }

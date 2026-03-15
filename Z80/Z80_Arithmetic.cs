@@ -4,11 +4,18 @@ public partial class Z80
 {
     #region ADD
 
-    private int Op_ADD_A(byte register)
+    private static int Op_ADD_A(byte register) // Opcodes: 80 81 82 83 84 85 87
     {
         Reg.A = ADD(Reg.A, register);
         Reg.PC += 1;
         return 4;
+    }
+
+    private int Op_ADD_A_n() // Opcode: C6
+    {
+        Reg.A = ADD(Reg.A, ReadImmediateByte());
+        Reg.PC += 2;
+        return 7;
     }
 
     private int Op_ADD_A_ptrHL() // Opcode: 86
@@ -46,62 +53,13 @@ public partial class Z80
         return 11;
     }
 
-    private int Op_ADD_A_n() // Opcode: C6
-    {
-        Reg.A = ADD(Reg.A, ReadImmediateByte());
-        Reg.PC += 2;
-        return 7;
-    }
-
     #endregion
 
     #region ADC
 
-    private static int Op_ADC_A_A() // Opcode: 8F
+    private static int Op_ADC_A(byte register) // Opcodes: 88 89 8A 8B 8C 8D 8F
     {
-        Reg.A = ADC(Reg.A, Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_B() // Opcode: 88
-    {
-        Reg.A = ADC(Reg.A, Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_C() // Opcode: 89
-    {
-        Reg.A = ADC(Reg.A, Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_D() // Opcode: 8A
-    {
-        Reg.A = ADC(Reg.A, Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_E() // Opcode: 8B
-    {
-        Reg.A = ADC(Reg.A, Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_H() // Opcode: 8C
-    {
-        Reg.A = ADC(Reg.A, Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_ADC_A_L() // Opcode: 8D
-    {
-        Reg.A = ADC(Reg.A, Reg.L);
+        Reg.A = ADC(Reg.A, register);
         Reg.PC += 1;
         return 4;
     }
@@ -124,51 +82,9 @@ public partial class Z80
 
     #region SUB
 
-    private static int Op_SUB_A_A() // Opcode: 97
+    private static int Op_SUB_A(byte register) // Opcodes: 90 91 92 93 94 95 97
     {
-        Reg.A = SUB(Reg.A, Reg.A);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_B() // Opcode: 90
-    {
-        Reg.A = SUB(Reg.A, Reg.B);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_C() // Opcode: 91
-    {
-        Reg.A = SUB(Reg.A, Reg.C);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_D() // Opcode: 92
-    {
-        Reg.A = SUB(Reg.A, Reg.D);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_E() // Opcode: 93
-    {
-        Reg.A = SUB(Reg.A, Reg.E);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_H() // Opcode: 94
-    {
-        Reg.A = SUB(Reg.A, Reg.H);
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_SUB_A_L() // Opcode: 95
-    {
-        Reg.A = SUB(Reg.A, Reg.L);
+        Reg.A = SUB(Reg.A, register);
         Reg.PC += 1;
         return 4;
     }
@@ -192,7 +108,7 @@ public partial class Z80
 
     #region SBC
 
-    private static int Op_SBC_A(byte register)
+    private static int Op_SBC_A(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
     {
         Reg.A = SBC(Reg.A, register);
         Reg.PC += 1;
@@ -206,7 +122,7 @@ public partial class Z80
         return 7;
     }
     
-    private int Op_SBC_n() // Opcode: D6
+    private int Op_SBC_A_n() // Opcode: DE
     {
         byte value = ReadImmediateByte();
         Reg.A = SBC(Reg.A, value);
@@ -218,6 +134,14 @@ public partial class Z80
 
     #region INC
 
+    private static int Op_INC(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
+    {
+        SetIncFlags(register);
+        register += 1;
+        Reg.PC += 1;
+        return 4;
+    }
+    
     private static int Op_INC_BC() // Opcode: 03
     {
         Reg.BC++;
@@ -246,62 +170,6 @@ public partial class Z80
         return 6;
     }
 
-    private static int Op_INC_A() // Opcode: 3C
-    {
-        SetIncFlags(Reg.A);
-        Reg.A += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_B() // Opcode: 04
-    {
-        SetIncFlags(Reg.B);
-        Reg.B += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_C() // Opcode: 0C
-    {
-        SetIncFlags(Reg.C);
-        Reg.C += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_D() // Opcode: 14
-    {
-        SetIncFlags(Reg.D);
-        Reg.D += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_E() // Opcode: 1C
-    {
-        SetIncFlags(Reg.E);
-        Reg.E += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_H() // Opcode: 24
-    {
-        SetIncFlags(Reg.H);
-        Reg.H += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private static int Op_INC_L() // Opcode: 2C
-    {
-        SetIncFlags(Reg.L);
-        Reg.L += 1;
-        Reg.PC += 1;
-        return 4;
-    }
-
     private int Op_INC_ptrHL() // Opcode: 34
     {
         byte target = machine.ReadByte(Reg.HL);
@@ -325,19 +193,12 @@ public partial class Z80
 
     #region DEC
 
-    private static int Op_DEC_Reg(ref byte register)
+    private static int Op_DEC(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
     {
         SetDecFlags(register);
         register--;
         Reg.PC += 1;
         return 4;
-    }
-    
-    private static int Op_DEC_SP() // Opcode: 3B
-    {
-        Reg.SP--;
-        Reg.PC += 1;
-        return 6;
     }
 
     private static int Op_DEC_BC() // Opcode: 0B
@@ -354,9 +215,16 @@ public partial class Z80
         return 6;
     }
     
-    private static int Op_DEC_HL() // Opcode: 1B
+    private static int Op_DEC_HL() // Opcode: 2B
     {
         Reg.HL--;
+        Reg.PC += 1;
+        return 6;
+    }
+    
+    private static int Op_DEC_SP() // Opcode: 3B
+    {
+        Reg.SP--;
         Reg.PC += 1;
         return 6;
     }
@@ -381,7 +249,7 @@ public partial class Z80
 
     #region CP
 
-    private static int Op_CP(byte register)
+    private static int Op_CP(byte register) // Opcodes: B8 B9 BA BB BC BD BF
     {
         byte result = (byte)(Reg.A - register);
 

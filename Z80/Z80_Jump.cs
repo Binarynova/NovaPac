@@ -12,10 +12,10 @@ public partial class Z80
         return 12;
     }
 
-    private int Op_JR_Z_e() => JR_Cond(() => GetFlag(Flags.Z)); // Opcode: 28
     private int Op_JR_NZ_e() => JR_Cond(() => !GetFlag(Flags.Z)); // Opcode: 20
-    private int Op_JR_C_e() => JR_Cond(() => GetFlag(Flags.C)); // Opcode: 38
+    private int Op_JR_Z_e() => JR_Cond(() => GetFlag(Flags.Z)); // Opcode: 28
     private int Op_JR_NC_e() => JR_Cond(() => !GetFlag(Flags.C)); // Opcode: 30
+    private int Op_JR_C_e() => JR_Cond(() => GetFlag(Flags.C)); // Opcode: 38
 
     private int Op_JP_nn() // Opcode: C3
     {
@@ -53,20 +53,6 @@ public partial class Z80
         return 10;
     }
 
-    private int Op_JP_M_nn() // Opcode: FA
-    {
-        if (GetFlag(Flags.S))
-        {
-            Reg.PC = ReadImmediateWord();
-        }
-        else
-        {
-            Reg.PC += 3;
-        }
-
-        return 10;
-    }
-
     private int Op_JP_C_nn() // Opcode: D2
     {
         if (GetFlag(Flags.C))
@@ -82,6 +68,20 @@ public partial class Z80
     }
     
     private int Op_JP_P_nn() // Opcode: F2
+    {
+        if (!GetFlag(Flags.S))
+        {
+            Reg.PC = ReadImmediateWord();
+        }
+        else
+        {
+            Reg.PC += 3;
+        }
+
+        return 10;
+    }
+
+    private int Op_JP_M_nn() // Opcode: FA
     {
         if (GetFlag(Flags.S))
         {
@@ -212,7 +212,7 @@ public partial class Z80
     
     private int Op_RET_PO() // Opcode: E0
     {
-        if (!GetFlag(Flags.S))
+        if (!GetFlag(Flags.P))
         {
             Reg.PC = PopWord();
             return 11;
@@ -224,7 +224,7 @@ public partial class Z80
     
     private int Op_RET_PE() // Opcode: E8
     {
-        if (GetFlag(Flags.S))
+        if (GetFlag(Flags.P))
         {
             Reg.PC = PopWord();
             return 11;
@@ -283,7 +283,7 @@ public partial class Z80
         }
     }
     
-    private int Op_CALL_NC_nn() // Opcode: C4
+    private int Op_CALL_NC_nn() // Opcode: D4
     {
         if (!GetFlag(Flags.C))
         {
@@ -298,7 +298,7 @@ public partial class Z80
         }
     }
     
-    private int Op_CALL_C_nn() // Opcode: C4
+    private int Op_CALL_C_nn() // Opcode: DC
     {
         if (GetFlag(Flags.C))
         {
@@ -315,7 +315,7 @@ public partial class Z80
     
     private int Op_CALL_PO_nn() // Opcode: E4
     {
-        if (!GetFlag(Flags.C))
+        if (!GetFlag(Flags.P))
         {
             PushWord((ushort)(Reg.PC + 3));
             Reg.PC = ReadImmediateWord();
@@ -330,7 +330,7 @@ public partial class Z80
     
     private int Op_CALL_PE_nn() // Opcode: EC
     {
-        if (GetFlag(Flags.C))
+        if (GetFlag(Flags.P))
         {
             PushWord((ushort)(Reg.PC + 3));
             Reg.PC = ReadImmediateWord();
@@ -345,7 +345,7 @@ public partial class Z80
     
     private int Op_CALL_P_nn() // Opcode: F4
     {
-        if (GetFlag(Flags.S))
+        if (!GetFlag(Flags.S))
         {
             PushWord((ushort)(Reg.PC + 3));
             Reg.PC = ReadImmediateWord();
@@ -358,7 +358,7 @@ public partial class Z80
         }
     }
     
-    private int Op_CALL_M_nn() // Opcode: FB
+    private int Op_CALL_M_nn() // Opcode: FC
     {
         if (GetFlag(Flags.S))
         {
