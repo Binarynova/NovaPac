@@ -19,7 +19,7 @@ public partial class Z80
     private int Op_LD_L_ptrIYd() // Opcode: FD 6E
     {
         sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
+        ushort addr = (ushort)(Reg.IY + d);
         Reg.L = machine.ReadByte(addr);
 
         Reg.PC += 3;
