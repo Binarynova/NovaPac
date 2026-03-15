@@ -408,6 +408,20 @@ public partial class Z80
 
     #region CP
 
+    private static int Op_CP(byte register)
+    {
+        byte result = (byte)(Reg.A - register);
+
+        WriteFlag(Flags.C, Reg.A < register);
+        WriteFlag(Flags.H, (Reg.A & 0x0F) < (register & 0x0F));
+        SetFlag(Flags.N);
+        SetSZFlags(result);
+        WriteFlag(Flags.P, ((Reg.A ^ register) & (Reg.A ^ result) & 0x80) != 0);
+
+        Reg.PC += 1;
+        return 4;
+    }
+    
     private int Op_CP_n() // Opcode: FE
     {
         byte n = ReadImmediateByte();
@@ -421,20 +435,6 @@ public partial class Z80
 
         Reg.PC += 2;
         return 7;
-    }
-
-    private static int Op_CP_C() // Opcode: B9
-    {
-        byte result = (byte)(Reg.A - Reg.C);
-
-        WriteFlag(Flags.C, Reg.A < Reg.C);
-        WriteFlag(Flags.H, (Reg.A & 0x0F) < (Reg.C & 0x0F));
-        SetFlag(Flags.N);
-        SetSZFlags(result);
-        WriteFlag(Flags.P, ((Reg.A ^ Reg.C) & (Reg.A ^ result) & 0x80) != 0);
-
-        Reg.PC += 1;
-        return 4;
     }
 
     private int Op_CP_ptrHL() // Opcode: BE
