@@ -112,6 +112,13 @@ public partial class Z80
         Reg.PC += 1;
         return 7;
     }
+    
+    private int Op_ADC_A_n() // Opcode: CE
+    {
+        Reg.A = ADC(Reg.A, ReadImmediateByte());
+        Reg.PC += 2;
+        return 7;
+    }
 
     #endregion
 

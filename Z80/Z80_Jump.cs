@@ -175,6 +175,36 @@ public partial class Z80
         return 17;
     }
 
+    private int Op_CALL_NZ_nn() // Opcode: C4
+    {
+        if (!GetFlag(Flags.Z))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_Z_nn() // Opcode: CC
+    {
+        if (GetFlag(Flags.Z))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
     private int Op_CALL_M_nn() // Opcode: FB
     {
         if (GetFlag(Flags.S))

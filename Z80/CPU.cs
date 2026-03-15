@@ -384,7 +384,7 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xC1] = Op_POP_BC;
         _mainOpcodes[0xC2] = Op_JP_NZ_nn;
         _mainOpcodes[0xC3] = Op_JP_nn;
-        _mainOpcodes[0xC4] = null;
+        _mainOpcodes[0xC4] = Op_CALL_NZ_nn;
         _mainOpcodes[0xC5] = Op_PUSH_BC;
         _mainOpcodes[0xC6] = Op_ADD_A_n;
         _mainOpcodes[0xC7] = () => Op_RST(0x00);
@@ -392,9 +392,9 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xC9] = Op_RET;
         _mainOpcodes[0xCA] = Op_JP_Z_nn;
         _mainOpcodes[0xCB] = Op_CB;
-        _mainOpcodes[0xCC] = null;
+        _mainOpcodes[0xCC] = Op_CALL_Z_nn;
         _mainOpcodes[0xCD] = Op_CALL_nn;
-        _mainOpcodes[0xCE] = null;
+        _mainOpcodes[0xCE] = Op_ADC_A_n;
         _mainOpcodes[0xCF] = () => Op_RST(0x08);
 
         _mainOpcodes[0xD0] = Op_RET_NC;
