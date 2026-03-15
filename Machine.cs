@@ -26,7 +26,6 @@ public class Machine
     {
         if(address < 0x4000)
             return;
-        RAM[address] = value;
         
         switch (address)
         {
@@ -37,11 +36,12 @@ public class Machine
                 Console.WriteLine($"PALETTE write of {value:X2} at {address:X4}. PC:{PC:X4}");
                 if (value > 0x1F)
                 {
-                    //Console.Clear();
-                }
-                //Console.ReadKey();    
+                    System.Diagnostics.Debugger.Break();
+                }   
                 break;
         }
+        
+        RAM[address] = value;
     }
 
     public void ReadROMsIntoMemory()

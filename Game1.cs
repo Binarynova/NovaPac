@@ -107,7 +107,6 @@ public class Game1 : Game
         ReadSprites();
         ReadColors();
         ReadPalettes();
-
     }
 
     protected override void Update(GameTime gameTime)
@@ -211,7 +210,7 @@ public class Game1 : Game
                     int yPos = tileRow * 8 * pixelScale;
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -225,7 +224,7 @@ public class Game1 : Game
                     int yPos = 48 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -239,7 +238,7 @@ public class Game1 : Game
                     int yPos = 816 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
