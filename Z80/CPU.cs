@@ -126,8 +126,6 @@ public partial class Z80(Machine machine)
                     break;
             }
         }
-        //else
-        //    Console.WriteLine($"0x{Reg.PC:X4} - {opcode:X2}");
 
         IncrementRegisterR();
         if (trace != null && traceCount <= traceLimit && Reg.PC != 0)
@@ -135,8 +133,23 @@ public partial class Z80(Machine machine)
             trace.WriteLine($"{Reg.PC:X4}");
             traceCount++;
         }
+        
+        // for single-step testing P & Q
+        Reg.P = 0;
+        byte oldFlagReg = Reg.F;
+        //////////////////////////
+        
         int cycles = _mainOpcodes[opcode]();
-
+        
+        // for single-step testing P & Q continued, if last opcode was LD A,I or LD A,R, they will have set Reg.P to 1
+        if (Reg.P == 1) SetFlag(Flags.P);
+        // if flags changed during last opcode set Q to value of Reg.F otherwise 0
+        if (Reg.F != oldFlagReg)
+            Reg.Q = Reg.F;
+        else
+            Reg.Q = 0;
+        ///////////////////////////////////
+        
         if (!EI_Pending) return cycles;
         if (trace != null && traceCount <= traceLimit && Reg.PC != 0)
         {
