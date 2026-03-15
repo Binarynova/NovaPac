@@ -340,22 +340,22 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0x8E] = Op_ADC_A_ptrHL;
         _mainOpcodes[0x8F] = () => Op_ADC_A(Reg.A);
 
-        _mainOpcodes[0x90] = () => Op_SUB_A(Reg.B);
-        _mainOpcodes[0x91] = () => Op_SUB_A(Reg.C);
-        _mainOpcodes[0x92] = () => Op_SUB_A(Reg.D);
-        _mainOpcodes[0x93] = () => Op_SUB_A(Reg.E);
-        _mainOpcodes[0x94] = () => Op_SUB_A(Reg.H);
-        _mainOpcodes[0x95] = () => Op_SUB_A(Reg.L);
+        _mainOpcodes[0x90] = () => Op_SUB(Reg.B);
+        _mainOpcodes[0x91] = () => Op_SUB(Reg.C);
+        _mainOpcodes[0x92] = () => Op_SUB(Reg.D);
+        _mainOpcodes[0x93] = () => Op_SUB(Reg.E);
+        _mainOpcodes[0x94] = () => Op_SUB(Reg.H);
+        _mainOpcodes[0x95] = () => Op_SUB(Reg.L);
         _mainOpcodes[0x96] = Op_SUB_A_ptrHL;
-        _mainOpcodes[0x97] = () => Op_SUB_A(Reg.A);
-        _mainOpcodes[0x98] = () => Op_SBC_A(Reg.B);
-        _mainOpcodes[0x99] = () => Op_SBC_A(Reg.C);
-        _mainOpcodes[0x9A] = () => Op_SBC_A(Reg.D);
-        _mainOpcodes[0x9B] = () => Op_SBC_A(Reg.E);
-        _mainOpcodes[0x9C] = () => Op_SBC_A(Reg.H);
-        _mainOpcodes[0x9D] = () => Op_SBC_A(Reg.L);
+        _mainOpcodes[0x97] = () => Op_SUB(Reg.A);
+        _mainOpcodes[0x98] = () => Op_SBC(Reg.B);
+        _mainOpcodes[0x99] = () => Op_SBC(Reg.C);
+        _mainOpcodes[0x9A] = () => Op_SBC(Reg.D);
+        _mainOpcodes[0x9B] = () => Op_SBC(Reg.E);
+        _mainOpcodes[0x9C] = () => Op_SBC(Reg.H);
+        _mainOpcodes[0x9D] = () => Op_SBC(Reg.L);
         _mainOpcodes[0x9E] = Op_SBC_A_ptrHL;
-        _mainOpcodes[0x9F] = () => Op_SBC_A(Reg.A);
+        _mainOpcodes[0x9F] = () => Op_SBC(Reg.A);
 
         _mainOpcodes[0xA0] = () => Op_AND(Reg.B);
         _mainOpcodes[0xA1] = () => Op_AND(Reg.C);
@@ -365,14 +365,14 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xA5] = () => Op_AND(Reg.L);
         _mainOpcodes[0xA6] = Op_AND_ptrHL;
         _mainOpcodes[0xA7] = () => Op_AND(Reg.A);
-        _mainOpcodes[0xA8] = () => Op_XOR_A(Reg.B);
-        _mainOpcodes[0xA9] = () => Op_XOR_A(Reg.C);
-        _mainOpcodes[0xAA] = () => Op_XOR_A(Reg.D);
-        _mainOpcodes[0xAB] = () => Op_XOR_A(Reg.E);
-        _mainOpcodes[0xAC] = () => Op_XOR_A(Reg.H);
-        _mainOpcodes[0xAD] = () => Op_XOR_A(Reg.L);
+        _mainOpcodes[0xA8] = () => Op_XOR(Reg.B);
+        _mainOpcodes[0xA9] = () => Op_XOR(Reg.C);
+        _mainOpcodes[0xAA] = () => Op_XOR(Reg.D);
+        _mainOpcodes[0xAB] = () => Op_XOR(Reg.E);
+        _mainOpcodes[0xAC] = () => Op_XOR(Reg.H);
+        _mainOpcodes[0xAD] = () => Op_XOR(Reg.L);
         _mainOpcodes[0xAD] = Op_XOR_A_ptrHL;
-        _mainOpcodes[0xAF] = () => Op_XOR_A(Reg.A);
+        _mainOpcodes[0xAF] = () => Op_XOR(Reg.A);
 
         _mainOpcodes[0xB0] = () => Op_OR(Reg.B);
         _mainOpcodes[0xB1] = () => Op_OR(Reg.C);
@@ -422,7 +422,7 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0xDB] = Op_IN_A_n;
         _mainOpcodes[0xDC] = Op_CALL_C_nn;
         _mainOpcodes[0xDD] = Op_DD;
-        _mainOpcodes[0xDE] = Op_SBC_A_n;
+        _mainOpcodes[0xDE] = Op_SBC_n;
         _mainOpcodes[0xDF] = () => Op_RST(0x18);
 
         _mainOpcodes[0xE0] = Op_RET_PO;

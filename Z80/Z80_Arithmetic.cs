@@ -82,7 +82,7 @@ public partial class Z80
 
     #region SUB
 
-    private static int Op_SUB_A(byte register) // Opcodes: 90 91 92 93 94 95 97
+    private static int Op_SUB(byte register) // Opcodes: 90 91 92 93 94 95 97
     {
         Reg.A = SUB(Reg.A, register);
         Reg.PC += 1;
@@ -108,7 +108,7 @@ public partial class Z80
 
     #region SBC
 
-    private static int Op_SBC_A(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
+    private static int Op_SBC(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
     {
         Reg.A = SBC(Reg.A, register);
         Reg.PC += 1;
@@ -122,7 +122,7 @@ public partial class Z80
         return 7;
     }
     
-    private int Op_SBC_A_n() // Opcode: DE
+    private int Op_SBC_n() // Opcode: DE
     {
         byte value = ReadImmediateByte();
         Reg.A = SBC(Reg.A, value);

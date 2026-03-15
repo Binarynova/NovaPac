@@ -56,7 +56,7 @@ public partial class Z80
 
     #region XOR
 
-    private int Op_XOR_A(byte register) // Opcodes: A8 A9 AA AB AC AD AF
+    private int Op_XOR(byte register) // Opcodes: A8 A9 AA AB AC AD AF
     {
         Reg.A = (byte)(Reg.A ^ register);
 
@@ -70,7 +70,6 @@ public partial class Z80
 
     private int Op_XOR_A_n() // Opcode: EE
     {
-        // Opcode: xor the accumulator with itself
         Reg.A = (byte)(Reg.A ^ ReadImmediateByte());
 
         SetSZFlags(Reg.A);

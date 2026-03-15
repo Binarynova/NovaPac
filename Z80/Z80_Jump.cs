@@ -53,7 +53,7 @@ public partial class Z80
         return 10;
     }
 
-    private int Op_JP_C_nn() // Opcode: D2
+    private int Op_JP_C_nn() // Opcode: DA
     {
         if (GetFlag(Flags.C))
         {
