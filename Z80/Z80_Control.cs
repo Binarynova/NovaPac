@@ -1,3 +1,4 @@
+using System;
 using Reg = Registers;
 
 public partial class Z80

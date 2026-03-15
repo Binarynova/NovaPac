@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Reg = Registers;
 
 public class Machine
 {
@@ -33,10 +34,16 @@ public class Machine
                 Console.WriteLine($"VRAM write at {address:X4}: {value:X2}");
                 break;
             case >= PALETTE_START and < PALETTE_END:
-                Console.WriteLine($"PALETTE write of {value:X2} at {address:X4}. PC:{PC:X4}");
                 if (value > 0x1F)
                 {
-                    System.Diagnostics.Debugger.Break();
+                    //Console.WriteLine($"PALETTE write of {value:X2} at {address:X4}. PC:{PC:X4}");
+                    //Console.WriteLine($"HL: {Reg.HL:X4}");
+                    //Console.WriteLine($"AF: {Reg.AF:X4}");
+                    //Console.WriteLine($"BC: {Reg.BC:X4}");
+                    //Console.WriteLine($"DE: {Reg.DE:X4}");
+                    //System.Diagnostics.Debugger.Break();
+                    //if (Console.ReadKey().Key == ConsoleKey.Escape)
+                    //    Environment.Exit(0);
                 }   
                 break;
         }

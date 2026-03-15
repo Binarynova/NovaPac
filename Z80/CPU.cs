@@ -150,15 +150,15 @@ public partial class Z80(Machine machine)
         return (ushort)((highByte << 8) | lowByte);
     }
 
-    private byte ReadPort(ushort port)
+    private static byte ReadPort(ushort port)
     {
-        switch (port & 0xFF)
+        return (port & 0xFF) switch
         {
-            case 0x00: return 0xFF; // IN0
-            case 0x01: return 0xFF; // IN1
-            case 0x02: return 0xFF; // dip switches
-            default: return 0xFF;
-        }
+            0x00 => 0xFF, // IN0
+            0x01 => 0xFF, // IN1
+            0x02 => 0xFF, // dip switches
+            _ => 0xFF
+        };
     }
 
     private void WritePort(ushort port, byte value)
