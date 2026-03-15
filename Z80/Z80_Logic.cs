@@ -127,6 +127,14 @@ public partial class Z80
         Reg.PC += 1;
         return 7;
     }
+    
+    private int Op_OR_n() // Opcode: F6
+    {
+        byte value = ReadImmediateByte();
+        OR(value);
+        Reg.PC += 2;
+        return 7;
+    }
 
     #endregion
 

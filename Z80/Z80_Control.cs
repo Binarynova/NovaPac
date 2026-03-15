@@ -51,8 +51,22 @@ public partial class Z80
         Reg.PC += 1;
         return 4;
     }
+    
+    private int Op_EX_ptrSP_HL() // Opcode: E3
+    {
+        byte low = machine.ReadByte(Reg.SP);
+        machine.WriteByte(Reg.SP, Reg.L, Reg.PC);
+        Reg.L = low;
+        
+        byte high = machine.ReadByte((ushort)(Reg.SP + 1));
+        machine.WriteByte((ushort)(Reg.SP+1), Reg.H, Reg.PC);
+        Reg.H = high;
 
-    private int Op_IN_A_n()
+        Reg.PC += 1;
+        return 19;
+    }
+
+    private int Op_IN_A_n() // Opcode: DB
     {
         byte port = ReadImmediateByte();
         Reg.A = ReadPort(port);

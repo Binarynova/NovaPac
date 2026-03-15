@@ -230,6 +230,13 @@ public partial class Z80
         Reg.PC += 3;
         return 10;
     }
+    
+    private int Op_LD_SP_HL() // Opcode: F9
+    {
+        Reg.SP = machine.ReadWord(Reg.HL);
+        Reg.PC += 3;
+        return 10;
+    }
 
     private int Op_LD_ptrHL_n() // Opcode: 36
     {

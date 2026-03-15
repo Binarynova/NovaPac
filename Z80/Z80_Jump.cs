@@ -80,6 +80,48 @@ public partial class Z80
 
         return 10;
     }
+    
+    private int Op_JP_P_nn() // Opcode: F2
+    {
+        if (GetFlag(Flags.S))
+        {
+            Reg.PC = ReadImmediateWord();
+        }
+        else
+        {
+            Reg.PC += 3;
+        }
+
+        return 10;
+    }
+    
+    private int Op_JP_PE_nn() // Opcode: EA
+    {
+        if (GetFlag(Flags.P))
+        {
+            Reg.PC = ReadImmediateWord();
+        }
+        else
+        {
+            Reg.PC += 3;
+        }
+
+        return 10;
+    }
+    
+    private int Op_JP_PO_nn() // Opcode: E2
+    {
+        if (!GetFlag(Flags.P))
+        {
+            Reg.PC = ReadImmediateWord();
+        }
+        else
+        {
+            Reg.PC += 3;
+        }
+
+        return 10;
+    }
 
     private int Op_JP_Z_nn() // Opcode: CA
     {
@@ -167,6 +209,30 @@ public partial class Z80
         Reg.PC += 1;
         return 5;
     }
+    
+    private int Op_RET_PO() // Opcode: E0
+    {
+        if (!GetFlag(Flags.S))
+        {
+            Reg.PC = PopWord();
+            return 11;
+        }
+
+        Reg.PC += 1;
+        return 5;
+    }
+    
+    private int Op_RET_PE() // Opcode: E8
+    {
+        if (GetFlag(Flags.S))
+        {
+            Reg.PC = PopWord();
+            return 11;
+        }
+
+        Reg.PC += 1;
+        return 5;
+    }
 
     private int Op_RET_NC() // Opcode: D0
     {
@@ -235,6 +301,51 @@ public partial class Z80
     private int Op_CALL_C_nn() // Opcode: C4
     {
         if (GetFlag(Flags.C))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_PO_nn() // Opcode: E4
+    {
+        if (!GetFlag(Flags.C))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_PE_nn() // Opcode: EC
+    {
+        if (GetFlag(Flags.C))
+        {
+            PushWord((ushort)(Reg.PC + 3));
+            Reg.PC = ReadImmediateWord();
+            return 17;
+        }
+        else
+        {
+            Reg.PC += 3;
+            return 10;
+        }
+    }
+    
+    private int Op_CALL_P_nn() // Opcode: F4
+    {
+        if (GetFlag(Flags.S))
         {
             PushWord((ushort)(Reg.PC + 3));
             Reg.PC = ReadImmediateWord();
