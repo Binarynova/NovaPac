@@ -234,7 +234,9 @@ public partial class Z80(Machine machine)
         _mainOpcodes[0x34] = Op_INC_ptrHL;
         _mainOpcodes[0x35] = Op_DEC_ptrHL;
         _mainOpcodes[0x36] = Op_LD_ptrHL_n;
+        _mainOpcodes[0x37] = Op_SCF;
         _mainOpcodes[0x38] = Op_JR_C_e;
+        _mainOpcodes[0x39] = Op_ADD_HL_SP;
         _mainOpcodes[0x3A] = Op_LD_A_ptrNN;
         _mainOpcodes[0x3B] = Op_DEC_SP;
         _mainOpcodes[0x3C] = Op_INC_A;

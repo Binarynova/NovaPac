@@ -60,4 +60,13 @@ public partial class Z80
         Reg.PC += 2;
         return 11;
     }
+
+    private static int Op_SCF()
+    {
+        SetFlag(Flags.C);
+        ClearFlag(Flags.N | Flags.H);
+
+        Reg.PC += 1;
+        return 4;
+    }
 }
