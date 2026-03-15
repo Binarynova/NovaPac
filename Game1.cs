@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -42,6 +41,8 @@ public class Game1 : Game
     public Game1(string[] args)
     {
         Args = args;
+        Args = new string[1];
+        Args[0] = "-sst";
         var graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -51,10 +52,6 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        machine = new Machine();
-        cpu = new Z80(machine);        
-
-        base.Initialize();
         if (Args.Length != 0)
         {
             if (Args[0] == "-debug")
@@ -89,7 +86,12 @@ public class Game1 : Game
                     Environment.Exit(0);
                     break;
             }
-        }        
+        }
+        
+        machine = new Machine();
+        cpu = new Z80(machine);
+        
+        base.Initialize();
     }
 
     protected override void LoadContent()
@@ -184,7 +186,6 @@ public class Game1 : Game
         _previousKeyboardState = keyboardState;
         base.Update(gameTime);
     }
-
 
     protected override void Draw(GameTime gameTime)
     {
@@ -537,15 +538,19 @@ public class Game1 : Game
         
         Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
 
-        Z80 cpu = new Z80(machine);
+        machine = new Machine();
+        cpu = new Z80(machine);
+        
         int passed = 0;
         int failed = 0;
 
-        foreach (var test in tests)
-        {
+        //foreach (var test in tests)
+        //{
             // initialize CPU and memory from test.Initial
             cpu.Reset();
-        }
+            cpu.SetInitialCPUState(tests[0]);
+            cpu.Step(SteppingThrough: true);
+        //}
         
         Console.WriteLine("Tests done. Press a key to QUIT.");
         Console.ReadKey();

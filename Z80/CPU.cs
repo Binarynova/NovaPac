@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Reg = Registers;
 
@@ -6,6 +7,7 @@ public partial class Z80(Machine machine)
 {
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
+    private bool _iff2;
     private bool _halted;
     int traceCount = 0;
     int traceLimit = 2700000;
@@ -90,7 +92,7 @@ public partial class Z80(Machine machine)
         {
             if(Reg.PC == 0x3055)
             {
-                Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
+                //Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
             }
         }
         byte opcode = machine.ReadByte(Reg.PC);
@@ -122,8 +124,8 @@ public partial class Z80(Machine machine)
                     break;
             }
         }
-        else
-            Console.WriteLine($"0x{Reg.PC:X4} - {opcode:X2}");
+        //else
+        //    Console.WriteLine($"0x{Reg.PC:X4} - {opcode:X2}");
 
         IncrementRegisterR();
         if (trace != null && traceCount <= traceLimit && Reg.PC != 0)
@@ -579,5 +581,48 @@ public partial class Z80(Machine machine)
         throw new NotImplementedException(
             $"Unhandled opcode {machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}"
         );
+    }
+    
+    
+    // Single step test methods
+    public void SetInitialCPUState(Z80SingleStepTest test)
+    {
+        Reg.PC = test.Initial.PC;
+        Reg.SP = test.Initial.SP;
+        Reg.A = test.Initial.A;
+        Reg.B = test.Initial.B;
+        Reg.C = test.Initial.C;
+        Reg.D = test.Initial.D;
+        Reg.E = test.Initial.E;
+        Reg.F = test.Initial.F;
+        Reg.H = test.Initial.H;
+        Reg.L = test.Initial.L;
+        Reg.I =  test.Initial.I;
+        Reg.R = test.Initial.R;
+        EI_Pending = test.Initial.EI != 0;
+        Reg.WZ = test.Initial.WZ;
+        Reg.IX = test.Initial.IX;
+        Reg.IY = test.Initial.IY;
+        Reg.AF2 = test.Initial.AF_;
+        Reg.BC2 = test.Initial.BC_;
+        Reg.DE2 = test.Initial.DE_;
+        Reg.HL2 = test.Initial.HL_;
+        _interruptMode = test.Initial.IM;
+        Reg.P = test.Initial.P;
+        Reg.Q = test.Initial.Q;
+        _iff1 = test.Initial.IFF1 != 0;
+        _iff2 = test.Initial.IFF2 != 0;
+
+        foreach (List<int> entry in test.Initial.RAM)
+        {
+            machine.WriteByte((ushort)entry[0], (byte)entry[1], Reg.PC);
+        }
+        
+        Console.WriteLine($"PC: {Reg.PC}");
+    }
+
+    public void CheckFinalCPUState(Z80SingleStepTest test)
+    {
+        
     }
 }

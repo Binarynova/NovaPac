@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Reg = Registers;
 
 public class Machine
 {
@@ -18,11 +17,6 @@ public class Machine
         return RAM[address];
     }
 
-    public ushort ReadWord(ushort address)
-    {
-        return (ushort)(RAM[address] << 8 | RAM[address+1]);
-    }
-
     public void WriteByte(ushort address, byte value, ushort PC)
     {
         if(address < 0x4000)
@@ -31,7 +25,7 @@ public class Machine
         switch (address)
         {
             case >= TILES_START and < TILES_END:
-                Console.WriteLine($"VRAM write at {address:X4}: {value:X2}");
+                //Console.WriteLine($"VRAM write at {address:X4}: {value:X2}");
                 break;
             case >= PALETTE_START and < PALETTE_END:
                 if (value > 0x1F)
