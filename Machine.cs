@@ -7,14 +7,16 @@ public class Machine
     public byte[] paletteROM;
     public byte[] charROM;
     public byte[] spriteROM;
+    private bool Testing;
     private const ushort TILES_START = 0x4000;
     private const ushort TILES_END = 0x43FF;
     private const ushort PALETTE_START = 0x4400;
     private const ushort PALETTE_END = 0x47FF;
 
-    public Machine()
+    public Machine(bool testing = false)
     {
         ClearRAM();
+        Testing = testing;
     }
 
     public byte ReadByte(ushort address)
@@ -22,9 +24,9 @@ public class Machine
         return RAM[address];
     }
 
-    public void WriteByte(ushort address, byte value, bool testing = false)
+    public void WriteByte(ushort address, byte value)
     {
-        if (!testing)
+        if (!Testing)
         {
             if(address < 0x4000)
                 return;

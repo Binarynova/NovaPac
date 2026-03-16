@@ -57,7 +57,7 @@ public class Game1 : Game
             if (Args[0] == "-debug")
                 SteppingThrough = true;
             else if (Args[0] == "-sst")
-                RunSingleStepTests("tests/01.json");
+                RunSingleStepTests("tests/04.json");
         }
         
         if(mode == 0)
@@ -538,7 +538,7 @@ public class Game1 : Game
         
         Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
 
-        machine = new Machine();
+        machine = new Machine(testing: true);
         cpu = new Z80(machine);
         Console.WriteLine("To run a specific test, enter the index and press ENTER.");
         Console.WriteLine("Otherwise, press ENTER to run all tests.");
@@ -546,7 +546,8 @@ public class Game1 : Game
 
         string testInput = Console.ReadLine();
         int testIndex = string.IsNullOrWhiteSpace(testInput) ? -1 : int.Parse(testInput);
-
+        List<string> errorList = new List<string>();
+        int passedCount = 0;
         if (testIndex == -1)
         {
             foreach (var test in tests)
@@ -554,10 +555,20 @@ public class Game1 : Game
                 cpu.Reset();
                 cpu.SetInitialCPUState(test);
                 cpu.Step();
-                cpu.CheckFinalCPUState(test);
+                string error = cpu.CheckFinalCPUState(test);
+                if (error == "")
+                    passedCount++;
+                else
+                    errorList.Add(error);
             }
             
-            Console.WriteLine("\nTests done.");
+            Console.WriteLine($"\nTests done. Passed {passedCount}!");
+            if (errorList.Count > 0)
+            {
+                Console.WriteLine("Tests failed:");
+                foreach (string error in errorList)
+                    Console.WriteLine($"  {error}");
+            }
             Environment.Exit(0);
         }
         

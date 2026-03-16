@@ -583,7 +583,7 @@ public partial class Z80
 
         foreach (List<int> entry in test.Initial.RAM)
         {
-            machine.WriteByte((ushort)entry[0], (byte)entry[1], testing: true);
+            machine.WriteByte((ushort)entry[0], (byte)entry[1]);
         }
     }
     
@@ -733,15 +733,17 @@ public partial class Z80
         return expectedCPUState;
     }
 
-    public void CheckFinalCPUState(Z80SingleStepTest test)
+    public string CheckFinalCPUState(Z80SingleStepTest test)
     {
         CPUState actualCPUState = GetActualCPUState(test);
         CPUState expectedCPUState = GetExpectedCPUState(test);
         
         var errors = CompareStates(expectedCPUState, actualCPUState);
-
+        string failed = "";
+        
         if (errors.Count > 0)
         {
+            failed = test.Name;
             Console.WriteLine($"\nErrors in test {test.Name}:");
             foreach(var e in errors)
                 Console.WriteLine($"  {e}");
@@ -750,6 +752,8 @@ public partial class Z80
         {
             Console.WriteLine($"Test {test.Name} passed!");
         }
+
+        return failed;
     }
 
     private void PrintStepThroughDebug(byte opcode)

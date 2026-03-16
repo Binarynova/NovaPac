@@ -190,6 +190,7 @@ public partial class Z80
     private int Op_LD_ptrBC_A() // Opcode: 02
     {
         machine.WriteByte(Reg.BC, Reg.A);
+        Reg.WZ = (ushort)((Reg.A << 8) | ((Reg.C + 1) & 0xFF));
         Reg.PC += 1;
         return 7;
     }
