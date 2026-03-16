@@ -98,7 +98,6 @@ public class Game1 : Game
     {
         trace = new StreamWriter("trace.txt");
         trace.AutoFlush = false;
-        cpu.SetTraceWriter(trace);
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         // Create a 1x1 white texture
@@ -554,8 +553,6 @@ public class Game1 : Game
                 cpu.Reset();
                 cpu.SetInitialCPUState(test);
                 cpu.Step();
-                cpu.GetActualCPUState(test);
-                cpu.GetExpectedCPUState(test);
                 cpu.CheckFinalCPUState(test);
             }
             
@@ -566,8 +563,6 @@ public class Game1 : Game
         cpu.Reset();
         cpu.SetInitialCPUState(tests[testIndex]);
         cpu.Step();
-        cpu.GetActualCPUState(tests[testIndex]);
-        cpu.GetExpectedCPUState(tests[testIndex]);
         cpu.CheckFinalCPUState(tests[testIndex]);
         
         Console.WriteLine("\nTests done.");

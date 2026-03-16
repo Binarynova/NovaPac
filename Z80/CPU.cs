@@ -1,20 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices.Marshalling;
-using static CPUState;
 using Reg = Registers;
 
-public partial class Z80(Machine machine)
+public partial class Z80
 {
+    private readonly Machine machine;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
     private bool _halted;
-    int traceCount = 0;
-    int traceLimit = 2700000;
-
-    private StreamWriter trace;
 
     private delegate int OpcodeHandler();
     private readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
@@ -27,6 +21,7 @@ public partial class Z80(Machine machine)
     private int _interruptMode;
     public bool InterruptPending;
     public bool EI_Pending;
+    public bool EI_EnableAfterInstruction;
     private byte interruptVectorLow;
 
     [Flags]
@@ -34,11 +29,15 @@ public partial class Z80(Machine machine)
     {
         C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
     }
-
-    public void SetTraceWriter(StreamWriter writer)
+    
+    public Z80(Machine machine)
     {
-        trace = writer;
+        this.machine = machine;
+
+        BuildOpcodeTable();
+        InitParity();
     }
+    
     private void IncrementRegisterR()
     {
         Reg.R = (byte)((Reg.R & 0x80) | (((Reg.R & 0x7f) + 1) & 0x7f));
@@ -81,22 +80,11 @@ public partial class Z80(Machine machine)
         if (_halted)
         {
             if (InterruptPending)
-            {
                 _halted = false;       // resume from HALT
-            }
             else
-            {
                 return 4;              // stay halted, do not fetch opcode
-            }
         }
-
-        if (traceCount > 1870700)
-        {
-            if(Reg.PC == 0x3055)
-            {
-                //Console.WriteLine($"E={Reg.E:X2} C={Reg.C:X2} HL={Reg.HL:X4}");
-            }
-        }
+        
         byte opcode = machine.ReadByte(Reg.PC);
         
         if(SteppingThrough)
@@ -128,11 +116,6 @@ public partial class Z80(Machine machine)
         }
 
         IncrementRegisterR();
-        if (trace != null && traceCount <= traceLimit && Reg.PC != 0)
-        {
-            trace.WriteLine($"{Reg.PC:X4}");
-            traceCount++;
-        }
         
         // for single-step testing P & Q
         Reg.P = 0;
@@ -149,15 +132,18 @@ public partial class Z80(Machine machine)
         else
             Reg.Q = 0;
         ///////////////////////////////////
-        
-        if (!EI_Pending) return cycles;
-        if (trace != null && traceCount <= traceLimit && Reg.PC != 0)
+
+        if (EI_EnableAfterInstruction)
         {
-            trace.WriteLine($"{Reg.PC:X4}");
-            traceCount++;
+            _iff1 = true;
+            _iff2 = true;
+            EI_EnableAfterInstruction = false;
         }
-        EI_Pending = false;
-        _iff1 = true;
+        else if (EI_Pending)
+        {
+            EI_Pending = false;
+            EI_EnableAfterInstruction = true;
+        }
 
         return cycles;
     }
@@ -522,25 +508,26 @@ public partial class Z80(Machine machine)
     {
         WriteFlag(Flags.P, _parity[value]);
     }
-    
 
     public void Reset()
     {
         // reset CPU values
         machine.ClearRAM();
         Reg.PC = 0x0000;
-        Reg.A = Reg.B = Reg.C = Reg.D = Reg.E = 0;
+        Reg.AF = Reg.BC = Reg.DE = 0;
         Reg.HL = 0x0000;
         Reg.IX = Reg.IY = 0xFFFF;
         Reg.F = 0x00;
+        Reg.Q = Reg.P = Reg.I = Reg.R = 0;
         Reg.SP = 0x0000;
+        Reg.WZ = 0x0000;
         _iff1 = false;
         _halted = false;
         machine.ReadROMsIntoMemory();
         EI_Pending = false;
+        EI_EnableAfterInstruction = false;
+        _interruptMode = 0;
         InterruptPending = false;
-        BuildOpcodeTable();
-        InitParity();
     }    
 
     private static void SetFlag(Flags f)
