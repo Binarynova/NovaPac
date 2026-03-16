@@ -63,9 +63,9 @@ public partial class Z80
     private void PushWord(ushort value)
     {
         Reg.SP--; // decrement stack pointer
-        machine.WriteByte(Reg.SP, Reg.HighByte(value), Reg.PC); // write high byte first
+        machine.WriteByte(Reg.SP, Reg.HighByte(value)); // write high byte first
         Reg.SP--;
-        machine.WriteByte(Reg.SP, Reg.LowByte(value), Reg.PC); // then low byte
+        machine.WriteByte(Reg.SP, Reg.LowByte(value)); // then low byte
     }
 
     private ushort PopWord()

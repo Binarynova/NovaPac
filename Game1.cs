@@ -41,8 +41,8 @@ public class Game1 : Game
     public Game1(string[] args)
     {
         Args = args;
-        //Args = new string[1];
-        //Args[0] = "-sst";
+        Args = new string[1];
+        Args[0] = "-sst";
         var graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -57,7 +57,7 @@ public class Game1 : Game
             if (Args[0] == "-debug")
                 SteppingThrough = true;
             else if (Args[0] == "-sst")
-                RunSingleStepTests("tests/00.json");
+                RunSingleStepTests("tests/01.json");
         }
         
         if(mode == 0)

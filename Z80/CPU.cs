@@ -583,7 +583,7 @@ public partial class Z80
 
         foreach (List<int> entry in test.Initial.RAM)
         {
-            machine.WriteByte((ushort)entry[0], (byte)entry[1], Reg.PC);
+            machine.WriteByte((ushort)entry[0], (byte)entry[1], testing: true);
         }
     }
     

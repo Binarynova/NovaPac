@@ -22,10 +22,13 @@ public class Machine
         return RAM[address];
     }
 
-    public void WriteByte(ushort address, byte value, ushort PC)
+    public void WriteByte(ushort address, byte value, bool testing = false)
     {
-        if(address < 0x4000)
-            return;
+        if (!testing)
+        {
+            if(address < 0x4000)
+                return;
+        }
         
         switch (address)
         {

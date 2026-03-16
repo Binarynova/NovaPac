@@ -69,7 +69,7 @@ public partial class Z80
     {
         // Transfer one byte
         byte value = machine.ReadByte(Reg.HL);
-        machine.WriteByte(Reg.DE, value, Reg.PC);
+        machine.WriteByte(Reg.DE, value);
 
         Reg.HL++;
         Reg.DE++;

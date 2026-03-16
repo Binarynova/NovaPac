@@ -185,7 +185,7 @@ public partial class Z80
         CheckINCOverflow(target);
         Reg.PC += 1;
 
-        machine.WriteByte(Reg.HL, target, Reg.PC);
+        machine.WriteByte(Reg.HL, target);
         return 11;
     }
 
@@ -235,7 +235,7 @@ public partial class Z80
         WriteFlag(Flags.H, (value & 0x0F) == 0);
 
         value--;
-        machine.WriteByte(Reg.HL, value, Reg.PC);
+        machine.WriteByte(Reg.HL, value);
 
         CheckDECOverflow(value);
         SetFlag(Flags.N);

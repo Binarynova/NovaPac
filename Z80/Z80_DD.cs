@@ -104,7 +104,7 @@ public partial class Z80
     {
         sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
-        machine.WriteByte(addr, reg, Reg.PC);
+        machine.WriteByte(addr, reg);
     }
     #endregion
 }
