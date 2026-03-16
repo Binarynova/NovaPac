@@ -148,11 +148,6 @@ public partial class Z80
         return cycles;
     }
 
-    private static ushort LEWord(byte highByte, byte lowByte)
-    {
-        return (ushort)((highByte << 8) | lowByte);
-    }
-
     private static byte ReadPort(ushort port)
     {
         return (port & 0xFF) switch

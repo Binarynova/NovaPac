@@ -69,7 +69,7 @@ public partial class Z80
     private int Op_OUT_ptrn_A() // Opcode: D3
     {
         byte n = ReadImmediateByte();
-        ushort port = LEWord(Reg.I, n);
+        ushort port = (ushort)((Reg.I << 8) | n);
         WritePort(port, Reg.A);
         Reg.PC += 2;
         return 11;

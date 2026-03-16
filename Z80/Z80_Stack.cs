@@ -75,7 +75,7 @@ public partial class Z80
         byte high = machine.ReadByte(Reg.SP);
         Reg.SP++;
 
-        ushort value = LEWord(high, low);
+        ushort value = (ushort)((high << 8) | low);
         return value;
     }
     #endregion
