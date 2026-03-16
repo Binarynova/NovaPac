@@ -4,7 +4,7 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    private readonly Machine machine;
+    private Machine machine;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
@@ -490,7 +490,6 @@ public partial class Z80
         Reg.WZ = 0x0000;
         _iff1 = false;
         _halted = false;
-        machine.ReadROMsIntoMemory();
         EI_Pending = false;
         EI_EnableAfterInstruction = false;
         _interruptMode = 0;

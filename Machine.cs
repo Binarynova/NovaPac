@@ -12,6 +12,11 @@ public class Machine
     private const ushort PALETTE_START = 0x4400;
     private const ushort PALETTE_END = 0x47FF;
 
+    public Machine()
+    {
+        ClearRAM();
+    }
+
     public byte ReadByte(ushort address)
     {
         return RAM[address];

@@ -105,6 +105,7 @@ public class Game1 : Game
         pixelTexture.SetData([Color.White]);
 
         cpu.Reset();
+        machine.ReadROMsIntoMemory();
         ReadTiles();
         ReadSprites();
         ReadColors();
