@@ -73,9 +73,7 @@ public partial class Z80
     public int Step(bool SteppingThrough = false)
     {
         if(InterruptPending && _iff1) // InterruptPending turned on in Game1.cs at the end of a frame, mimicking VBLANK
-        {
             HandleInterrupt();
-        }
 
         if (_halted)
         {
@@ -86,36 +84,9 @@ public partial class Z80
         }
         
         byte opcode = machine.ReadByte(Reg.PC);
-        
-        if(SteppingThrough)
-        {
-            Console.Clear();
-            Console.WriteLine($"Flags: {GetFlagDebugValue(Flags.S)}{GetFlagDebugValue(Flags.Z)}.{GetFlagDebugValue(Flags.H)}.{GetFlagDebugValue(Flags.P)}{GetFlagDebugValue(Flags.N)}{GetFlagDebugValue(Flags.C)}");
-            Console.WriteLine();
-            Console.WriteLine($"   PC: {Reg.PC:X4}");
-            Console.WriteLine($"   SP: {Reg.SP:X4}");
-            Console.WriteLine();
-            Console.WriteLine($"   AF: {Reg.AF:X4}");
-            Console.WriteLine($"   BC: {Reg.BC:X4}");
-            Console.WriteLine($"   DE: {Reg.DE:X4}");
-            Console.WriteLine($"   HL: {Reg.HL:X4}");
-            Console.WriteLine($"   IX: {Reg.IX:X4}");
-            Console.WriteLine($"   IY: {Reg.IY:X4}");
-            Console.WriteLine($"    R: {Reg.R:X2}");
-            Console.WriteLine($"    I: {Reg.I:X2}");
-            Console.WriteLine($" IFF1: {_iff1}");
-            Console.WriteLine($" HALT: {_halted : 1 ? 0}");
-            Console.WriteLine();
-            Console.WriteLine($"Next Opcode: {opcode:X2}");
-            switch (Console.ReadKey().Key)
-            {
-                case ConsoleKey.Escape:
-                    Environment.Exit(0);
-                    break;
-            }
-        }
 
-        IncrementRegisterR();
+        if (SteppingThrough)
+            PrintStepThroughDebug(opcode);
         
         // for single-step testing P & Q
         Reg.P = 0;
@@ -123,6 +94,7 @@ public partial class Z80
         //////////////////////////
         
         int cycles = _mainOpcodes[opcode]();
+        IncrementRegisterR();
         
         // for single-step testing P & Q continued, if last opcode was LD A,I or LD A,R, they will have set Reg.P to 1
         if (Reg.P == 1) SetFlag(Flags.P);
@@ -778,6 +750,34 @@ public partial class Z80
         else
         {
             Console.WriteLine($"Test {test.Name} passed!");
+        }
+    }
+
+    private void PrintStepThroughDebug(byte opcode)
+    {
+        Console.Clear();
+        Console.WriteLine($"Flags: {GetFlagDebugValue(Flags.S)}{GetFlagDebugValue(Flags.Z)}.{GetFlagDebugValue(Flags.H)}.{GetFlagDebugValue(Flags.P)}{GetFlagDebugValue(Flags.N)}{GetFlagDebugValue(Flags.C)}");
+        Console.WriteLine();
+        Console.WriteLine($"   PC: {Reg.PC:X4}");
+        Console.WriteLine($"   SP: {Reg.SP:X4}");
+        Console.WriteLine();
+        Console.WriteLine($"   AF: {Reg.AF:X4}");
+        Console.WriteLine($"   BC: {Reg.BC:X4}");
+        Console.WriteLine($"   DE: {Reg.DE:X4}");
+        Console.WriteLine($"   HL: {Reg.HL:X4}");
+        Console.WriteLine($"   IX: {Reg.IX:X4}");
+        Console.WriteLine($"   IY: {Reg.IY:X4}");
+        Console.WriteLine($"    R: {Reg.R:X2}");
+        Console.WriteLine($"    I: {Reg.I:X2}");
+        Console.WriteLine($" IFF1: {_iff1}");
+        Console.WriteLine($" HALT: {_halted : 1 ? 0}");
+        Console.WriteLine();
+        Console.WriteLine($"Next Opcode: {opcode:X2}");
+        switch (Console.ReadKey().Key)
+        {
+            case ConsoleKey.Escape:
+                Environment.Exit(0);
+                break;
         }
     }
 }
