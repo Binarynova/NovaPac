@@ -19,7 +19,7 @@ public class Game1 : Game
     int mode = 0;
     bool SteppingThrough;
     StreamWriter trace;
-    float _speedMultiplier = 1f;
+    const float _speedMultiplier = 1f;
     
     Machine machine;
     Z80 cpu;
