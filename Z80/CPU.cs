@@ -748,10 +748,6 @@ public partial class Z80
             foreach(var e in errors)
                 Console.WriteLine($"  {e}");
         }
-        else
-        {
-            Console.WriteLine($"Test {test.Name} passed!");
-        }
 
         return failed;
     }

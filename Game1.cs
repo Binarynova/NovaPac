@@ -57,7 +57,7 @@ public class Game1 : Game
             if (Args[0] == "-debug")
                 SteppingThrough = true;
             else if (Args[0] == "-sst")
-                RunSingleStepTests("tests/04.json");
+                RunSingleStepTests();
         }
         
         if(mode == 0)
@@ -530,23 +530,25 @@ public class Game1 : Game
         }
     }
 
-    private void RunSingleStepTests(string testFile)
+    private void RunSingleStepTests()
     {
         // Load
-        string json = File.ReadAllText(testFile);
-        var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
-        
-        Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
-
         machine = new Machine(testing: true);
         cpu = new Z80(machine);
+        Console.Write("Please enter the opcode in hex: ");
+        string hexOpcode = Console.ReadLine();
+        string testFile = "tests/" + hexOpcode + ".json";
+        
         Console.WriteLine("To run a specific test, enter the index and press ENTER.");
         Console.WriteLine("Otherwise, press ENTER to run all tests.");
         Console.Write("Test number? ");
 
+        string json = File.ReadAllText(testFile);
+        var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+        Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
+        
         string testInput = Console.ReadLine();
         int testIndex = string.IsNullOrWhiteSpace(testInput) ? -1 : int.Parse(testInput);
-        List<string> errorList = new List<string>();
         int passedCount = 0;
         if (testIndex == -1)
         {
@@ -558,17 +560,9 @@ public class Game1 : Game
                 string error = cpu.CheckFinalCPUState(test);
                 if (error == "")
                     passedCount++;
-                else
-                    errorList.Add(error);
             }
             
             Console.WriteLine($"\nTests done. Passed {passedCount}!");
-            if (errorList.Count > 0)
-            {
-                Console.WriteLine("Tests failed:");
-                foreach (string error in errorList)
-                    Console.WriteLine($"  {error}");
-            }
             Environment.Exit(0);
         }
         
