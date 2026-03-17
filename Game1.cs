@@ -535,43 +535,27 @@ public class Game1 : Game
         // Load
         machine = new Machine(testing: true);
         cpu = new Z80(machine);
+        
         Console.Write("Please enter the opcode in hex: ");
         string hexOpcode = Console.ReadLine();
         string testFile = "tests/" + hexOpcode + ".json";
         
-        Console.WriteLine("To run a specific test, enter the index and press ENTER.");
-        Console.WriteLine("Otherwise, press ENTER to run all tests.");
-        Console.Write("Test number? ");
-
         string json = File.ReadAllText(testFile);
         var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
-        Console.WriteLine($"Loaded {tests.Count} single-step tests from {testFile}.");
         
-        string testInput = Console.ReadLine();
-        int testIndex = string.IsNullOrWhiteSpace(testInput) ? -1 : int.Parse(testInput);
         int passedCount = 0;
-        if (testIndex == -1)
+        
+        foreach (Z80SingleStepTest test in tests)
         {
-            foreach (var test in tests)
-            {
-                cpu.Reset();
-                cpu.SetInitialCPUState(test);
-                cpu.Step();
-                string error = cpu.CheckFinalCPUState(test);
-                if (error == "")
-                    passedCount++;
-            }
-            
-            Console.WriteLine($"\nTests done. Passed {passedCount}!");
-            Environment.Exit(0);
+            cpu.Reset();
+            cpu.SetInitialCPUState(test);
+            cpu.Step();
+            string error = cpu.CheckFinalCPUState(test);
+            if (error == "")
+                passedCount++;
         }
         
-        cpu.Reset();
-        cpu.SetInitialCPUState(tests[testIndex]);
-        cpu.Step();
-        cpu.CheckFinalCPUState(tests[testIndex]);
-        
-        Console.WriteLine("\nTests done.");
+        Console.WriteLine($"\nTests done. Passed {passedCount}!");
         Environment.Exit(0);
     }
 }
