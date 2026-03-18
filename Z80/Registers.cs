@@ -1,6 +1,6 @@
 public static class Registers
 {
-    public static byte A, F, B, C, D, E, H, L, P, Q;
+    public static byte A, F, B, C, D, E, H, L, Q;
     public static byte A2, F2, B2, C2, D2, E2, H2, L2;
     public static byte I, R;
     public static ushort PC, SP, IX, IY, WZ;

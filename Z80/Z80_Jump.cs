@@ -390,11 +390,9 @@ public partial class Z80
             Reg.PC = (ushort)(Reg.PC + 2 + offset);
             return 13;
         }
-        else
-        {
-            Reg.PC += 2;
-            return 8;
-        }
+        
+        Reg.PC += 2;
+        return 8;
     }
 
     #region Helper Methods

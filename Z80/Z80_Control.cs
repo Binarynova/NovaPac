@@ -86,8 +86,9 @@ public partial class Z80
 
     private static int Op_SCF() // Opcode: 37
     {
-        SetFlag(Flags.C);
-        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.H, false);
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, true);
 
         Reg.PC += 1;
         return 4;
@@ -95,9 +96,11 @@ public partial class Z80
 
     private static int Op_CCF() // Opcode: 3F
     {
-        WriteFlag(Flags.H, GetFlag(Flags.C));
-        ClearFlag(Flags.N);
-        ToggleFlag(Flags.C);
+        bool carry = GetFlag(Flags.C);
+        
+        WriteFlag(Flags.H, carry);
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, !carry);
 
         Reg.PC += 1;
         return 4;

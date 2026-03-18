@@ -159,6 +159,7 @@ public partial class Z80
     private int Op_LD_A_ptrBC() // Opcode: 0A
     {
         Reg.A = machine.ReadByte(Reg.BC);
+        Reg.WZ = (ushort)(Reg.BC + 1);
         Reg.PC += 1;
         return 7;
     }

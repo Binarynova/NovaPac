@@ -39,8 +39,6 @@ public class Z80SingleStepTest
         public byte I { get; set; }
         [JsonPropertyName("r")]
         public byte R { get; set; }
-        [JsonPropertyName("ei")]
-        public byte EI { get; set; }
         [JsonPropertyName("wz")]
         public ushort WZ { get; set; }
         [JsonPropertyName("ix")]
@@ -57,10 +55,6 @@ public class Z80SingleStepTest
         public ushort HL_ { get; set; }
         [JsonPropertyName("im")]
         public byte IM { get; set; }
-        [JsonPropertyName("p")]
-        public byte P { get; set; }
-        [JsonPropertyName("q")]
-        public byte Q { get; set; }
         [JsonPropertyName("iff1")]
         public byte IFF1 { get; set; }
         [JsonPropertyName("iff2")]

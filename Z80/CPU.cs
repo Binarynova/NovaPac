@@ -88,22 +88,9 @@ public partial class Z80
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
-        // for single-step testing P & Q
-        Reg.P = 0;
-        byte oldFlagReg = Reg.F;
-        //////////////////////////
-        
-        int cycles = _mainOpcodes[opcode]();
         IncrementRegisterR();
-        
-        // for single-step testing P & Q continued, if last opcode was LD A,I or LD A,R, they will have set Reg.P to 1
-        if (Reg.P == 1) SetFlag(Flags.P);
-        // if flags changed during last opcode set Q to value of Reg.F otherwise 0
-        if (Reg.F != oldFlagReg)
-            Reg.Q = Reg.F;
-        else
-            Reg.Q = 0;
-        ///////////////////////////////////
+        int cycles = _mainOpcodes[opcode]();
+        Reg.Q = 0;
 
         if (EI_EnableAfterInstruction)
         {
@@ -485,7 +472,7 @@ public partial class Z80
         Reg.HL = 0x0000;
         Reg.IX = Reg.IY = 0xFFFF;
         Reg.F = 0x00;
-        Reg.Q = Reg.P = Reg.I = Reg.R = 0;
+        Reg.Q = Reg.I = Reg.R = 0;
         Reg.SP = 0x0000;
         Reg.WZ = 0x0000;
         _iff1 = false;
@@ -508,6 +495,11 @@ public partial class Z80
     {
         return (Reg.F & (byte)f) != 0;
     }
+    private static void WriteFlag(Flags f, bool value)
+    {
+        if (value) Reg.F |= (byte)f;
+        else Reg.F &= (byte)~f;
+    }
 
     private static string GetFlagDebugValue(Flags f)
     {
@@ -517,18 +509,13 @@ public partial class Z80
     {
         Reg.F = (byte)(Reg.F ^ (byte)f);
     }
-    private static void WriteFlag(Flags f, bool value)
-    {
-        if (value) Reg.F |= (byte)f;
-        else Reg.F &= (byte)~f;
-    }
 
     private static void SetSZFlags(byte value)
     {
         WriteFlag(Flags.Z, value == 0);
-        WriteFlag(Flags.S, (value & 0x80) != 0);
-        WriteFlag(Flags.F5, (value & 0x20) != 0);
-        WriteFlag(Flags.F3, (value & 0x08) != 0);
+        WriteFlag(Flags.S, (value & 0x80) != 0);    // if bit 7 is not 0, the number is negative
+        WriteFlag(Flags.F5, (value & 0x20) != 0);   // if bit 5 is 1
+        WriteFlag(Flags.F3, (value & 0x08) != 0);   // if bit 3 is 1
     }
     
     byte ReadImmediateByte()
@@ -567,7 +554,6 @@ public partial class Z80
         Reg.L = test.Initial.L;
         Reg.I =  test.Initial.I;
         Reg.R = test.Initial.R;
-        EI_Pending = test.Initial.EI != 0;
         Reg.WZ = test.Initial.WZ;
         Reg.IX = test.Initial.IX;
         Reg.IY = test.Initial.IY;
@@ -576,8 +562,6 @@ public partial class Z80
         Reg.DE2 = test.Initial.DE_;
         Reg.HL2 = test.Initial.HL_;
         _interruptMode = test.Initial.IM;
-        Reg.P = test.Initial.P;
-        Reg.Q = test.Initial.Q;
         _iff1 = test.Initial.IFF1 != 0;
         _iff2 = test.Initial.IFF2 != 0;
 
@@ -659,7 +643,6 @@ public partial class Z80
         actualCPUState.R = Reg.R;
         
         actualCPUState.Q = Reg.Q;
-        actualCPUState.P = Reg.P;
 
         actualCPUState.AF_ = Reg.AF2;
         actualCPUState.BC_ = Reg.BC2;
@@ -671,7 +654,6 @@ public partial class Z80
         actualCPUState.IX = Reg.IX;
         actualCPUState.IY = Reg.IY;
         actualCPUState.WZ = Reg.WZ;
-        actualCPUState.EI = (byte)(EI_Pending ? 1 : 0);
         actualCPUState.IFF1 = (byte)(_iff1 ? 1 : 0);
         actualCPUState.IFF2 = (byte)(_iff2 ? 1 : 0);
         actualCPUState.IM = (byte)_interruptMode;
@@ -704,9 +686,6 @@ public partial class Z80
         
         expectedCPUState.I = test.Final.I;
         expectedCPUState.R = test.Final.R;
-        
-        expectedCPUState.Q = test.Final.Q;
-        expectedCPUState.P = test.Final.P;
 
         expectedCPUState.AF_ = test.Final.AF_;
         expectedCPUState.BC_ = test.Final.BC_;
@@ -718,7 +697,6 @@ public partial class Z80
         expectedCPUState.IX = test.Final.IX;
         expectedCPUState.IY = test.Final.IY;
         expectedCPUState.WZ = test.Final.WZ;
-        expectedCPUState.EI = test.Final.EI;
         expectedCPUState.IFF1 = test.Final.IFF1;
         expectedCPUState.IFF2 = test.Final.IFF2;
         expectedCPUState.IM = test.Final.IM;

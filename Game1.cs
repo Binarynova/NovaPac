@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -41,8 +42,8 @@ public class Game1 : Game
     public Game1(string[] args)
     {
         Args = args;
-        Args = new string[1];
-        Args[0] = "-sst";
+        //Args = new string[1];
+        //Args[0] = "-sst";
         var graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -548,6 +549,8 @@ public class Game1 : Game
         foreach (Z80SingleStepTest test in tests)
         {
             cpu.Reset();
+            if(test.Name == "04 01AE")
+                System.Diagnostics.Debugger.Break();
             cpu.SetInitialCPUState(test);
             cpu.Step();
             string error = cpu.CheckFinalCPUState(test);

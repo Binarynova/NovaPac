@@ -319,6 +319,10 @@ public partial class Z80
         WriteFlag(Flags.H, (acc & 0x0FFF) + (value & 0x0FFF) > 0x0FFF);
         ClearFlag(Flags.N);
 
+        Reg.WZ = (ushort)(acc + 1);
+
+        WriteFlag(Flags.F5, (sum & 0x2000) != 0); // Bit 13
+        WriteFlag(Flags.F3, (sum & 0x0800) != 0); // Bit 11
         return (ushort)sum;
     }
 
@@ -394,7 +398,7 @@ public partial class Z80
 
     private static void CheckDECOverflow(byte value)
     {
-        if (value == 0x7F)
+        if (value == 0x80)
             SetFlag(Flags.P);
         else
             ClearFlag(Flags.P);
@@ -402,32 +406,22 @@ public partial class Z80
 
     private static void SetIncFlags(byte target)
     {
-        if ((target & 0x0F) == 0x0F) // Opcode: if lower nibble is F, half-carry will occur when adding 1
-            SetFlag(Flags.H);
-        else
-            ClearFlag(Flags.H);
-        SetSZFlags((byte)(target + 1)); // Opcode: adding one because this needs to be checked AFTER the addition
-        ClearFlag(Flags.N);
+        byte result = (byte)(target + 1);
         CheckINCOverflow(target);
+        
+        WriteFlag(Flags.H, (target & 0x0F) == 0x0F); // if lower nibble is 0F, half-carry will occur when adding 1
+        SetSZFlags(result);
+        ClearFlag(Flags.N);
     }
 
     private static void SetDecFlags(byte target)
     {
         byte result = (byte)(target - 1);
-
-        if ((target & 0x0F) == 0x00)
-            SetFlag(Flags.H);
-        else
-            ClearFlag(Flags.H);
-
-        SetSZFlags(result);
-
-        SetFlag(Flags.N);
-
         CheckDECOverflow(target);
-
-        WriteFlag(Flags.F5, (result & 0x20) != 0);
-        WriteFlag(Flags.F3, (result & 0x08) != 0);
+        
+        SetFlag(Flags.N);
+        WriteFlag(Flags.H, (target & 0x0F) == 0x00); // if lower nibble is 00, borrow from bit 4 must occur
+        SetSZFlags(result);
     }
 
     #endregion
