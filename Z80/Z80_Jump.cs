@@ -411,6 +411,7 @@ public partial class Z80
         if (condition())
         {
             Reg.PC = (ushort)(nextPC + offset);
+            Reg.WZ = Reg.PC;
             return 12;
         }
         

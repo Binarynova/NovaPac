@@ -177,6 +177,7 @@ public partial class Z80
         ushort addr = ReadImmediateWord();
         Reg.L = machine.ReadByte(addr);
         Reg.H = machine.ReadByte((ushort)(addr + 1));
+        Reg.WZ = (ushort)(addr + 1);
         Reg.PC += 3;
         return 16;
     }
@@ -210,6 +211,7 @@ public partial class Z80
         ushort address = ReadImmediateWord();
         machine.WriteByte(address, Reg.L);
         machine.WriteByte((ushort)(address + 1), Reg.H);
+        Reg.WZ = (ushort)(address + 1);
         Reg.PC += 3;
         return 16;
     }
