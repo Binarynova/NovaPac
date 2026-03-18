@@ -381,17 +381,22 @@ public partial class Z80
         return 11;
     }
 
-    private int Op_DJNZ_e() // Opcodes: 10
+    private int Op_DJNZ_e() // Opcode: 10
     {
+        sbyte offset = (sbyte)machine.ReadByte((ushort)(Reg.PC + 1));
+    
+        Reg.PC += 2;
+
         Reg.B--;
-        if (Reg.B != 0x00)
+        if (Reg.B != 0)
         {
-            sbyte offset = ReadSignedOffset();
-            Reg.PC = (ushort)(Reg.PC + 2 + offset);
+            ushort target = (ushort)(Reg.PC + offset);
+            Reg.PC = target;
+            Reg.WZ = target;
+        
             return 13;
         }
-        
-        Reg.PC += 2;
+    
         return 8;
     }
 
@@ -407,11 +412,9 @@ public partial class Z80
             Reg.PC = (ushort)(nextPC + offset);
             return 12;
         }
-        else
-        {
-            Reg.PC = nextPC;
-            return 7;
-        }
+        
+        Reg.PC = nextPC;
+        return 7;
     }
 
     #endregion
