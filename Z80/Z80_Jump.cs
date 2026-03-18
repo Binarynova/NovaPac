@@ -9,6 +9,7 @@ public partial class Z80
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         Reg.PC = (ushort)(nextPC + offset);
+        Reg.WZ = Reg.PC;
         return 12;
     }
 

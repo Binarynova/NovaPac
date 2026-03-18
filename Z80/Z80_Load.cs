@@ -167,6 +167,7 @@ public partial class Z80
     private int Op_LD_A_ptrDE() // Opcode: 1A
     {
         Reg.A = machine.ReadByte(Reg.DE);
+        Reg.WZ = (ushort)(Reg.DE + 1);
         Reg.PC += 1;
         return 7;
     }
@@ -199,6 +200,7 @@ public partial class Z80
     private int Op_LD_ptrDE_A() // Opcode: 12
     {
         machine.WriteByte(Reg.DE, Reg.A);
+        Reg.WZ = (ushort)((Reg.A << 8) | ((Reg.E + 1) & 0xFF));
         Reg.PC += 1;
         return 7;
     }
