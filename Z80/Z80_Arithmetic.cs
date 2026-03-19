@@ -249,15 +249,9 @@ public partial class Z80
 
     #region CP
 
-    private static int Op_CP(byte register) // Opcodes: B8 B9 BA BB BC BD BF
+    private int Op_CP(byte register) // Opcodes: B8 B9 BA BB BC BD BF
     {
-        byte result = (byte)(Reg.A - register);
-
-        WriteFlag(Flags.C, Reg.A < register);
-        WriteFlag(Flags.H, (Reg.A & 0x0F) < (register & 0x0F));
-        SetFlag(Flags.N);
-        SetSZFlags(result);
-        WriteFlag(Flags.P, ((Reg.A ^ register) & (Reg.A ^ result) & 0x80) != 0);
+        InternalCP(register); ;
 
         Reg.PC += 1;
         return 4;
@@ -266,13 +260,7 @@ public partial class Z80
     private int Op_CP_n() // Opcode: FE
     {
         byte n = ReadImmediateByte();
-        byte result = (byte)(Reg.A - n);
-
-        WriteFlag(Flags.C, Reg.A < n);
-        WriteFlag(Flags.H, (Reg.A & 0x0F) < (n & 0x0F));
-        SetFlag(Flags.N);
-        SetSZFlags(result);
-        WriteFlag(Flags.P, ((Reg.A ^ n) & (Reg.A ^ result) & 0x80) != 0);
+        InternalCP(n);
 
         Reg.PC += 2;
         return 7;
@@ -281,13 +269,7 @@ public partial class Z80
     private int Op_CP_ptrHL() // Opcode: BE
     {
         byte value = machine.ReadByte(Reg.HL);
-        byte result = (byte)(Reg.A - value);
-
-        WriteFlag(Flags.C, Reg.A < value);
-        WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
-        SetFlag(Flags.N);
-        SetSZFlags(result);
-        WriteFlag(Flags.P, ((Reg.A ^ value) & (Reg.A ^ result) & 0x80) != 0);
+        InternalCP(value);
 
         Reg.PC += 1;
         return 7;
@@ -422,6 +404,24 @@ public partial class Z80
         SetFlag(Flags.N);
         WriteFlag(Flags.H, (target & 0x0F) == 0x00); // if lower nibble is 00, borrow from bit 4 must occur
         SetSZFlags(result);
+    }
+    
+    private void InternalCP(byte val)
+    {
+        int res = Reg.A - val;
+    
+        // 1. Standard Flags
+        WriteFlag(Flags.S, (res & 0x80) != 0);
+        WriteFlag(Flags.Z, (res & 0xFF) == 0);
+        WriteFlag(Flags.H, (Reg.A & 0x0F) < (val & 0x0F));
+        WriteFlag(Flags.P, ((Reg.A ^ val) & (Reg.A ^ (res & 0xFF)) & 0x80) != 0); // Overflow
+        SetFlag(Flags.N); // Always 1 for CP
+        WriteFlag(Flags.C, Reg.A < val);
+
+        // 2. THE FIX: XY bits come from the OPERAND (val), not the result!
+        // This is a unique quirk of the CP instruction.
+        WriteFlag(Flags.F5, (val & 0x20) != 0);
+        WriteFlag(Flags.F3, (val & 0x08) != 0);
     }
 
     #endregion

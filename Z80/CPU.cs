@@ -328,7 +328,7 @@ public partial class Z80
         _mainOpcodes[0xAB] = () => Op_XOR(Reg.E);
         _mainOpcodes[0xAC] = () => Op_XOR(Reg.H);
         _mainOpcodes[0xAD] = () => Op_XOR(Reg.L);
-        _mainOpcodes[0xAD] = Op_XOR_A_ptrHL;
+        _mainOpcodes[0xAE] = Op_XOR_A_ptrHL;
         _mainOpcodes[0xAF] = () => Op_XOR(Reg.A);
 
         _mainOpcodes[0xB0] = () => Op_OR(Reg.B);
