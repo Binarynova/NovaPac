@@ -11,6 +11,7 @@ public partial class Z80
     private int Op_HALT() // Opcode: 76
     {
         _halted = true;
+        Reg.PC += 1;
         return 4;
     }
 
