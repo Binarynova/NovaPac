@@ -505,10 +505,6 @@ public partial class Z80
     {
         return (Reg.F & (byte)f) != 0 ? f.ToString() : ".";
     }
-    private static void ToggleFlag(Flags f)
-    {
-        Reg.F = (byte)(Reg.F ^ (byte)f);
-    }
 
     private static void SetSZFlags(byte value)
     {

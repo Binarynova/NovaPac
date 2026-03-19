@@ -178,11 +178,11 @@ public partial class Z80
         else
             ClearFlag(Flags.H);
 
+        CheckINCOverflow(target);
         target += 1;
 
         SetSZFlags(target);
         ClearFlag(Flags.N);
-        CheckINCOverflow(target);
         Reg.PC += 1;
 
         machine.WriteByte(Reg.HL, target);
@@ -234,10 +234,10 @@ public partial class Z80
         byte value = machine.ReadByte(Reg.HL);
         WriteFlag(Flags.H, (value & 0x0F) == 0);
 
+        CheckDECOverflow(value);
         value--;
         machine.WriteByte(Reg.HL, value);
 
-        CheckDECOverflow(value);
         SetFlag(Flags.N);
         SetSZFlags(value);
 
