@@ -398,12 +398,28 @@ public partial class Z80
 
     private static void SetDecFlags(byte target)
     {
-        byte result = (byte)(target - 1);
-        CheckDECOverflow(target);
-        
+        // 1. Calculate the result first
+        byte original = target;
+        target--; // Perform the actual decrement
+    
+        // 2. Half Carry: Set if borrowing from bit 4 (i.e., lower nibble was 0)
+        WriteFlag(Flags.H, (original & 0x0F) == 0x0);
+
+        // 3. Overflow (V): Set if we go from 0x80 (-128) to 0x7F (+127)
+        WriteFlag(Flags.P, original == 0x80);
+
+        // 4. N Flag: Always set for subtraction/decrement
         SetFlag(Flags.N);
-        WriteFlag(Flags.H, (target & 0x0F) == 0x00); // if lower nibble is 00, borrow from bit 4 must occur
-        SetSZFlags(result);
+
+        // 5. Sign and Zero: Based on the NEW value
+        WriteFlag(Flags.S, (target & 0x80) != 0);
+        WriteFlag(Flags.Z, target == 0);
+
+        // 6. F3 and F5: Copied from the NEW value
+        WriteFlag(Flags.F3, (target & 0x08) != 0);
+        WriteFlag(Flags.F5, (target & 0x20) != 0);
+    
+        // CARRY IS UNTOUCHED
     }
     
     private void InternalCP(byte val)

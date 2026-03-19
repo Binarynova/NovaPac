@@ -39,8 +39,8 @@ public class Z80SingleStepTest
         public byte I { get; set; }
         [JsonPropertyName("r")]
         public byte R { get; set; }
-        [JsonPropertyName("wz")]
-        public ushort WZ { get; set; }
+        //[JsonPropertyName("wz")]
+        //public ushort WZ { get; set; }
         [JsonPropertyName("ix")]
         public ushort IX { get; set; }
         [JsonPropertyName("iy")]

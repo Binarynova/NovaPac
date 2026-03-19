@@ -42,10 +42,12 @@ public partial class Z80
 
     private int Op_JP_NZ_nn() // Opcode: C2
     {
+        ushort address = ReadImmediateWord();
+        Reg.WZ = address;
+        
         if (!GetFlag(Flags.Z))
         {
             // jump to address nn
-            ushort address = ReadImmediateWord();
             Reg.PC = address;
             return 10;
         }
@@ -156,6 +158,7 @@ public partial class Z80
         if (!GetFlag(Flags.Z))
         {
             Reg.PC = PopWord();
+            Reg.WZ = Reg.PC;
             return 11;
         }
 

@@ -18,6 +18,7 @@ public partial class Z80
     private int Op_DI() // Opcode: F3
     {
         _iff1 = false;
+        _iff2 = false;
         Reg.PC += 1;
         return 4;
     }
@@ -25,6 +26,8 @@ public partial class Z80
     private int Op_EI() // Opcode: FB
     {
         EI_Pending = true;
+        _iff1 = true;
+        _iff2 = true;
         Reg.PC += 1;
         return 4;
     }

@@ -26,7 +26,6 @@ public partial class Z80
     private int Op_POP_AF() // Opcode: F1
     {
         Reg.AF = PopWord();
-        Reg.F &= 0xD7;
         Reg.PC += 1;
         return 10;
     }

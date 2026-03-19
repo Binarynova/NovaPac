@@ -264,7 +264,7 @@ public partial class Z80
     private int Op_LD_SP_HL() // Opcode: F9
     {
         Reg.SP = Reg.HL;
-        Reg.PC += 3;
+        Reg.PC += 1;
         return 10;
     }
 }

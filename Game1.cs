@@ -214,7 +214,7 @@ public class Game1 : Game
                     int yPos = tileRow * 8 * pixelScale;
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -228,7 +228,7 @@ public class Game1 : Game
                     int yPos = 48 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -242,7 +242,7 @@ public class Game1 : Game
                     int yPos = 816 + (tileRow * 8 * pixelScale);
                     byte tileNumber = machine.ReadByte(vram);
                     byte paletteNumber = machine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+                    DrawTile(tileNumber, paletteNumber, xPos, yPos);
                 }
             }
 
@@ -536,29 +536,43 @@ public class Game1 : Game
         // Load
         machine = new Machine(testing: true);
         cpu = new Z80(machine);
+        int hexCode = 0;
+        int passedCount;
         
-        Console.Write("Please enter the opcode in hex: ");
-        string hexOpcode = Console.ReadLine();
-        string testFile = "tests/" + hexOpcode + ".json";
+        StreamWriter sw = new("testlog.txt");
         
-        string json = File.ReadAllText(testFile);
-        var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
-        
-        int passedCount = 0;
-        
-        foreach (Z80SingleStepTest test in tests)
+        while (hexCode < 0xFF)
         {
-            cpu.Reset();
-            if(test.Name == "04 01AE")
-                System.Diagnostics.Debugger.Break();
-            cpu.SetInitialCPUState(test);
-            cpu.Step();
-            string error = cpu.CheckFinalCPUState(test);
-            if (error == "")
-                passedCount++;
-        }
+            if (hexCode is 0xCB or 0xDD or 0xED or 0xFD)
+            {
+                hexCode++;
+                continue;
+            }
+            
+            string testFile = $"tests/{hexCode:x2}.json";
+            
         
-        Console.WriteLine($"\nTests done. Passed {passedCount}!");
+            string json = File.ReadAllText(testFile);
+            var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+        
+            passedCount = 0;
+        
+            foreach (Z80SingleStepTest test in tests)
+            {
+                cpu.Reset();
+                cpu.SetInitialCPUState(test);
+                cpu.Step();
+                string error = cpu.CheckFinalCPUState(test, sw);
+                if (error == "")
+                    passedCount++;
+            }
+
+            sw.WriteLine($"Opcode {hexCode:X2}. Passed {passedCount}!");
+            hexCode++;
+        }
+
+        Console.WriteLine("Test output complete: testlog.txt");
+        sw.Close();
         Environment.Exit(0);
     }
 }
