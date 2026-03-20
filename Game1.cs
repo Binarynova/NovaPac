@@ -23,6 +23,7 @@ public class Game1 : Game
     const float _speedMultiplier = 1f;
     
     Pacman pacmanMachine;
+    Zexdoc zexdocMachine;
     Z80 cpu;
 
     long totalCyclesExecuted;
@@ -57,10 +58,6 @@ public class Game1 : Game
         {
             if (Args[0] == "-debug")
                 SteppingThrough = true;
-            else if (Args[0] == "-sst")
-                RunSingleStepTests();
-            else if (Args[0] == "-z")
-                RunZexdocTests();
         }
         
         if(mode == 0)
@@ -71,6 +68,7 @@ public class Game1 : Game
             Console.WriteLine(" 2) Display Char ROM");
             Console.WriteLine(" 3) Display Sprite ROM");
             Console.WriteLine(" 4) Play ZEXDOC ROM");
+            Console.WriteLine(" 5) Run SSTs");
             Console.WriteLine(" Anything else) Quit");
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -87,17 +85,28 @@ public class Game1 : Game
                     mode = 3;
                     break;
                 case ConsoleKey.D4:
-                    RunZexdocTests();
+                    mode = 4;
+                    break;
+                case ConsoleKey.D5:
+                    Console.WriteLine("Started single-step tests...");
+                    RunSingleStepTests();
                     break;
                 default:
                     Environment.Exit(0);
                     break;
             }
         }
-        
-        pacmanMachine = new Pacman();
-        cpu = new Z80(pacmanMachine);
-        base.Initialize();
+
+        if (mode == 4)
+        {
+            RunZexdocTests();
+        }
+        else
+        {
+            pacmanMachine = new Pacman();
+            cpu = new Z80(pacmanMachine);
+            base.Initialize();
+        }
     }
 
     protected override void LoadContent()
@@ -580,11 +589,12 @@ public class Game1 : Game
 
     private void RunZexdocTests()
     {
-        pacmanMachine = new Pacman();
-        cpu = new Z80(pacmanMachine);
+        zexdocMachine = new Zexdoc();
+        cpu = new Z80(zexdocMachine);
         Reg.SP = 0xF000;
         Reg.PC = 0x0100;
         
+        Console.WriteLine("CPU and Machine initialized.");
         Environment.Exit(0);
     }
 }
