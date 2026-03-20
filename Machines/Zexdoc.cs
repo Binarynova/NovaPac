@@ -7,17 +7,16 @@ public class Zexdoc : IMemoryProvider
 
     public Zexdoc()
     {
-        LoadZexdocRom();
+        LoadRom();
     }
     
     public byte ReadByte(ushort address) => Memory[address];
-
     public void WriteByte(ushort address, byte value)
     {
         Memory[address] = value;
     }
 
-    private void LoadZexdocRom()
+    private void LoadRom()
     {
         using FileStream fs = File.OpenRead("roms/zexdoc.com");
         fs.ReadExactly(Memory, 0x0100, (int)fs.Length);

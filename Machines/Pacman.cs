@@ -10,10 +10,10 @@ public class Pacman : IMemoryProvider
     public byte[] charRAM;
     public byte[] spriteRAM;
 
-    public Pacman(bool testing = false)
+    public Pacman()
     {
         ClearRAM();
-        ReadROMsIntoMemory();
+        LoadRom();
     }
 
     public byte ReadByte(ushort address)
@@ -26,7 +26,7 @@ public class Pacman : IMemoryProvider
         Memory[address] = value;
     }
     
-    private void ReadROMsIntoMemory()
+    private void LoadRom()
     {
         using ZipArchive archive = ZipFile.OpenRead("roms/pacman.zip");
         var romMap = new Dictionary<string, int>
@@ -76,6 +76,7 @@ public class Pacman : IMemoryProvider
     {
         Array.Clear(Memory, 0, Memory.Length);
     }
+    
     public byte ReadPort(byte port)
     {
         // Return those safe defaults we talked about!
