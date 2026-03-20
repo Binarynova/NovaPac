@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Text.Json;
+using Reg = Registers;
 
 namespace pacman;
 
@@ -22,7 +23,7 @@ public class Game1 : Game
     StreamWriter trace;
     const float _speedMultiplier = 1f;
     
-    Machine machine;
+    Pacman pacmanMachine;
     Z80 cpu;
 
     long totalCyclesExecuted;
@@ -44,7 +45,7 @@ public class Game1 : Game
         Args = args;
         //Args = new string[1];
         //Args[0] = "-sst";
-        var graphics = new GraphicsDeviceManager(this);
+        GraphicsDeviceManager graphics = new(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
         Content.RootDirectory = "Content";
@@ -59,15 +60,18 @@ public class Game1 : Game
                 SteppingThrough = true;
             else if (Args[0] == "-sst")
                 RunSingleStepTests();
+            else if (Args[0] == "-z")
+                RunZexdocTests();
         }
         
         if(mode == 0)
         {
             Console.WriteLine("Pac-Man Menu");
             Console.WriteLine("------------");
-            Console.WriteLine(" 1) Play ROM");
+            Console.WriteLine(" 1) Play Pac-Man");
             Console.WriteLine(" 2) Display Char ROM");
             Console.WriteLine(" 3) Display Sprite ROM");
+            Console.WriteLine(" 4) Play ZEXDOC ROM");
             Console.WriteLine(" Anything else) Quit");
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -83,15 +87,17 @@ public class Game1 : Game
                 case ConsoleKey.D3:
                     mode = 3;
                     break;
+                case ConsoleKey.D4:
+                    RunZexdocTests();
+                    break;
                 default:
                     Environment.Exit(0);
                     break;
             }
         }
         
-        machine = new Machine();
-        cpu = new Z80(machine);
-        
+        pacmanMachine = new Pacman();
+        cpu = new Z80(pacmanMachine);
         base.Initialize();
     }
 
@@ -106,11 +112,13 @@ public class Game1 : Game
         pixelTexture.SetData([Color.White]);
 
         cpu.Reset();
-        machine.ReadROMsIntoMemory();
-        ReadTiles();
-        ReadSprites();
-        ReadColors();
-        ReadPalettes();
+        if (mode != 4)
+        {
+            ReadTiles();
+            ReadSprites();
+            ReadColors();
+            ReadPalettes();
+        }
     }
 
     protected override void Update(GameTime gameTime)
@@ -177,11 +185,6 @@ public class Game1 : Game
                 }
             }
         }
-        else if (mode is 4)
-        {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-        }
             
         
         _previousKeyboardState = keyboardState;
@@ -212,8 +215,8 @@ public class Game1 : Game
                     ushort pram = (ushort)(vram + 0x400);
                     int xPos = 696 - (tileCol * 8 * pixelScale);
                     int yPos = tileRow * 8 * pixelScale;
-                    byte tileNumber = machine.ReadByte(vram);
-                    byte paletteNumber = machine.ReadByte(pram);
+                    byte tileNumber = pacmanMachine.ReadByte(vram);
+                    byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
@@ -226,8 +229,8 @@ public class Game1 : Game
                     ushort pram = (ushort)(vram + 0x400);
                     int xPos = 648 - (tileCol * 8 * pixelScale);
                     int yPos = 48 + (tileRow * 8 * pixelScale);
-                    byte tileNumber = machine.ReadByte(vram);
-                    byte paletteNumber = machine.ReadByte(pram);
+                    byte tileNumber = pacmanMachine.ReadByte(vram);
+                    byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
@@ -240,8 +243,8 @@ public class Game1 : Game
                     ushort pram = (ushort)(vram + 0x400);
                     int xPos = 696 - (tileCol * 8 * pixelScale);
                     int yPos = 816 + (tileRow * 8 * pixelScale);
-                    byte tileNumber = machine.ReadByte(vram);
-                    byte paletteNumber = machine.ReadByte(pram);
+                    byte tileNumber = pacmanMachine.ReadByte(vram);
+                    byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
@@ -382,7 +385,7 @@ public class Game1 : Game
             int[,] sprite = new int[16,16];
             for(int i = 0; i < 8; i++) // bottom right
             {
-                byte spriteQuad = machine.spriteROM[(0x00 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x00 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -391,7 +394,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right
             {
-                byte spriteQuad = machine.spriteROM[(0x08 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x08 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,r] = GetPixelValue(spriteQuad, r);
@@ -400,7 +403,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 2
             {
-                byte spriteQuad = machine.spriteROM[(0x10 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x10 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -409,7 +412,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 3
             {
-                byte spriteQuad = machine.spriteROM[(0x18 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x18 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -418,7 +421,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // bottom right
             {
-                byte spriteQuad = machine.spriteROM[(0x20 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x20 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -427,7 +430,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right
             {
-                byte spriteQuad = machine.spriteROM[(0x28 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x28 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,r] = GetPixelValue(spriteQuad, r);
@@ -436,7 +439,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 2
             {
-                byte spriteQuad = machine.spriteROM[(0x30 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x30 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -445,7 +448,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 3
             {
-                byte spriteQuad = machine.spriteROM[(0x38 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteRAM[(0x38 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -462,7 +465,7 @@ public class Game1 : Game
             int[,] tile = new int[8,8];
             for(int i = 0; i < 8; i++) // first 8 bytes of tile
             {
-                byte pixelQuad = machine.charROM[i + (tileIndex * 16)];
+                byte pixelQuad = pacmanMachine.charRAM[i + (tileIndex * 16)];
                 for(int r = 4; r < 8; r++)
                 {
                     tile[7-i,r] = GetPixelValue(pixelQuad,r);
@@ -470,7 +473,7 @@ public class Game1 : Game
             }
             for(int i = 8; i < 16; i++) // second 8 bytes of tile
             {
-                byte pixelQuad = machine.charROM[i + (tileIndex * 16)];
+                byte pixelQuad = pacmanMachine.charRAM[i + (tileIndex * 16)];
                 for(int r = 0; r < 4; r++)
                 {
                     tile[15-i,r] = GetPixelValue(pixelQuad, r);
@@ -514,10 +517,10 @@ public class Game1 : Game
         for (int i = 0; i < 32; i++)
         {
             palettes.Add([
-                colors[machine.paletteROM[4*i + 0]],
-                colors[machine.paletteROM[4*i + 1]],
-                colors[machine.paletteROM[4*i + 2]],
-                colors[machine.paletteROM[4*i + 3]]
+                colors[pacmanMachine.paletteRAM[4*i + 0]],
+                colors[pacmanMachine.paletteRAM[4*i + 1]],
+                colors[pacmanMachine.paletteRAM[4*i + 2]],
+                colors[pacmanMachine.paletteRAM[4*i + 3]]
             ]);
         }
         // second 32 palettes are just black
@@ -534,8 +537,8 @@ public class Game1 : Game
     private void RunSingleStepTests()
     {
         // Load
-        machine = new Machine(testing: true);
-        cpu = new Z80(machine);
+        pacmanMachine = new Pacman();
+        cpu = new Z80(pacmanMachine);
         int hexCode = 0;
         int passedCount;
         
@@ -573,6 +576,16 @@ public class Game1 : Game
 
         Console.WriteLine("Test output complete: testlog.txt");
         sw.Close();
+        Environment.Exit(0);
+    }
+
+    private void RunZexdocTests()
+    {
+        pacmanMachine = new Pacman();
+        cpu = new Z80(pacmanMachine);
+        Reg.SP = 0xF000;
+        Reg.PC = 0x0100;
+        
         Environment.Exit(0);
     }
 }

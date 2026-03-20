@@ -77,9 +77,9 @@ public partial class Z80
 
     private int Op_LD_A_ptrIXd() // Opcode: DD 7E
     {
-        sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
-        Reg.A = machine.ReadByte(addr);
+        Reg.A = _machine.ReadByte(addr);
 
         Reg.PC += 3;
         return 19;
@@ -102,9 +102,9 @@ public partial class Z80
     #region Helper Methods
     private void LOAD_ptrIXd(byte reg)
     {
-        sbyte d = (sbyte)machine.ReadByte((ushort)(Reg.PC + 2));
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
-        machine.WriteByte(addr, reg);
+        _machine.WriteByte(addr, reg);
     }
     #endregion
 }

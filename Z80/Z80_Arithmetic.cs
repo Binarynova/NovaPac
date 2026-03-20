@@ -20,7 +20,7 @@ public partial class Z80
 
     private int Op_ADD_A_ptrHL() // Opcode: 86
     {
-        Reg.A = ADD(Reg.A, machine.ReadByte(Reg.HL));
+        Reg.A = ADD(Reg.A, _machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -66,7 +66,7 @@ public partial class Z80
 
     private int Op_ADC_A_ptrHL() // Opcode: 8E
     {
-        Reg.A = ADC(Reg.A, machine.ReadByte(Reg.HL));
+        Reg.A = ADC(Reg.A, _machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -91,7 +91,7 @@ public partial class Z80
 
     private int Op_SUB_A_ptrHL() // Opcode: 96
     {
-        Reg.A = SUB(Reg.A, machine.ReadByte(Reg.HL));
+        Reg.A = SUB(Reg.A, _machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -117,7 +117,7 @@ public partial class Z80
 
     private int Op_SBC_A_ptrHL() // Opcode: 9E
     {
-        Reg.A = SBC(Reg.A, machine.ReadByte(Reg.HL));
+        Reg.A = SBC(Reg.A, _machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -172,7 +172,7 @@ public partial class Z80
 
     private int Op_INC_ptrHL() // Opcode: 34
     {
-        byte target = machine.ReadByte(Reg.HL);
+        byte target = _machine.ReadByte(Reg.HL);
         if ((target & 0x0F) == 0x0F) // Opcode: if lower nibble is F, half-carry will occur when adding 1
             SetFlag(Flags.H);
         else
@@ -185,7 +185,7 @@ public partial class Z80
         ClearFlag(Flags.N);
         Reg.PC += 1;
 
-        machine.WriteByte(Reg.HL, target);
+        _machine.WriteByte(Reg.HL, target);
         return 11;
     }
 
@@ -231,12 +231,12 @@ public partial class Z80
 
     private int Op_DEC_ptrHL() // Opcode: 35
     {
-        byte value = machine.ReadByte(Reg.HL);
+        byte value = _machine.ReadByte(Reg.HL);
         WriteFlag(Flags.H, (value & 0x0F) == 0);
 
         CheckDECOverflow(value);
         value--;
-        machine.WriteByte(Reg.HL, value);
+        _machine.WriteByte(Reg.HL, value);
 
         SetFlag(Flags.N);
         SetSZFlags(value);
@@ -268,7 +268,7 @@ public partial class Z80
 
     private int Op_CP_ptrHL() // Opcode: BE
     {
-        byte value = machine.ReadByte(Reg.HL);
+        byte value = _machine.ReadByte(Reg.HL);
         InternalCP(value);
 
         Reg.PC += 1;

@@ -68,8 +68,8 @@ public partial class Z80
     private int Op_LDIR() // Opcode: ED B0
     {
         // Transfer one byte
-        byte value = machine.ReadByte(Reg.HL);
-        machine.WriteByte(Reg.DE, value);
+        byte value = _machine.ReadByte(Reg.HL);
+        _machine.WriteByte(Reg.DE, value);
 
         Reg.HL++;
         Reg.DE++;

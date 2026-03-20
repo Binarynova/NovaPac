@@ -387,7 +387,7 @@ public partial class Z80
 
     private int Op_DJNZ_e() // Opcode: 10
     {
-        sbyte offset = (sbyte)machine.ReadByte((ushort)(Reg.PC + 1));
+        sbyte offset = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 1));
     
         Reg.PC += 2;
 

@@ -11,7 +11,7 @@ public partial class Z80
     
     private int Op_BIT_7_ptrHL() // Opcode: CB 7E
     {
-        byte value = machine.ReadByte(Reg.HL);
+        byte value = _machine.ReadByte(Reg.HL);
         Reg.PC += 2;
         return BIT(7, value, isMemory: true);
     }

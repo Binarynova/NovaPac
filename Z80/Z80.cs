@@ -5,7 +5,7 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    private Machine machine;
+    private IMemoryProvider _machine;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
@@ -31,9 +31,9 @@ public partial class Z80
         C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
     }
     
-    public Z80(Machine machine)
+    public Z80(IMemoryProvider machine)
     {
-        this.machine = machine;
+        _machine = machine;
 
         BuildOpcodeTable();
         InitParity();
@@ -65,8 +65,8 @@ public partial class Z80
                 break;
             case 2:
                 ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
-                byte low = machine.ReadByte(vectorAddress);
-                byte high = machine.ReadByte(((ushort)(vectorAddress + 1)));
+                byte low = _machine.ReadByte(vectorAddress);
+                byte high = _machine.ReadByte((ushort)(vectorAddress + 1));
                 Reg.PC = (ushort)((high << 8) | low);
                 break;
         }
@@ -85,13 +85,10 @@ public partial class Z80
                 return 4;              // stay halted, do not fetch opcode
         }
         
-        byte opcode = machine.ReadByte(Reg.PC);
+        byte opcode = _machine.ReadByte(Reg.PC);
 
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
-        
-        if(!machine.Testing)
-            Console.WriteLine($"PC: {Reg.PC:X4}. Opcode: {opcode:X2}.");
         
         IncrementRegisterR();
         int cycles = _mainOpcodes[opcode]();
@@ -471,7 +468,6 @@ public partial class Z80
     public void Reset()
     {
         // reset CPU values
-        machine.ClearRAM();
         Reg.PC = 0x0000;
         Reg.AF = Reg.BC = Reg.DE = 0;
         Reg.HL = 0x0000;
@@ -521,12 +517,12 @@ public partial class Z80
     
     byte ReadImmediateByte()
     {
-        return machine.ReadByte((ushort)(Reg.PC + 1));
+        return _machine.ReadByte((ushort)(Reg.PC + 1));
     }
     ushort ReadImmediateWord()
     {
-        return (ushort)(machine.ReadByte((ushort)(Reg.PC + 1)) | 
-                       (machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
+        return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 1)) | 
+                       (_machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
     }
 
     private byte PeekNextByte() => ReadImmediateByte();
@@ -535,7 +531,7 @@ public partial class Z80
     private int Op_UNK()
     {
         throw new NotImplementedException(
-            $"Unhandled opcode {machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}"
+            $"Unhandled opcode {_machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}"
         );
     }
     
@@ -568,7 +564,7 @@ public partial class Z80
 
         foreach (List<int> entry in test.Initial.RAM)
         {
-            machine.WriteByte((ushort)entry[0], (byte)entry[1]);
+            _machine.WriteByte((ushort)entry[0], (byte)entry[1]);
         }
     }
     
@@ -664,7 +660,7 @@ public partial class Z80
         foreach (var entry in test.Initial.RAM)
         {
             ushort address = (ushort)entry[0];
-            byte value = machine.ReadByte(address);
+            byte value = _machine.ReadByte(address);
             
             actualCPUState.RAM.Add(new List<int> {address, value});
         }

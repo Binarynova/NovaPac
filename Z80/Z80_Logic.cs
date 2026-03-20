@@ -13,7 +13,7 @@ public partial class Z80
 
     private int Op_AND_ptrHL() // Opcode: A6
     {
-        AND(machine.ReadByte(Reg.HL));
+        AND(_machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -39,7 +39,7 @@ public partial class Z80
 
     private int Op_OR_ptrHL() // Opcode: B6
     {
-        OR(machine.ReadByte(Reg.HL));
+        OR(_machine.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -82,7 +82,7 @@ public partial class Z80
     
     private int Op_XOR_A_ptrHL() // Opcode: AE
     {
-        Reg.A = (byte)(Reg.A ^ machine.ReadByte(Reg.HL));
+        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(Reg.HL));
 
         SetSZFlags(Reg.A);
         ClearFlag(Flags.C | Flags.H | Flags.N);

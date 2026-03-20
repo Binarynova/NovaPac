@@ -18,7 +18,7 @@ public partial class Z80
 
     private int Op_LD_A_ptrHL() // Opcode: 7E
     {
-        Reg.A = machine.ReadByte(Reg.HL);
+        Reg.A = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -39,7 +39,7 @@ public partial class Z80
     
     private int Op_LD_B_ptrHL() // Opcode: 46
     {
-        Reg.B = machine.ReadByte(Reg.HL);
+        Reg.B = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -60,7 +60,7 @@ public partial class Z80
     
     private int Op_LD_C_ptrHL() // Opcode: 4E
     {
-        Reg.C = machine.ReadByte(Reg.HL);
+        Reg.C = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -81,7 +81,7 @@ public partial class Z80
     
     private int Op_LD_D_ptrHL() // Opcode: 56
     {
-        Reg.D = machine.ReadByte(Reg.HL);
+        Reg.D = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -102,7 +102,7 @@ public partial class Z80
     
     private int Op_LD_E_ptrHL() // Opcode: 5E
     {
-        Reg.E = machine.ReadByte(Reg.HL);
+        Reg.E = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -123,7 +123,7 @@ public partial class Z80
     
     private int Op_LD_H_ptrHL() // Opcode: 66
     {
-        Reg.H = machine.ReadByte(Reg.HL);
+        Reg.H = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
@@ -144,21 +144,21 @@ public partial class Z80
     
     private int Op_LD_L_ptrHL() // Opcode: 6E
     {
-        Reg.L = machine.ReadByte(Reg.HL);
+        Reg.L = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
     
     private int Op_LD_ptrHL(byte register) // Opcode: 70 71 72 73 74 75 77
     {
-        machine.WriteByte(Reg.HL, register);
+        _machine.WriteByte(Reg.HL, register);
         Reg.PC += 1;
         return 7;
     }
 
     private int Op_LD_A_ptrBC() // Opcode: 0A
     {
-        Reg.A = machine.ReadByte(Reg.BC);
+        Reg.A = _machine.ReadByte(Reg.BC);
         Reg.WZ = (ushort)(Reg.BC + 1);
         Reg.PC += 1;
         return 7;
@@ -166,7 +166,7 @@ public partial class Z80
 
     private int Op_LD_A_ptrDE() // Opcode: 1A
     {
-        Reg.A = machine.ReadByte(Reg.DE);
+        Reg.A = _machine.ReadByte(Reg.DE);
         Reg.WZ = (ushort)(Reg.DE + 1);
         Reg.PC += 1;
         return 7;
@@ -175,8 +175,8 @@ public partial class Z80
     private int Op_LD_HL_ptrNN() // Opcode: 2A
     {
         ushort addr = ReadImmediateWord();
-        Reg.L = machine.ReadByte(addr);
-        Reg.H = machine.ReadByte((ushort)(addr + 1));
+        Reg.L = _machine.ReadByte(addr);
+        Reg.H = _machine.ReadByte((ushort)(addr + 1));
         Reg.WZ = (ushort)(addr + 1);
         Reg.PC += 3;
         return 16;
@@ -185,7 +185,7 @@ public partial class Z80
     private int Op_LD_A_ptrNN() // Opcode: 3A
     {
         ushort addr = ReadImmediateWord();
-        Reg.A = machine.ReadByte(addr);
+        Reg.A = _machine.ReadByte(addr);
         Reg.WZ = (ushort)(addr + 1);
         Reg.PC += 3;
         return 13;
@@ -193,7 +193,7 @@ public partial class Z80
     
     private int Op_LD_ptrBC_A() // Opcode: 02
     {
-        machine.WriteByte(Reg.BC, Reg.A);
+        _machine.WriteByte(Reg.BC, Reg.A);
         Reg.WZ = (ushort)((Reg.A << 8) | ((Reg.C + 1) & 0xFF));
         Reg.PC += 1;
         return 7;
@@ -201,7 +201,7 @@ public partial class Z80
 
     private int Op_LD_ptrDE_A() // Opcode: 12
     {
-        machine.WriteByte(Reg.DE, Reg.A);
+        _machine.WriteByte(Reg.DE, Reg.A);
         Reg.WZ = (ushort)((Reg.A << 8) | ((Reg.E + 1) & 0xFF));
         Reg.PC += 1;
         return 7;
@@ -210,8 +210,8 @@ public partial class Z80
     private int Op_LD_ptrNN_HL() // Opcode: 22
     {
         ushort address = ReadImmediateWord();
-        machine.WriteByte(address, Reg.L);
-        machine.WriteByte((ushort)(address + 1), Reg.H);
+        _machine.WriteByte(address, Reg.L);
+        _machine.WriteByte((ushort)(address + 1), Reg.H);
         Reg.WZ = (ushort)(address + 1);
         Reg.PC += 3;
         return 16;
@@ -220,7 +220,7 @@ public partial class Z80
     private int Op_LD_ptrNN_A() // Opcode: 32
     {
         ushort address = ReadImmediateWord();
-        machine.WriteByte(address, Reg.A);
+        _machine.WriteByte(address, Reg.A);
         Reg.WZ = (ushort)((Reg. A << 8) | ((address + 1) & 0xFF));
         Reg.PC += 3;
         return 13;
@@ -256,7 +256,7 @@ public partial class Z80
 
     private int Op_LD_ptrHL_n() // Opcode: 36
     {
-        machine.WriteByte(Reg.HL, ReadImmediateByte());
+        _machine.WriteByte(Reg.HL, ReadImmediateByte());
         Reg.PC += 2;
         return 10;
     }
