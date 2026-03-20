@@ -9,9 +9,9 @@ public partial class Z80
         return _fdOpcodes[opcode]();
     }
 
-    private int Op_LD_IY_nn() // Opcode: FD 2A
+    private int Op_LD_IY_nn() // Opcode: FD 21
     {
-        Reg.IY = ReadImmediateWord();
+        Reg.IY = ReadImmediateWord(true);
         Reg.PC += 4;
         return 14;
     }

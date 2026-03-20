@@ -9,7 +9,6 @@ public partial class Z80
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         Reg.PC = (ushort)(nextPC + offset);
-        Reg.WZ = Reg.PC;
         return 12;
     }
 
@@ -43,7 +42,6 @@ public partial class Z80
     private int Op_JP_NZ_nn() // Opcode: C2
     {
         ushort address = ReadImmediateWord();
-        Reg.WZ = address;
         
         if (!GetFlag(Flags.Z))
         {
@@ -158,7 +156,6 @@ public partial class Z80
         if (!GetFlag(Flags.Z))
         {
             Reg.PC = PopWord();
-            Reg.WZ = Reg.PC;
             return 11;
         }
 
@@ -396,7 +393,6 @@ public partial class Z80
         {
             ushort target = (ushort)(Reg.PC + offset);
             Reg.PC = target;
-            Reg.WZ = target;
         
             return 13;
         }
@@ -414,7 +410,6 @@ public partial class Z80
         if (condition())
         {
             Reg.PC = (ushort)(nextPC + offset);
-            Reg.WZ = Reg.PC;
             return 12;
         }
         

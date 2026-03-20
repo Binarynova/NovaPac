@@ -92,7 +92,6 @@ public partial class Z80
         
         IncrementRegisterR();
         int cycles = _mainOpcodes[opcode]();
-        Reg.Q = 0;
 
         if (EI_EnableAfterInstruction)
         {
@@ -144,6 +143,7 @@ public partial class Z80
             _ddOpcodes[i] = Op_UNK;
             _edOpcodes[i] = Op_UNK;
             _fdOpcodes[i] = Op_UNK;
+            _cbOpcodes[i] = Op_UNK;
         }
 
         _mainOpcodes[0x00] = Op_NOP;
@@ -420,6 +420,8 @@ public partial class Z80
 
         _ddOpcodes[0x19] = Op_ADD_IX_DE;
         _ddOpcodes[0x21] = Op_LD_IX_nn;
+        _ddOpcodes[0x35] = Op_DEC_ptrIXd;
+        _ddOpcodes[0x36] = Op_LD_ptrIXd_n;
         _ddOpcodes[0x70] = Op_LD_ptrIXd_B;
         _ddOpcodes[0x71] = Op_LD_ptrIXd_C;
         _ddOpcodes[0x72] = Op_LD_ptrIXd_D;
@@ -446,6 +448,7 @@ public partial class Z80
         _fdOpcodes[0xE1] = Op_POP_IY;
         _fdOpcodes[0xE5] = Op_PUSH_IY;
 
+        _cbOpcodes[0x3B] = Op_SRL_E;
         _cbOpcodes[0x7E] = Op_BIT_7_ptrHL;
     }
 
@@ -473,9 +476,8 @@ public partial class Z80
         Reg.HL = 0x0000;
         Reg.IX = Reg.IY = 0xFFFF;
         Reg.F = 0x00;
-        Reg.Q = Reg.I = Reg.R = 0;
+        Reg.I = Reg.R = 0;
         Reg.SP = 0x0000;
-        Reg.WZ = 0x0000;
         _iff1 = false;
         _halted = false;
         EI_Pending = false;
@@ -519,10 +521,14 @@ public partial class Z80
     {
         return _machine.ReadByte((ushort)(Reg.PC + 1));
     }
-    ushort ReadImmediateWord()
+    ushort ReadImmediateWord(bool prefixed = false)
     {
-        return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 1)) | 
-                       (_machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
+        if(!prefixed)
+            return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 1)) | 
+                           (_machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
+        else
+            return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 2)) | 
+                            (_machine.ReadByte((ushort)(Reg.PC + 3)) << 8));
     }
 
     private byte PeekNextByte() => ReadImmediateByte();
@@ -638,8 +644,6 @@ public partial class Z80
         
         actualCPUState.I = Reg.I;
         actualCPUState.R = Reg.R;
-        
-        actualCPUState.Q = Reg.Q;
 
         actualCPUState.AF_ = Reg.AF2;
         actualCPUState.BC_ = Reg.BC2;
@@ -650,7 +654,6 @@ public partial class Z80
         actualCPUState.SP = Reg.SP;
         actualCPUState.IX = Reg.IX;
         actualCPUState.IY = Reg.IY;
-        //actualCPUState.WZ = Reg.WZ;
         actualCPUState.IFF1 = (byte)(_iff1 ? 1 : 0);
         actualCPUState.IFF2 = (byte)(_iff2 ? 1 : 0);
         actualCPUState.IM = (byte)_interruptMode;
@@ -693,7 +696,6 @@ public partial class Z80
         expectedCPUState.SP = test.Final.SP;
         expectedCPUState.IX = test.Final.IX;
         expectedCPUState.IY = test.Final.IY;
-        //expectedCPUState.WZ = test.Final.WZ;
         expectedCPUState.IFF1 = test.Final.IFF1;
         expectedCPUState.IFF2 = test.Final.IFF2;
         expectedCPUState.IM = test.Final.IM;

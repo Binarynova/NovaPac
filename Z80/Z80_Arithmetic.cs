@@ -301,8 +301,6 @@ public partial class Z80
         WriteFlag(Flags.H, (acc & 0x0FFF) + (value & 0x0FFF) > 0x0FFF);
         ClearFlag(Flags.N);
 
-        Reg.WZ = (ushort)(acc + 1);
-
         WriteFlag(Flags.F5, (sum & 0x2000) != 0); // Bit 13
         WriteFlag(Flags.F3, (sum & 0x0800) != 0); // Bit 11
         return (ushort)sum;

@@ -8,6 +8,23 @@ public partial class Z80
         IncrementRegisterR();
         return _cbOpcodes[opcode]();
     }
+
+    private int Op_SRL_E() // Opcode: CB 3B
+    {
+        byte carry = (byte)(Reg.E & 0x01);
+        WriteFlag(Flags.C, carry != 0);
+
+        Reg.E = (byte)(Reg.E >> 1);
+
+        WriteFlag(Flags.C, carry != 0);
+        ClearFlag(Flags.N); // N is always cleared
+        ClearFlag(Flags.H); // H is always cleared
+        SetSZFlags(Reg.E);  // Updates S, Z, F5, F3
+        SetParity(Reg.E);   // P/V indicates parity for shift instructions
+        
+        Reg.PC += 2;
+        return 8;
+    }
     
     private int Op_BIT_7_ptrHL() // Opcode: CB 7E
     {

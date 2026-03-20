@@ -9,6 +9,28 @@ public partial class Z80
         return _ddOpcodes[opcode]();
     }
 
+    private int Op_DEC_ptrIXd() // Opcode: DD 35
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
+        
+        Reg.PC += 3;
+        return 23;
+    }
+
+    private int Op_LD_ptrIXd_n() // Opcode: DD 36
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+
+        byte n = _machine.ReadByte((ushort)(Reg.PC + 3));
+        _machine.WriteByte(addr, n);
+        
+        Reg.PC += 3;
+        return 23;
+    }
+
     private static int Op_ADD_IX_DE() // Opcode: DD 19
     {
         Reg.IX = ADDWord(Reg.IX, Reg.DE);
@@ -20,13 +42,13 @@ public partial class Z80
     {
         // Bytes: 4, Cycles: 14
         // Fetch > Execute (registers, memory, flags) > Advance PC > Return cycles
-        ushort operand = ReadImmediateWord();
+        ushort operand = ReadImmediateWord(true);
         Reg.IX = operand;
         Reg.PC += 4;
         return 14;
     }
 
-    private int Op_LD_ptrIXd_A() // Opcode: DD 36
+    private int Op_LD_ptrIXd_A() // Opcode: DD 77
     {
         LOAD_ptrIXd(Reg.A);
         Reg.PC += 3;

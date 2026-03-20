@@ -82,7 +82,7 @@ public class Pacman : IMemoryProvider
         // Return those safe defaults we talked about!
         if (port == 0) return 0xBF; 
         if (port == 1) return 0xFF;
-        if (port == 2) return 0xC9;
+        if (port == 2) return 0x89; // 0xC9 for test mode, 0x89 for attract mode
         return 0xFF;
     }
 

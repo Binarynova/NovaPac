@@ -552,6 +552,7 @@ public class Game1 : Game
         
         StreamWriter sw = new("testlog.txt");
         
+        Console.WriteLine($"\nMain Instructions:");
         while (hexCode <= 0xFF)
         {
             if (hexCode is 0xCB or 0xDD or 0xED or 0xFD)
@@ -592,6 +593,190 @@ public class Game1 : Game
             if ((hexCode & 0x0F) == 0x0F)
                 Console.WriteLine();
             hexCode++;
+        }
+
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nED Instructions:");
+        while (hexCode <= 0xBF)
+        {
+            if (hexCode is 0x42 or 0x52 or 0x62 or 0x72 or 0x46 or 0x47 or 0x56 or 0x5E or 0xB0)
+            {
+                string testFile = $"tests/ed {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                if (passedCount == 1000)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+        }
+        
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nDD Instructions:");
+        while (hexCode <= 0xFF)
+        {
+            if (hexCode is 0x19 or 0x21 or 0x35 or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0x7E or 0xE1 or 0xE5)
+            {
+                string testFile = $"tests/dd {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                if (passedCount == 1000)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+        }
+        
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nFD Instructions:");
+        while (hexCode <= 0xFF)
+        {
+            if (hexCode is 0x21 or 0x6E or 0xE1 or 0xE5)
+            {
+                string testFile = $"tests/fd {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                if (passedCount == 1000)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+        }
+        
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nCB Instructions:");
+        while (hexCode <= 0xFF)
+        {
+            if (hexCode is 0x3B or 0x7E)
+            {
+                string testFile = $"tests/cb {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                if (passedCount == 1000)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
         }
 
         Console.ForegroundColor = ConsoleColor.White;
