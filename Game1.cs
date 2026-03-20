@@ -88,7 +88,7 @@ public class Game1 : Game
                     mode = 4;
                     break;
                 case ConsoleKey.D5:
-                    Console.WriteLine("Started single-step tests...");
+                    Console.WriteLine("Running single-step tests...");
                     RunSingleStepTests();
                     break;
                 default:
@@ -552,10 +552,12 @@ public class Game1 : Game
         
         StreamWriter sw = new("testlog.txt");
         
-        while (hexCode < 0xFF)
+        while (hexCode <= 0xFF)
         {
             if (hexCode is 0xCB or 0xDD or 0xED or 0xFD)
             {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
                 hexCode++;
                 continue;
             }
@@ -578,11 +580,22 @@ public class Game1 : Game
                     passedCount++;
             }
 
-            sw.WriteLine($"Opcode {hexCode:X2}. Passed {passedCount}!");
+            if (passedCount == 1000)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+            Console.Write($"  {hexCode:X2}");
+            if ((hexCode & 0x0F) == 0x0F)
+                Console.WriteLine();
             hexCode++;
         }
 
-        Console.WriteLine("Test output complete: testlog.txt");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine("\nTests complete. Errors written to: testlog.txt");
         sw.Close();
         Environment.Exit(0);
     }
