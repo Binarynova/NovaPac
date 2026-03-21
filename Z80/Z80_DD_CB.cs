@@ -29,10 +29,10 @@ public partial class Z80
                 WriteFlag(Flags.N, false);
                 WriteFlag(Flags.P, !bitSet);
 
-                if (bit == 7)
-                    WriteFlag(Flags.S, bitSet);
-                // else S unchanged
-
+                WriteFlag(Flags.S, (bit == 7) && bitSet);
+                
+                WriteFlag(Flags.F5, (addr >> 13 & 1) != 0); 
+                WriteFlag(Flags.F3, (addr >> 11 & 1) != 0);
                 break;
             }
 
