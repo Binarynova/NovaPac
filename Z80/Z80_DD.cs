@@ -13,6 +13,14 @@ public partial class Z80
         return _ddOpcodes[opcode]();
     }
 
+    private int Op_INC_IX() // Opcode: DD 23
+    {
+        Reg.IX += 1;
+        
+        Reg.PC += 2;
+        return 10;
+    }
+    
     private int Op_DEC_ptrIXd() // Opcode: DD 35
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
@@ -68,6 +76,36 @@ public partial class Z80
         return 19;
     }
 
+    private int Op_LD_C_ptrIXd() // Opcode: DD 4E
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        Reg.C = _machine.ReadByte(addr);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_LD_E_ptrIXd() // Opcode: DD 5E
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        Reg.E = _machine.ReadByte(addr);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_LD_L_ptrIXd() // Opcode: DD 6E
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        Reg.L = _machine.ReadByte(addr);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
     private int Op_LD_A_ptrIXd() // Opcode: DD 7E
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
@@ -90,6 +128,39 @@ public partial class Z80
         PushWord(Reg.IX);
         Reg.PC += 2;
         return 15;
+    }
+    
+    private int Op_LD_B_ptrIXd() // Opcode: DD 46
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+
+        Reg.B = _machine.ReadByte(addr);
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_LD_D_ptrIXd() // Opcode: DD 56
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+
+        Reg.D = _machine.ReadByte(addr);
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_LD_H_ptrIXd() // Opcode: DD 66
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+
+        Reg.H = _machine.ReadByte(addr);
+        
+        Reg.PC += 3;
+        return 19;
     }
     
     #region Helper Methods

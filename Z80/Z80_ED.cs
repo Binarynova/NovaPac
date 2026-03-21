@@ -23,6 +23,15 @@ public partial class Z80
         return 20;
     }
     
+    private int Op_LD_ptrNN_DE() // Opcode: ED 53
+    {
+        ushort addr = ReadImmediateWord(true);
+        _machine.WriteByte(addr, Reg.E);
+        _machine.WriteByte((ushort)(addr + 1), Reg.D);
+        Reg.PC += 4;
+        return 20;
+    }
+    
     private int Op_LD_DE_ptrNN() // Opcode: ED 5B
     {
         Reg.DE = ReadImmediateWord(true);
