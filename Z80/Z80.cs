@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Reg = Registers;
 
@@ -611,7 +610,6 @@ public partial class Z80
     }
 
     private byte PeekNextByte() => ReadImmediateByte();
-    private sbyte ReadSignedOffset() => (sbyte)ReadImmediateByte(); // needs to be sbyte to properly handled sign
     
     private int Op_UNK()
     {
@@ -825,7 +823,6 @@ public partial class Z80
         Console.WriteLine($"    R: {Reg.R:X2}");
         Console.WriteLine($"    I: {Reg.I:X2}");
         Console.WriteLine($" IFF1: {_iff1}");
-        Console.WriteLine($" HALT: {_halted : 1 ? 0}");
         Console.WriteLine();
         Console.WriteLine($"Next Opcode: {opcode:X2}");
         switch (Console.ReadKey().Key)
