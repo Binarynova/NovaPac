@@ -9,7 +9,7 @@ public partial class Z80
         return _cbOpcodes[opcode]();
     }
 
-    private int Op_RLC(ref byte register)
+    private int Op_RLC(ref byte register) // Opcodes: 00 01 02 03 04 05 07
     {
         // extract bit 7
         byte bit7 = (byte)((register & 0x80) >> 7);

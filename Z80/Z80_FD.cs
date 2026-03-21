@@ -16,6 +16,18 @@ public partial class Z80
         return 14;
     }
     
+    private int Op_LD_ptrIYd_n() // Opcode: FD 36
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IY + d);
+        
+        byte n = _machine.ReadByte((ushort)(Reg.PC + 3));
+        
+        _machine.WriteByte(addr, n);
+        Reg.PC += 3;
+        return 19;
+    }
+    
     
     private int Op_LD_ptrIYd(byte register) // Opcode: FD 70 71 72 73 74 75 77
     {

@@ -5,6 +5,7 @@ public partial class Z80
 {
     private int Op_DD_CB()
     {
+        IncrementRegisterR();
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         byte opcode = _machine.ReadByte((ushort)(Reg.PC + 3));
 
@@ -39,7 +40,11 @@ public partial class Z80
             {
                 result = (byte)(value & ~(1 << bit));
                 _machine.WriteByte(addr, result);
-
+                int destinationReg = opcode & 0x07;
+                if (destinationReg != 6) // 6 is (HL)/(IX+d), which is already handled
+                {
+                    SetRegisterByIndex(destinationReg, result);
+                }
                 break;
             }
 
@@ -47,7 +52,11 @@ public partial class Z80
             {
                 result = (byte)(value | (1 << bit));
                 _machine.WriteByte(addr, result);
-
+                int destinationReg = opcode & 0x07;
+                if (destinationReg != 6) // 6 is (HL)/(IX+d), which is already handled
+                {
+                    SetRegisterByIndex(destinationReg, result);
+                }
                 break;
             }
 
@@ -57,5 +66,20 @@ public partial class Z80
 
         Reg.PC += 4;
         return 23;
+    }
+
+    private void SetRegisterByIndex(int index, byte value)
+    {
+        switch (index)
+        {
+            case 0: Reg.B = value; break;
+            case 1: Reg.C = value; break;
+            case 2: Reg.D = value; break;
+            case 3: Reg.E = value; break;
+            case 4: Reg.H = value; break;
+            case 5: Reg.L = value; break;
+            case 6: _machine.WriteByte(Reg.HL, value); break; // Memory access
+            case 7: Reg.A = value; break;
+        }
     }
 }

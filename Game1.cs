@@ -546,8 +546,8 @@ public class Game1 : Game
     private void RunSingleStepTests()
     {
         // Load
-        pacmanMachine = new Pacman();
-        cpu = new Z80(pacmanMachine);
+        IMemoryProvider sstMachine = new SSTMachine();
+        cpu = new Z80(sstMachine);
         int hexCode = 0;
         int passedCount;
         
@@ -647,7 +647,7 @@ public class Game1 : Game
         Console.WriteLine($"\nDD Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x19 or 0x21 or 0x35 or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0x7E or 0xE1 or 0xE5)
+            if (hexCode is 0x19 or 0x21 or 0x35 or 0x36 or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0x7E or 0x86 or 0xE1 or 0xE5)
             {
                 string testFile = $"tests/dd {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
@@ -693,7 +693,7 @@ public class Game1 : Game
         Console.WriteLine($"\nFD Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x21 or 0x6E or 0xE1 or 0xE5)
+            if (hexCode is 0x21 or 0x36 or 0x6E or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0xE1 or 0xE5)
             {
                 string testFile = $"tests/fd {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
@@ -739,9 +739,55 @@ public class Game1 : Game
         Console.WriteLine($"\nCB Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x3B or 0x7E)
+            if (hexCode is 0x00 or 0x01 or 0x02 or 0x03 or 0x04 or 0x05 or 0x07 or 0x3B or 0x7E)
             {
                 string testFile = $"tests/cb {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                if (passedCount == 1000)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+        }
+        
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nDD CB Instructions:");
+        while (hexCode <= 0xFF)
+        {
+            if (hexCode >= 0x40)
+            {
+                string testFile = $"tests/dd cb __ {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
                 var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
             

@@ -87,9 +87,9 @@ public partial class Z80
         }
         
         byte opcode = _machine.ReadByte(Reg.PC);
-        if (Reg.PC == 0x00E0)
-            System.Diagnostics.Debugger.Break();
+        
         //Console.WriteLine($"PC: {Reg.PC:X4} Opcode: {opcode:X2}");
+        
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
@@ -454,6 +454,7 @@ public partial class Z80
         _edOpcodes[0xB0] = Op_LDIR;
 
         _fdOpcodes[0x21] = Op_LD_IY_nn;
+        _fdOpcodes[0x36] = Op_LD_ptrIYd_n;
         _fdOpcodes[0x6E] = Op_LD_L_ptrIYd;
         _fdOpcodes[0x70] = () => Op_LD_ptrIYd(Reg.B);
         _fdOpcodes[0x71] = () => Op_LD_ptrIYd(Reg.C);
