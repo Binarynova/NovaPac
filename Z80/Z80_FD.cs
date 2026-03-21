@@ -24,7 +24,7 @@ public partial class Z80
         byte n = _machine.ReadByte((ushort)(Reg.PC + 3));
         
         _machine.WriteByte(addr, n);
-        Reg.PC += 3;
+        Reg.PC += 4;
         return 19;
     }
     
