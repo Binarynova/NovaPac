@@ -105,6 +105,7 @@ public class Game1 : Game
         {
             pacmanMachine = new Pacman();
             cpu = new Z80(pacmanMachine);
+            pacmanMachine.AttachCPU(cpu);
             base.Initialize();
         }
     }

@@ -81,7 +81,8 @@ public partial class Z80
 
     private int Op_IN_A_n() // Opcode: DB
     {
-        byte port = ReadImmediateByte();
+        byte n = ReadImmediateByte();
+        ushort port = (ushort)((Reg.A << 8) | n);
         Reg.A = ReadPort(port);
 
         Reg.PC += 2;

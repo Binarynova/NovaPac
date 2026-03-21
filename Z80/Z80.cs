@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Reg = Registers;
 
@@ -23,7 +24,7 @@ public partial class Z80
     public bool InterruptPending;
     public bool EI_Pending;
     public bool EI_EnableAfterInstruction;
-    private byte interruptVectorLow;
+    public byte interruptVectorLow;
 
     [Flags]
     private enum Flags : byte
@@ -86,7 +87,9 @@ public partial class Z80
         }
         
         byte opcode = _machine.ReadByte(Reg.PC);
-
+        if (Reg.PC == 0x00E0)
+            System.Diagnostics.Debugger.Break();
+        //Console.WriteLine($"PC: {Reg.PC:X4} Opcode: {opcode:X2}");
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
@@ -106,6 +109,11 @@ public partial class Z80
         }
 
         return cycles;
+    }
+
+    public void SetInterruptVectorLow(byte value)
+    {
+        interruptVectorLow = value;
     }
 
     private static byte ReadPort(ushort port)
@@ -422,18 +430,20 @@ public partial class Z80
         _ddOpcodes[0x21] = Op_LD_IX_nn;
         _ddOpcodes[0x35] = Op_DEC_ptrIXd;
         _ddOpcodes[0x36] = Op_LD_ptrIXd_n;
-        _ddOpcodes[0x70] = Op_LD_ptrIXd_B;
-        _ddOpcodes[0x71] = Op_LD_ptrIXd_C;
-        _ddOpcodes[0x72] = Op_LD_ptrIXd_D;
-        _ddOpcodes[0x73] = Op_LD_ptrIXd_E;
-        _ddOpcodes[0x74] = Op_LD_ptrIXd_H;
-        _ddOpcodes[0x75] = Op_LD_ptrIXd_L;
-        _ddOpcodes[0x77] = Op_LD_ptrIXd_A;
+        _ddOpcodes[0x70] = () => Op_LD_ptrIXd(Reg.B);
+        _ddOpcodes[0x71] = () => Op_LD_ptrIXd(Reg.C);
+        _ddOpcodes[0x72] = () => Op_LD_ptrIXd(Reg.D);
+        _ddOpcodes[0x73] = () => Op_LD_ptrIXd(Reg.E);
+        _ddOpcodes[0x74] = () => Op_LD_ptrIXd(Reg.H);
+        _ddOpcodes[0x75] = () => Op_LD_ptrIXd(Reg.L);
+        _ddOpcodes[0x77] = () => Op_LD_ptrIXd(Reg.A);
         _ddOpcodes[0x7E] = Op_LD_A_ptrIXd;
+        _ddOpcodes[0x86] = Op_ADD_A_ptrIXd;
         _ddOpcodes[0xE1] = Op_POP_IX;
         _ddOpcodes[0xE5] = Op_PUSH_IX;
 
         _edOpcodes[0x42] = Op_SBC_HL_BC;
+        _edOpcodes[0x44] = Op_NEG;
         _edOpcodes[0x46] = Op_IM_0;
         _edOpcodes[0x47] = Op_LD_I_A;
         _edOpcodes[0x52] = Op_SBC_HL_DE;
@@ -445,11 +455,32 @@ public partial class Z80
 
         _fdOpcodes[0x21] = Op_LD_IY_nn;
         _fdOpcodes[0x6E] = Op_LD_L_ptrIYd;
+        _fdOpcodes[0x70] = () => Op_LD_ptrIYd(Reg.B);
+        _fdOpcodes[0x71] = () => Op_LD_ptrIYd(Reg.C);
+        _fdOpcodes[0x72] = () => Op_LD_ptrIYd(Reg.D);
+        _fdOpcodes[0x73] = () => Op_LD_ptrIYd(Reg.E);
+        _fdOpcodes[0x74] = () => Op_LD_ptrIYd(Reg.H);
+        _fdOpcodes[0x75] = () => Op_LD_ptrIYd(Reg.L);
+        _fdOpcodes[0x77] = () => Op_LD_ptrIYd(Reg.A);
         _fdOpcodes[0xE1] = Op_POP_IY;
         _fdOpcodes[0xE5] = Op_PUSH_IY;
 
+        _cbOpcodes[0x00] = () => Op_RLC(ref Reg.B);
+        _cbOpcodes[0x01] = () => Op_RLC(ref Reg.C);
+        _cbOpcodes[0x02] = () => Op_RLC(ref Reg.D);
+        _cbOpcodes[0x03] = () => Op_RLC(ref Reg.E);
+        _cbOpcodes[0x04] = () => Op_RLC(ref Reg.H);
+        _cbOpcodes[0x05] = () => Op_RLC(ref Reg.L);
+        _cbOpcodes[0x07] = () => Op_RLC(ref Reg.A);
         _cbOpcodes[0x3B] = Op_SRL_E;
         _cbOpcodes[0x7E] = Op_BIT_7_ptrHL;
+        _cbOpcodes[0xF8] = () => Op_SET_7(ref Reg.B);
+        _cbOpcodes[0xF9] = () => Op_SET_7(ref Reg.C);
+        _cbOpcodes[0xFA] = () => Op_SET_7(ref Reg.D);
+        _cbOpcodes[0xFB] = () => Op_SET_7(ref Reg.E);
+        _cbOpcodes[0xFC] = () => Op_SET_7(ref Reg.H);
+        _cbOpcodes[0xFD] = () => Op_SET_7(ref Reg.L);
+        _cbOpcodes[0xFF] = () => Op_SET_7(ref Reg.A);
     }
 
     private void InitParity()

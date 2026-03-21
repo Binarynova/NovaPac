@@ -1,3 +1,4 @@
+using System;
 using Reg = Registers;
 
 public partial class Z80
@@ -5,6 +6,9 @@ public partial class Z80
     private int Op_DD() // Opcode: DD
     {
         byte opcode = PeekNextByte();
+
+        if (opcode == 0xCB)
+            return Op_DD_CB();
         IncrementRegisterR();
         return _ddOpcodes[opcode]();
     }
@@ -31,6 +35,17 @@ public partial class Z80
         return 23;
     }
 
+    private int Op_ADD_A_ptrIXd() // Opcode: DD 86
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+
+        Reg.A = (byte)(Reg.A + _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
     private static int Op_ADD_IX_DE() // Opcode: DD 19
     {
         Reg.IX = ADDWord(Reg.IX, Reg.DE);
@@ -40,59 +55,15 @@ public partial class Z80
 
     private int Op_LD_IX_nn() // Opcode: DD 21
     {
-        // Bytes: 4, Cycles: 14
-        // Fetch > Execute (registers, memory, flags) > Advance PC > Return cycles
         ushort operand = ReadImmediateWord(true);
         Reg.IX = operand;
         Reg.PC += 4;
         return 14;
     }
 
-    private int Op_LD_ptrIXd_A() // Opcode: DD 77
+    private int Op_LD_ptrIXd(byte register) // Opcode: DD 70 71 72 73 74 75 77
     {
-        LOAD_ptrIXd(Reg.A);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_B() // Opcode: DD 70
-    {
-        LOAD_ptrIXd(Reg.B);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_C() // Opcode: DD 71
-    {
-        LOAD_ptrIXd(Reg.C);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_D() // Opcode: DD 72
-    {
-        LOAD_ptrIXd(Reg.D);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_E() // Opcode: DD 73
-    {
-        LOAD_ptrIXd(Reg.E);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_H() // Opcode: DD 74
-    {
-        LOAD_ptrIXd(Reg.H);
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_ptrIXd_L() // Opcode: DD 75
-    {
-        LOAD_ptrIXd(Reg.L);
+        LOAD_ptrIXd(register);
         Reg.PC += 3;
         return 19;
     }

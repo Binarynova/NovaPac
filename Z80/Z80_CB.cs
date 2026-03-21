@@ -9,6 +9,22 @@ public partial class Z80
         return _cbOpcodes[opcode]();
     }
 
+    private int Op_RLC(ref byte register)
+    {
+        // extract bit 7
+        byte bit7 = (byte)((register & 0x80) >> 7);
+        // rotate (including wrapping bit 7)
+        register = (byte)((register << 1) | bit7);
+        
+        WriteFlag(Flags.C, bit7 != 0);
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+
     private int Op_SRL_E() // Opcode: CB 3B
     {
         byte carry = (byte)(Reg.E & 0x01);
@@ -31,6 +47,14 @@ public partial class Z80
         byte value = _machine.ReadByte(Reg.HL);
         Reg.PC += 2;
         return BIT(7, value, isMemory: true);
+    }
+
+    private int Op_SET_7(ref byte register)
+    {
+        register = (byte)(register | 0x80);
+
+        Reg.PC += 2;
+        return 8;
     }
     
     #region Helper Methods

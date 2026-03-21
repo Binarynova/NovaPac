@@ -9,6 +9,13 @@ public partial class Z80
         return _edOpcodes[opcode]();
     }
 
+    private int Op_NEG() // Opcode: ED 44
+    {
+        Reg.A = (byte)(0 - Reg.A);
+        Reg.PC += 2;
+        return 8;
+    }
+
     private static int Op_SBC_HL_BC() // Opcode: ED 42
     {
         Reg.HL = SBCWord(Reg.HL, Reg.BC);

@@ -9,6 +9,7 @@ public class Pacman : IMemoryProvider
     public byte[] paletteRAM;
     public byte[] charRAM;
     public byte[] spriteRAM;
+    private Z80 Cpu;
 
     public Pacman()
     {
@@ -16,13 +17,31 @@ public class Pacman : IMemoryProvider
         LoadRom();
     }
 
+    public void AttachCPU(Z80 cpuInstance)
+    {
+        Cpu = cpuInstance;
+    }
     public byte ReadByte(ushort address)
     {
+        // 0x5000 - 0x503F: IN0 (Joystick, Coin, etc.)
+        if (address >= 0x5000 && address <= 0x503F) 
+            return 0xBF; // Default for no buttons pressed
+
+        // 0x5040 - 0x507F: IN1 (Player Start, Service, etc.)
+        if (address >= 0x5040 && address <= 0x507F) 
+            return 0xFF; 
+
+        // 0x5080 - 0x50BF: DIP Switches
+        if (address >= 0x5080 && address <= 0x50BF) 
+            return 0x89; // Normal game settings (No Test Mode)
+        
         return Memory[address];
     }
 
     public void WriteByte(ushort address, byte value)
     {
+        if (address < 0x4000)
+            return;
         Memory[address] = value;
     }
     
@@ -47,7 +66,6 @@ public class Pacman : IMemoryProvider
                 byte[] buffer = new byte[romEntry.Length];
                 s.ReadExactly(buffer, 0, buffer.Length);
                 
-                // Copy into your flat memory array at the specified offset
                 Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
             }
             else
@@ -75,19 +93,5 @@ public class Pacman : IMemoryProvider
     public void ClearRAM()
     {
         Array.Clear(Memory, 0, Memory.Length);
-    }
-    
-    public byte ReadPort(byte port)
-    {
-        // Return those safe defaults we talked about!
-        if (port == 0) return 0xBF; 
-        if (port == 1) return 0xFF;
-        if (port == 2) return 0x89; // 0xC9 for test mode, 0x89 for attract mode
-        return 0xFF;
-    }
-
-    public void WritePort(byte port, byte value) 
-    { 
-        // Handle hardware writes here (like sound/dips) if needed
     }
 }
