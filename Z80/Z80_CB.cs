@@ -6,7 +6,7 @@ public partial class Z80
     {
         byte opcode = PeekNextByte();
         IncrementRegisterR();
-        if (opcode >= 0x40)
+        if (opcode > 0x3F)
         {
             return Handle_CB_Bitwise(opcode);
         }
@@ -70,10 +70,10 @@ public partial class Z80
 
         register = (byte)(register << 1);
         
-        ClearFlag(Flags.N); // N always 0
-        ClearFlag(Flags.H); // H always 0
-        SetSZFlags(register);    // S updated (new bit 7), Z updated
-        SetParity(register);     // P/V is parity of the result
+        ClearFlag(Flags.N);
+        ClearFlag(Flags.H);
+        SetSZFlags(register);
+        SetParity(register);
 
         Reg.PC += 2;
         return 8;
@@ -101,16 +101,16 @@ public partial class Z80
         bool bitSet = (value & (1 << n)) != 0;
 
         // Flags
-        ClearFlag(Flags.N);            // N always cleared
-        WriteFlag(Flags.H, true);              // H always set
-        WriteFlag(Flags.S, n == 7 && bitSet); // S only set for bit 7
-        WriteFlag(Flags.Z, !bitSet);         // Z set if bit is 0
-        WriteFlag(Flags.P, !bitSet);       // PV mirrors Z
-        WriteFlag(Flags.F5, (value & 0x20) != 0); // undocumented F5
-        WriteFlag(Flags.F3, (value & 0x08) != 0); // undocumented F3
+        ClearFlag(Flags.N);
+        WriteFlag(Flags.H, true);
+        WriteFlag(Flags.S, n == 7 && bitSet);
+        WriteFlag(Flags.Z, !bitSet);
+        WriteFlag(Flags.P, !bitSet);
+        WriteFlag(Flags.F5, (value & 0x20) != 0);
+        WriteFlag(Flags.F3, (value & 0x08) != 0);
 
         // Return cycles
-        return isMemory ? 12 : 8; // 12 cycles if operand is (HL), else 8
+        return isMemory ? 12 : 8;
     }
     
     private int Handle_CB_Bitwise(byte opcode)

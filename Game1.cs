@@ -739,7 +739,7 @@ public class Game1 : Game
         Console.WriteLine($"\nCB Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (cpu._cbOpcodes[hexCode].Method.Name != "Op_UNK")
+            if (cpu._cbOpcodes[hexCode].Method.Name != "Op_UNK" || hexCode >= 0x40)
             {
                 string testFile = $"tests/cb {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);

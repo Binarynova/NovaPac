@@ -13,6 +13,26 @@ public partial class Z80
         return _ddOpcodes[opcode]();
     }
 
+    private int Op_INC_ptrIXd()
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        byte originalValue = _machine.ReadByte(addr);
+        byte result = (byte)(_machine.ReadByte(addr) + 1);
+        _machine.WriteByte(addr, result);
+        
+        SetSZFlags(result);
+        ClearFlag(Flags.N);
+        if ((result & 0x0F) == 0x0F) // Opcode: if lower nibble is F, half-carry will occur when adding 1
+            SetFlag(Flags.H);
+        else
+            ClearFlag(Flags.H);
+        SetParity(result);
+        
+        Reg.PC += 3;
+        return 23;
+    }
+
     private int Op_INC_IX() // Opcode: DD 23
     {
         Reg.IX += 1;

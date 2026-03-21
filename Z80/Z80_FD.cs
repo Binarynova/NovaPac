@@ -11,7 +11,7 @@ public partial class Z80
 
     private int Op_ADD_IY_BC() // Opcode: FD 09
     {
-        ADDWord(Reg.IY, Reg.BC);
+        Reg.IY = ADDWord(Reg.IY, Reg.BC);
         
         Reg.PC += 2;
         return 15;
@@ -19,7 +19,7 @@ public partial class Z80
     
     private int Op_ADD_IY_DE() // Opcode: FD 19
     {
-        ADDWord(Reg.IY, Reg.DE);
+        Reg.IY = ADDWord(Reg.IY, Reg.DE);
         
         Reg.PC += 2;
         return 15;
@@ -27,7 +27,7 @@ public partial class Z80
     
     private int Op_ADD_IY_IY() // Opcode: FD 29
     {
-        ADDWord(Reg.IY, Reg.IY);
+        Reg.IY = ADDWord(Reg.IY, Reg.IY);
         
         Reg.PC += 2;
         return 15;
@@ -35,7 +35,7 @@ public partial class Z80
     
     private int Op_ADD_IY_SP() // Opcode: FD 39
     {
-        ADDWord(Reg.IY, Reg.SP);
+        Reg.IY = ADDWord(Reg.IY, Reg.SP);
         
         Reg.PC += 2;
         return 15;
