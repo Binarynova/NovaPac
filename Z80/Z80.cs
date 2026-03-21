@@ -12,12 +12,12 @@ public partial class Z80
     private bool _iff2;
     private bool _halted;
 
-    private delegate int OpcodeHandler();
-    private readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
-    private readonly OpcodeHandler[] _ddOpcodes = new OpcodeHandler[256];
-    private readonly OpcodeHandler[] _edOpcodes = new OpcodeHandler[256];
-    private readonly OpcodeHandler[] _fdOpcodes = new OpcodeHandler[256];
-    private readonly OpcodeHandler[] _cbOpcodes = new OpcodeHandler[256];
+    public delegate int OpcodeHandler();
+    public readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
+    public readonly OpcodeHandler[] _ddOpcodes = new OpcodeHandler[256];
+    public readonly OpcodeHandler[] _edOpcodes = new OpcodeHandler[256];
+    public readonly OpcodeHandler[] _fdOpcodes = new OpcodeHandler[256];
+    public readonly OpcodeHandler[] _cbOpcodes = new OpcodeHandler[256];
 
     // Interrupts
     private int _interruptMode;
@@ -446,15 +446,31 @@ public partial class Z80
         _edOpcodes[0x44] = Op_NEG;
         _edOpcodes[0x46] = Op_IM_0;
         _edOpcodes[0x47] = Op_LD_I_A;
+        _edOpcodes[0x4A] = Op_ADC_HL_BC;
+        _edOpcodes[0x4B] = Op_LD_BC_ptrNN;
         _edOpcodes[0x52] = Op_SBC_HL_DE;
         _edOpcodes[0x56] = Op_IM_1;
+        _edOpcodes[0x5A] = Op_ADC_HL_DE;
+        _edOpcodes[0x5B] = Op_LD_DE_ptrNN;
         _edOpcodes[0x5E] = Op_IM_2;
         _edOpcodes[0x62] = Op_SBC_HL_HL;
+        _edOpcodes[0x6A] = Op_ADC_HL_HL;
         _edOpcodes[0x72] = Op_SBC_HL_SP;
+        _edOpcodes[0x7A] = Op_ADC_HL_SP;
+        _edOpcodes[0x7B] = Op_LD_SP_ptrNN;
         _edOpcodes[0xB0] = Op_LDIR;
 
+        _fdOpcodes[0x09] = Op_ADD_IY_BC;
+        _fdOpcodes[0x19] = Op_ADD_IY_DE;
         _fdOpcodes[0x21] = Op_LD_IY_nn;
+        _fdOpcodes[0x29] = Op_ADD_IY_IY;
         _fdOpcodes[0x36] = Op_LD_ptrIYd_n;
+        _fdOpcodes[0x39] = Op_ADD_IY_SP;
+        _fdOpcodes[0x46] = Op_LD_B_ptrIYd;
+        _fdOpcodes[0x4E] = Op_LD_C_ptrIYd;
+        _fdOpcodes[0x56] = Op_LD_D_ptrIYd;
+        _fdOpcodes[0x5E] = Op_LD_E_ptrIYd;
+        _fdOpcodes[0x66] = Op_LD_H_ptrIYd;
         _fdOpcodes[0x6E] = Op_LD_L_ptrIYd;
         _fdOpcodes[0x70] = () => Op_LD_ptrIYd(Reg.B);
         _fdOpcodes[0x71] = () => Op_LD_ptrIYd(Reg.C);
@@ -463,6 +479,7 @@ public partial class Z80
         _fdOpcodes[0x74] = () => Op_LD_ptrIYd(Reg.H);
         _fdOpcodes[0x75] = () => Op_LD_ptrIYd(Reg.L);
         _fdOpcodes[0x77] = () => Op_LD_ptrIYd(Reg.A);
+        _fdOpcodes[0x7E] = Op_LD_A_ptrIYd;
         _fdOpcodes[0xE1] = Op_POP_IY;
         _fdOpcodes[0xE5] = Op_PUSH_IY;
 
@@ -473,7 +490,13 @@ public partial class Z80
         _cbOpcodes[0x04] = () => Op_RLC(ref Reg.H);
         _cbOpcodes[0x05] = () => Op_RLC(ref Reg.L);
         _cbOpcodes[0x07] = () => Op_RLC(ref Reg.A);
-        _cbOpcodes[0x3B] = Op_SRL_E;
+        _cbOpcodes[0x38] = () => Op_SRL(Reg.B);
+        _cbOpcodes[0x39] = () => Op_SRL(Reg.C);
+        _cbOpcodes[0x3A] = () => Op_SRL(Reg.D);
+        _cbOpcodes[0x3B] = () => Op_SRL(Reg.E);
+        _cbOpcodes[0x3C] = () => Op_SRL(Reg.H);
+        _cbOpcodes[0x3D] = () => Op_SRL(Reg.L);
+        _cbOpcodes[0x3F] = () => Op_SRL(Reg.A);
         _cbOpcodes[0x7E] = Op_BIT_7_ptrHL;
         _cbOpcodes[0xF8] = () => Op_SET_7(ref Reg.B);
         _cbOpcodes[0xF9] = () => Op_SET_7(ref Reg.C);

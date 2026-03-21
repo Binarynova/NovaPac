@@ -601,7 +601,7 @@ public class Game1 : Game
         Console.WriteLine($"\nED Instructions:");
         while (hexCode <= 0xBF)
         {
-            if (hexCode is 0x42 or 0x52 or 0x62 or 0x72 or 0x46 or 0x47 or 0x56 or 0x5E or 0xB0)
+            if (cpu._edOpcodes[hexCode].Method.Name != "Op_UNK")
             {
                 string testFile = $"tests/ed {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
@@ -647,7 +647,7 @@ public class Game1 : Game
         Console.WriteLine($"\nDD Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x19 or 0x21 or 0x35 or 0x36 or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0x7E or 0x86 or 0xE1 or 0xE5)
+            if (cpu._ddOpcodes[hexCode].Method.Name != "Op_UNK")
             {
                 string testFile = $"tests/dd {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
@@ -693,7 +693,7 @@ public class Game1 : Game
         Console.WriteLine($"\nFD Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x21 or 0x36 or 0x6E or 0x70 or 0x71 or 0x72 or 0x73 or 0x74 or 0x75 or 0x77 or 0xE1 or 0xE5)
+            if (cpu._fdOpcodes[hexCode].Method.Name != "Op_UNK")
             {
                 string testFile = $"tests/fd {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
@@ -739,7 +739,7 @@ public class Game1 : Game
         Console.WriteLine($"\nCB Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode is 0x00 or 0x01 or 0x02 or 0x03 or 0x04 or 0x05 or 0x07 or 0x3B or 0x7E)
+            if (cpu._cbOpcodes[hexCode].Method.Name != "Op_UNK")
             {
                 string testFile = $"tests/cb {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);

@@ -16,6 +16,27 @@ public partial class Z80
         return 8;
     }
 
+    private int Op_LD_BC_ptrNN() // Opcode: ED 4B
+    {
+        Reg.BC = ReadImmediateWord(true);
+        Reg.PC += 4;
+        return 20;
+    }
+    
+    private int Op_LD_DE_ptrNN() // Opcode: ED 5B
+    {
+        Reg.DE = ReadImmediateWord(true);
+        Reg.PC += 4;
+        return 20;
+    }
+    
+    private int Op_LD_SP_ptrNN() // Opcode: ED 7B
+    {
+        Reg.SP = ReadImmediateWord(true);
+        Reg.PC += 4;
+        return 20;
+    }
+
     private static int Op_SBC_HL_BC() // Opcode: ED 42
     {
         Reg.HL = SBCWord(Reg.HL, Reg.BC);
@@ -41,6 +62,102 @@ public partial class Z80
     {
         Reg.HL = SBCWord(Reg.HL, Reg.SP);
         Reg.PC += 2;
+        return 15;
+    }
+    
+    private int Op_ADC_HL_BC() // Opcode: ED 4A
+    {
+        ushort val1 = Reg.HL;
+        ushort val2 = Reg.BC;
+        int carry = GetFlag(Flags.C) ? 1 : 0;
+        int result = val1 + val2 + carry;
+
+        // Set Flags
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, result > 0xFFFF);
+        WriteFlag(Flags.Z, (ushort)result == 0);
+        WriteFlag(Flags.S, (result & 0x8000) != 0);
+        WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
+        WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
+    
+        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
+        WriteFlag(Flags.F5, (result & 0x2000) != 0);
+        WriteFlag(Flags.F3, (result & 0x0800) != 0);
+
+        Reg.HL = (ushort)result;
+        Reg.PC += 2; // ED 4A
+        return 15;
+    }
+    
+    private int Op_ADC_HL_DE() // Opcode: ED 5A
+    {
+        ushort val1 = Reg.HL;
+        ushort val2 = Reg.DE;
+        int carry = GetFlag(Flags.C) ? 1 : 0;
+        int result = val1 + val2 + carry;
+
+        // Set Flags
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, result > 0xFFFF);
+        WriteFlag(Flags.Z, (ushort)result == 0);
+        WriteFlag(Flags.S, (result & 0x8000) != 0);
+        WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
+        WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
+    
+        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
+        WriteFlag(Flags.F5, (result & 0x2000) != 0);
+        WriteFlag(Flags.F3, (result & 0x0800) != 0);
+
+        Reg.HL = (ushort)result;
+        Reg.PC += 2; // ED 4A
+        return 15;
+    }
+    
+    private int Op_ADC_HL_HL() // Opcode: ED 6A
+    {
+        ushort val1 = Reg.HL;
+        ushort val2 = Reg.HL;
+        int carry = GetFlag(Flags.C) ? 1 : 0;
+        int result = val1 + val2 + carry;
+
+        // Set Flags
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, result > 0xFFFF);
+        WriteFlag(Flags.Z, (ushort)result == 0);
+        WriteFlag(Flags.S, (result & 0x8000) != 0);
+        WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
+        WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
+    
+        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
+        WriteFlag(Flags.F5, (result & 0x2000) != 0);
+        WriteFlag(Flags.F3, (result & 0x0800) != 0);
+
+        Reg.HL = (ushort)result;
+        Reg.PC += 2; // ED 4A
+        return 15;
+    }
+    
+    private int Op_ADC_HL_SP() // Opcode: ED 7A
+    {
+        ushort val1 = Reg.HL;
+        ushort val2 = Reg.SP;
+        int carry = GetFlag(Flags.C) ? 1 : 0;
+        int result = val1 + val2 + carry;
+
+        // Set Flags
+        WriteFlag(Flags.N, false);
+        WriteFlag(Flags.C, result > 0xFFFF);
+        WriteFlag(Flags.Z, (ushort)result == 0);
+        WriteFlag(Flags.S, (result & 0x8000) != 0);
+        WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
+        WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
+    
+        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
+        WriteFlag(Flags.F5, (result & 0x2000) != 0);
+        WriteFlag(Flags.F3, (result & 0x0800) != 0);
+
+        Reg.HL = (ushort)result;
+        Reg.PC += 2; // ED 4A
         return 15;
     }
 

@@ -25,18 +25,18 @@ public partial class Z80
         return 8;
     }
 
-    private int Op_SRL_E() // Opcode: CB 3B
+    private int Op_SRL(byte register) // Opcode: CB 38 39 3A 3B 3C 3D 3F
     {
-        byte carry = (byte)(Reg.E & 0x01);
+        byte carry = (byte)(register & 0x01);
         WriteFlag(Flags.C, carry != 0);
 
-        Reg.E = (byte)(Reg.E >> 1);
+        Reg.E = (byte)(register >> 1);
 
         WriteFlag(Flags.C, carry != 0);
         ClearFlag(Flags.N); // N is always cleared
         ClearFlag(Flags.H); // H is always cleared
-        SetSZFlags(Reg.E);  // Updates S, Z, F5, F3
-        SetParity(Reg.E);   // P/V indicates parity for shift instructions
+        SetSZFlags(register);  // Updates S, Z, F5, F3
+        SetParity(register);   // P/V indicates parity for shift instructions
         
         Reg.PC += 2;
         return 8;
