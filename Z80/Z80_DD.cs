@@ -182,6 +182,17 @@ public partial class Z80
         Reg.PC += 3;
         return 19;
     }
+
+    private int Op_SUB_ptrIXd()
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        
+        Reg.A = SUB(Reg.A, _machine.ReadByte(addr));
+
+        Reg.PC += 3;
+        return 19;
+    }
     
     #region Helper Methods
     private void LOAD_ptrIXd(byte reg)

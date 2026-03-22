@@ -11,7 +11,10 @@ namespace pacman;
 
 public class Game1 : Game
 {
+    private double _cycleAccumulator = 0;
+    private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
+    Matrix scaleMatrix = Matrix.CreateScale(3.0f, 3.0f, 1.0f);
     private SpriteBatch _spriteBatch;
     private KeyboardState _previousKeyboardState;
     Texture2D pixelTexture;
@@ -30,10 +33,9 @@ public class Game1 : Game
     int interruptCycleCounter;
     double emuTimer;
     double emulationSpeedPercent;
-    const int pixelScale = 3;
     const int tileWidth = 8;
     const int spriteWidth = 16;
-    const int CYCLES_PER_INTERRUPT = 25600;
+    const int CYCLES_PER_INTERRUPT = 51200;
     
     List<int[,]> tiles = [];
     List<int[,]> sprites = [];
@@ -50,6 +52,9 @@ public class Game1 : Game
         graphics.PreferredBackBufferHeight = 288 * resScale;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+        this.IsFixedTimeStep = true;
+        this.TargetElapsedTime = TimeSpan.FromTicks(166667); // Exactly 1/60th of a second
+        graphics.SynchronizeWithVerticalRetrace = true;    // VSync
     }
 
     protected override void Initialize()
@@ -145,24 +150,26 @@ public class Game1 : Game
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 SteppingThrough = true;
 
-            int cyclesThisFrame = 0;
-            const int CYCLES_PER_FRAME = 51200; // 3_072_000 cycles per second / 60 frames per second
-            int adjustedCyclesPerFrame = (int)(CYCLES_PER_FRAME * _speedMultiplier);
-            
-            while (cyclesThisFrame < adjustedCyclesPerFrame)
+            // 1. Calculate how many cycles SHOULD have happened since the last Update
+            // Multiply elapsed seconds (e.g., 0.0166) by the clock speed
+            _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
+
+            // 2. Run the CPU until we've "caught up" to the current time
+            while (_cycleAccumulator > 0)
             {
                 int cycles = cpu.Step(SteppingThrough);
-                cyclesThisFrame += cycles;
-                interruptCycleCounter += cycles;
+                _cycleAccumulator -= cycles;
 
-                if(interruptCycleCounter >= CYCLES_PER_INTERRUPT)
+                interruptCycleCounter += cycles;
+                if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
                 {
                     cpu.RequestInterrupt();
                     interruptCycleCounter -= CYCLES_PER_INTERRUPT;
                 }
+            
+                // Safety break to prevent infinite loops if CPU hangs
+                if (cycles <= 0) break; 
             }
-
-            totalCyclesExecuted += cyclesThisFrame;
 
             emuTimer += gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -205,7 +212,7 @@ public class Game1 : Game
         if(mode == 1)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
 
             // draw in three sections
             // 1: vram 4000 to 403F is the bottom two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
@@ -216,14 +223,14 @@ public class Game1 : Game
             // 912 is two tiles off-screen right
             // -16 is two tiles off-screen left
 
-            for(int tileRow = 0; tileRow < 2; tileRow++)
+            for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
             {
                 for(int tileCol = 0; tileCol < 32; tileCol++)
                 {
                     ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
                     ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 696 - (tileCol * 8 * pixelScale);
-                    int yPos = tileRow * 8 * pixelScale;
+                    int xPos = 232 - (tileCol * 8);
+                    int yPos = tileRow * 8;
                     byte tileNumber = pacmanMachine.ReadByte(vram);
                     byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
@@ -236,26 +243,44 @@ public class Game1 : Game
                 {
                     ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
                     ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 648 - (tileCol * 8 * pixelScale);
-                    int yPos = 48 + (tileRow * 8 * pixelScale);
+                    int xPos = 216 - (tileCol * 8);
+                    int yPos = 16 + (tileRow * 8);
                     byte tileNumber = pacmanMachine.ReadByte(vram);
                     byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
 
-            for(int tileRow = 0; tileRow < 2; tileRow++)
+            for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
             {
                 for(int tileCol = 0; tileCol < 32; tileCol++)
                 {
                     ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
                     ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 696 - (tileCol * 8 * pixelScale);
-                    int yPos = 816 + (tileRow * 8 * pixelScale);
+                    int xPos = 232 - (tileCol * 8);
+                    int yPos = 272 + (tileRow * 8);
                     byte tileNumber = pacmanMachine.ReadByte(vram);
                     byte paletteNumber = pacmanMachine.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
+            }
+            
+            /////// Draw Sprites
+            for (int sprite = 7; sprite >= 0; sprite--)
+            {
+                int offset = sprite * 2;
+
+                int attr = pacmanMachine.GetSpriteRam(offset);
+                int rawX = pacmanMachine.GetSpriteRam2(offset);
+                int rawY = pacmanMachine.GetSpriteRam(offset + 1);
+                int spriteIndex = (attr & 0xFC) >> 2; 
+                int xFlip = (pacmanMachine.ReadByte((ushort)(0x4FF0 + sprite * 2)) & 0b00000010) >> 1;
+                int yFlip = pacmanMachine.ReadByte((ushort)(0x4FF0 + sprite * 2)) & 0b00000001;
+                int paletteIndex = pacmanMachine.ReadByte((ushort)(0x4FF1 + sprite * 2));
+
+                int screenX = 224 - rawX + 5;
+                int screenY = 288 - 16 - rawY;
+                DrawSprite(spriteIndex, screenX, screenY);
             }
 
             _spriteBatch.End();
@@ -263,7 +288,7 @@ public class Game1 : Game
         else if(mode == 2)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
             _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Gray); // tile grid
             int offset = 3;
             for(int i = 0; i < 16; i++)
@@ -271,8 +296,8 @@ public class Game1 : Game
                 for(int j = 0; j < 16; j++)
                 {
                     int tileIndex = j * 16 + i;
-                    int tileXPos = i * (tileWidth * pixelScale + offset) + offset;
-                    int tileYPos = j * (tileWidth * pixelScale + offset) + offset;
+                    int tileXPos = i * (tileWidth + offset) + offset;
+                    int tileYPos = j * (tileWidth + offset) + offset;
                     DrawTile(tileIndex, 1, tileXPos, tileYPos);
                 }
             }
@@ -290,8 +315,8 @@ public class Game1 : Game
                 for(int j = 0; j < 8; j++)
                 {
                     int spriteIndex = j * 8 + i;
-                    int spriteXPos = i * (spriteWidth * pixelScale + offset) + offset;
-                    int spriteYPos = j * (spriteWidth * pixelScale + offset) + offset;
+                    int spriteXPos = i * (spriteWidth + offset) + offset;
+                    int spriteYPos = j * (spriteWidth + offset) + offset;
                     DrawSprite(spriteIndex, spriteXPos, spriteYPos);
                 }
             }
@@ -339,13 +364,13 @@ public class Game1 : Game
     {
         for(int i = 0; i < 8; i++)
         {
-            int x = i * pixelScale;
+            int x = i;
             for(int j = 0; j < 8; j++)
             {
-                int y = j * pixelScale;
+                int y = j;
                 int colorIndex = tiles[tileIndex][i, j];
                 _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x + xPos, y + yPos, pixelScale, pixelScale),
+                    new Rectangle(x + xPos, y + yPos, 1, 1),
                     palettes[paletteIndex][colorIndex]);
             }
         }
@@ -355,32 +380,32 @@ public class Game1 : Game
     {
         for(int i = 0; i < 16; i++)
         {
-            int x = (i * pixelScale);
+            int x = i;
             for(int j = 0; j < 16; j++)
             {
-                int y = (j * pixelScale);
+                int y = j;
                 if(sprites[spriteIndex][i,j] == 0)
                 {
                     _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Rectangle(x+xPos, y+yPos, 1, 1),
                     new Color(0,0,0));
                 }
                 else if(sprites[spriteIndex][i,j] == 1)
                 {
                     _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Rectangle(x+xPos, y+yPos, 1, 1),
                     new Color(222,222,225));
                 }
                 else if(sprites[spriteIndex][i,j] == 2)
                 {
                     _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Rectangle(x+xPos, y+yPos, 1, 1),
                     new Color(33,33,255));
                 }
                 else if(sprites[spriteIndex][i,j] == 3)
                 {
                     _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, pixelScale, pixelScale),
+                    new Rectangle(x+xPos, y+yPos, 1, 1),
                     new Color(255,0,0));
                 }
             }
@@ -394,7 +419,7 @@ public class Game1 : Game
             int[,] sprite = new int[16,16];
             for(int i = 0; i < 8; i++) // bottom right
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x00 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x00 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -403,7 +428,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x08 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x08 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,r] = GetPixelValue(spriteQuad, r);
@@ -412,7 +437,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 2
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x10 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x10 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -421,7 +446,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 3
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x18 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x18 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -430,7 +455,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // bottom right
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x20 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x20 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -439,7 +464,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x28 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x28 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,r] = GetPixelValue(spriteQuad, r);
@@ -448,7 +473,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 2
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x30 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x30 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -457,7 +482,7 @@ public class Game1 : Game
 
             for(int i = 0; i < 8; i++) // top right 3
             {
-                byte spriteQuad = pacmanMachine.spriteRAM[(0x38 + i) + (0x40 * spIndex)];
+                byte spriteQuad = pacmanMachine.spriteMemory[(0x38 + i) + (0x40 * spIndex)];
                 for (int r = 0; r < 4; r++)
                 {
                     sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -474,7 +499,7 @@ public class Game1 : Game
             int[,] tile = new int[8,8];
             for(int i = 0; i < 8; i++) // first 8 bytes of tile
             {
-                byte pixelQuad = pacmanMachine.charRAM[i + (tileIndex * 16)];
+                byte pixelQuad = pacmanMachine.charMemory[i + (tileIndex * 16)];
                 for(int r = 4; r < 8; r++)
                 {
                     tile[7-i,r] = GetPixelValue(pixelQuad,r);
@@ -482,7 +507,7 @@ public class Game1 : Game
             }
             for(int i = 8; i < 16; i++) // second 8 bytes of tile
             {
-                byte pixelQuad = pacmanMachine.charRAM[i + (tileIndex * 16)];
+                byte pixelQuad = pacmanMachine.charMemory[i + (tileIndex * 16)];
                 for(int r = 0; r < 4; r++)
                 {
                     tile[15-i,r] = GetPixelValue(pixelQuad, r);
@@ -526,10 +551,10 @@ public class Game1 : Game
         for (int i = 0; i < 32; i++)
         {
             palettes.Add([
-                colors[pacmanMachine.paletteRAM[4*i + 0]],
-                colors[pacmanMachine.paletteRAM[4*i + 1]],
-                colors[pacmanMachine.paletteRAM[4*i + 2]],
-                colors[pacmanMachine.paletteRAM[4*i + 3]]
+                colors[pacmanMachine.paletteMemory[4*i + 0]],
+                colors[pacmanMachine.paletteMemory[4*i + 1]],
+                colors[pacmanMachine.paletteMemory[4*i + 2]],
+                colors[pacmanMachine.paletteMemory[4*i + 3]]
             ]);
         }
         // second 32 palettes are just black
@@ -582,14 +607,7 @@ public class Game1 : Game
                     passedCount++;
             }
 
-            if (passedCount == 1000)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
+            Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
             Console.Write($"  {hexCode:X2}");
             if ((hexCode & 0x0F) == 0x0F)
                 Console.WriteLine();
@@ -619,14 +637,7 @@ public class Game1 : Game
                         passedCount++;
                 }
 
-                if (passedCount == 1000)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {hexCode:X2}");
                 if ((hexCode & 0x0F) == 0x0F)
                     Console.WriteLine();
@@ -665,14 +676,7 @@ public class Game1 : Game
                         passedCount++;
                 }
 
-                if (passedCount == 1000)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {hexCode:X2}");
                 if ((hexCode & 0x0F) == 0x0F)
                     Console.WriteLine();
@@ -711,14 +715,7 @@ public class Game1 : Game
                         passedCount++;
                 }
 
-                if (passedCount == 1000)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {hexCode:X2}");
                 if ((hexCode & 0x0F) == 0x0F)
                     Console.WriteLine();
@@ -757,14 +754,7 @@ public class Game1 : Game
                         passedCount++;
                 }
 
-                if (passedCount == 1000)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {hexCode:X2}");
                 if ((hexCode & 0x0F) == 0x0F)
                     Console.WriteLine();
@@ -803,14 +793,7 @@ public class Game1 : Game
                         passedCount++;
                 }
 
-                if (passedCount == 1000)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.Write($"  {hexCode:X2}");
                 if ((hexCode & 0x0F) == 0x0F)
                     Console.WriteLine();

@@ -6,15 +6,27 @@ using System.IO.Compression;
 public class Pacman : IMemoryProvider
 {
     private byte[] Memory = new byte[0x10000];
-    public byte[] paletteRAM;
-    public byte[] charRAM;
-    public byte[] spriteRAM;
+    public byte[] paletteMemory;
+    public byte[] charMemory;
+    public byte[] spriteMemory;
+    private byte[] spriteram = new byte[0x10];
+    private byte[] spriteram2 = new byte[0x10];
     private Z80 Cpu;
 
     public Pacman()
     {
         ClearRAM();
         LoadRom();
+    }
+    
+    public byte GetSpriteRam(int index)
+    {
+        return spriteram[index];
+    }
+    
+    public byte GetSpriteRam2(int index)
+    {
+        return spriteram2[index];
     }
 
     public void AttachCPU(Z80 cpuInstance)
@@ -42,6 +54,16 @@ public class Pacman : IMemoryProvider
     {
         if (address < 0x4000)
             return;
+        if (address is >= 0x4ff0 and <= 0x4fff)
+        {
+            spriteram[address - 0x4ff0] = value;
+        }
+        if (address is >= 0x5060 and <= 0x506f)
+        {
+            spriteram2[address - 0x5060] = value;
+            return;
+        }
+            
         Memory[address] = value;
     }
     
@@ -74,9 +96,9 @@ public class Pacman : IMemoryProvider
             }
         }
 
-        charRAM = ExtractRom(archive, "pacman.5e");
-        spriteRAM = ExtractRom(archive, "pacman.5f");
-        paletteRAM = ExtractRom(archive, "82s126.4a");
+        charMemory = ExtractRom(archive, "pacman.5e");
+        spriteMemory = ExtractRom(archive, "pacman.5f");
+        paletteMemory = ExtractRom(archive, "82s126.4a");
     }
 
     private static byte[] ExtractRom(ZipArchive archive, string fileName)

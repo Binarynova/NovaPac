@@ -446,6 +446,7 @@ public partial class Z80
         _ddOpcodes[0x77] = () => Op_LD_ptrIXd(Reg.A);
         _ddOpcodes[0x7E] = Op_LD_A_ptrIXd;
         _ddOpcodes[0x86] = Op_ADD_A_ptrIXd;
+        _ddOpcodes[0x96] = Op_SUB_ptrIXd;
         _ddOpcodes[0xE1] = Op_POP_IX;
         _ddOpcodes[0xE5] = Op_PUSH_IX;
 
