@@ -13,7 +13,7 @@ public partial class Z80
         return _cbOpcodes[opcode]();
     }
 
-    private int Op_RLC(ref byte register) // Opcodes: 00 01 02 03 04 05 07
+    private int Op_RLC(ref byte register) // Opcodes: CB 00 01 02 03 04 05 07
     {
         // extract bit 7
         byte bit7 = (byte)((register & 0x80) >> 7);
@@ -29,7 +29,7 @@ public partial class Z80
         return 8;
     }
     
-    private int Op_RL(ref byte register) // Opcodes: 10 11 12 13 14 15 17
+    private int Op_RL(ref byte register) // Opcodes: CB 10 11 12 13 14 15 17
     {
         byte oldCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
         // extract bit 7
@@ -42,6 +42,22 @@ public partial class Z80
         SetSZFlags(register);
         SetParity(register);
         
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private int Op_SLA(ref byte register) // Opcode: CB 20 21 22 23 24 25 27
+    {
+        byte carry = (byte)(register & 0x80);
+        WriteFlag(Flags.C, carry != 0);
+
+        register = (byte)(register << 1);
+        
+        ClearFlag(Flags.N);
+        ClearFlag(Flags.H);
+        SetSZFlags(register);
+        SetParity(register);
+
         Reg.PC += 2;
         return 8;
     }
@@ -62,22 +78,6 @@ public partial class Z80
         Reg.PC += 2;
         return 8;
     }
-
-    private int Op_SLA(ref byte register)
-    {
-        byte carry = (byte)(register & 0x80);
-        WriteFlag(Flags.C, carry != 0);
-
-        register = (byte)(register << 1);
-        
-        ClearFlag(Flags.N);
-        ClearFlag(Flags.H);
-        SetSZFlags(register);
-        SetParity(register);
-
-        Reg.PC += 2;
-        return 8;
-    }
     
     private int Op_BIT_7_ptrHL() // Opcode: CB 7E
     {
@@ -86,7 +86,7 @@ public partial class Z80
         return BIT(7, value, isMemory: true);
     }
 
-    private int Op_SET_7(ref byte register)
+    private int Op_SET_7(ref byte register) // Opcodes: Cb F8 F9 FA FB FC FD FF
     {
         register = (byte)(register | 0x80);
 
