@@ -269,16 +269,17 @@ public class Game1 : Game
             for (int sprite = 7; sprite >= 0; sprite--)
             {
                 int offset = sprite * 2;
+                int attr = pacmanMachine.GetSpriteRam(offset);
+                
                 int rawX = pacmanMachine.GetSpriteRam2(offset);
                 int rawY = pacmanMachine.GetSpriteRam2(offset + 1);
+                int paletteIndex = pacmanMachine.GetSpriteRam(offset + 1);
                 
-                int attr = pacmanMachine.GetSpriteRam(offset);
                 int spriteIndex = (attr & 0xFC) >> 2;
                 bool xFlip = (attr & 0x02) != 0;
                 bool yFlip = (attr & 0x01) != 0;
-                int paletteIndex = pacmanMachine.GetSpriteRam(offset + 1);
 
-                int screenX = 224 - rawX + 5;
+                int screenX = 224 - rawX + 16;
                 int screenY = 288 - 16 - rawY;
                 DrawSprite(spriteIndex, paletteIndex & 0x3F, screenX, screenY, xFlip, yFlip);
             }
@@ -513,26 +514,26 @@ public class Game1 : Game
         // hard-coded because the ROM stores them as intensities of output on hardware, not as color
         colors =
         [
-            new Color(0, 0, 0),
-            new Color(255, 0, 0),
-            new Color(222, 151, 81),
-            new Color(255, 184, 255),
-            new Color(0, 0, 0),
-            new Color(0, 255, 255),
-            new Color(71, 184, 255),
-            new Color(255, 184, 81),
-            new Color(0, 0, 0),
-            new Color(255, 255, 0),
-            new Color(0, 0, 0),
-            new Color(33, 33, 255),
-            new Color(0, 255, 0),
-            new Color(71, 184, 174),
-            new Color(255, 184, 174),
-            new Color(222, 222, 255)
+            new Color(0, 0, 0, 0),
+            new Color(255, 0, 0, 255),
+            new Color(222, 151, 81, 255),
+            new Color(255, 184, 255, 255),
+            new Color(0, 0, 0, 255),
+            new Color(0, 255, 255, 255),
+            new Color(71, 184, 255, 255),
+            new Color(255, 184, 81, 255),
+            new Color(0, 0, 0, 255),
+            new Color(255, 255, 0, 255),
+            new Color(0, 0, 0, 255),
+            new Color(33, 33, 255, 255),
+            new Color(0, 255, 0, 255),
+            new Color(71, 184, 174, 255),
+            new Color(255, 184, 174, 255),
+            new Color(222, 222, 255, 255)
         ];
         for (int i = 16; i < 32; i++)
         {
-            colors.Add(new Color(0, 0, 0));
+            colors.Add(new Color(0, 0, 0, 0));
         }
     }
 
