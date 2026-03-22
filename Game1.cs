@@ -251,7 +251,7 @@ public class Game1 : Game
                 }
             }
 
-            for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
+            for(int tileRow = 0; tileRow < 2; tileRow++) // bottom rows
             {
                 for(int tileCol = 0; tileCol < 32; tileCol++)
                 {
