@@ -63,16 +63,17 @@ public class Game1 : Game
         
         if(mode == 0)
         {
-            Console.WriteLine("Pac-Man Menu");
-            Console.WriteLine("----------------------");
-            Console.WriteLine(" 1) Play Pac-Man");
+            Console.WriteLine("Pac-Man ROMs:");
+            Console.WriteLine(" 1) Pac-Man");
             Console.WriteLine(" 2) Matrix Homebrew");
-            Console.WriteLine(" 3) Play ZEXDOC ROM");
+            
+            Console.WriteLine("\nTests:");
+            Console.WriteLine(" 3) ZEXDOC Test ROM");
             Console.WriteLine(" 4) Display Tile ROM");
             Console.WriteLine(" 5) Display Sprite ROM");
             Console.WriteLine(" 6) Run SSTs");
-            Console.WriteLine(" Anything else) Quit");
-            Console.WriteLine("----------------------");
+            
+            Console.WriteLine("\nAnything else) Quit");
             Console.Write(" > "); menuChoice = Console.ReadKey();
             Console.WriteLine("");
             switch (menuChoice.Key)
