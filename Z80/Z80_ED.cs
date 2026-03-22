@@ -1,3 +1,4 @@
+using System.Xml.Schema;
 using Reg = Registers;
 
 public partial class Z80
@@ -219,6 +220,22 @@ public partial class Z80
         Reg.PC += 2;
         return 8;
     }
+    
+    private int Op_LDI() // Opcode: ED A0
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        _machine.WriteByte(Reg.DE, value);
+
+        Reg.HL++;
+        Reg.DE++;
+        Reg.BC--;
+        
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, (byte)(Reg.BC - 1) != 0);
+        
+        Reg.PC += 2;
+        return 16;
+    }
 
     private int Op_LDIR() // Opcode: ED B0
     {
@@ -232,7 +249,7 @@ public partial class Z80
 
         // Flags
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
+        WriteFlag(Flags.P, Reg.BC-1 != 0); // repeat flag
 
         // PC handling
         if (Reg.BC == 0)

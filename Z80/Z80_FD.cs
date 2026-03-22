@@ -157,4 +157,33 @@ public partial class Z80
         Reg.PC += 2;
         return 15;
     }
+    
+    private int Op_INC_IY() // Opcode: FD 23
+    {
+        Reg.IY += 1;
+        
+        Reg.PC += 2;
+        return 10;
+    }
+
+    private int OP_CP_ptrIYd() // Opcode: FD BE
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IY + d);
+        
+        SUB(_machine.ReadByte(addr), Reg.A);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_DEC_ptrIYd() // Opcode: FD 35
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IY + d);
+        _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
+        
+        Reg.PC += 3;
+        return 23;
+    }
 }

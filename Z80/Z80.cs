@@ -447,6 +447,8 @@ public partial class Z80
         _ddOpcodes[0x7E] = Op_LD_A_ptrIXd;
         _ddOpcodes[0x86] = Op_ADD_A_ptrIXd;
         _ddOpcodes[0x96] = Op_SUB_ptrIXd;
+        _ddOpcodes[0xB6] = Op_OR_ptrIXd;
+        _ddOpcodes[0xBE] = OP_CP_ptrIXd;
         _ddOpcodes[0xE1] = Op_POP_IX;
         _ddOpcodes[0xE5] = Op_PUSH_IX;
 
@@ -468,12 +470,15 @@ public partial class Z80
         _edOpcodes[0x72] = Op_SBC_HL_SP;
         _edOpcodes[0x7A] = Op_ADC_HL_SP;
         _edOpcodes[0x7B] = Op_LD_SP_ptrNN;
+        _edOpcodes[0xA0] = Op_LDI;
         _edOpcodes[0xB0] = Op_LDIR;
 
         _fdOpcodes[0x09] = Op_ADD_IY_BC;
         _fdOpcodes[0x19] = Op_ADD_IY_DE;
         _fdOpcodes[0x21] = Op_LD_IY_nn;
+        _fdOpcodes[0x23] = Op_INC_IY;
         _fdOpcodes[0x29] = Op_ADD_IY_IY;
+        _fdOpcodes[0x35] = Op_DEC_ptrIYd;
         _fdOpcodes[0x36] = Op_LD_ptrIYd_n;
         _fdOpcodes[0x39] = Op_ADD_IY_SP;
         _fdOpcodes[0x46] = Op_LD_B_ptrIYd;
@@ -490,6 +495,7 @@ public partial class Z80
         _fdOpcodes[0x75] = () => Op_LD_ptrIYd(Reg.L);
         _fdOpcodes[0x77] = () => Op_LD_ptrIYd(Reg.A);
         _fdOpcodes[0x7E] = Op_LD_A_ptrIYd;
+        _fdOpcodes[0xBE] = OP_CP_ptrIYd;
         _fdOpcodes[0xE1] = Op_POP_IY;
         _fdOpcodes[0xE5] = Op_PUSH_IY;
 

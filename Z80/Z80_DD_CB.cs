@@ -20,6 +20,41 @@ public partial class Z80
 
         switch (group)
         {
+            case 0: // Rotate/Shift
+            {
+                int op = (opcode >> 3) & 0x07;
+
+                switch (op)
+                {
+                    case 2: // RL
+                    {
+                        byte oldCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+                        byte newCarry = (byte)((value & 0x80) >> 7);
+
+                        result = (byte)((value << 1) | oldCarry);
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+
+                    // later: RLC, RRC, SLA, SRA, SRL, etc.
+        
+                    default:
+                        throw new NotImplementedException($"DD CB rotate op {op}");
+                }
+
+                break;
+            }
+            
             case 1: // BIT
             {
                 bool bitSet = (value & (1 << bit)) != 0;

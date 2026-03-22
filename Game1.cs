@@ -760,7 +760,7 @@ public class Game1 : Game
         Console.WriteLine($"\nDD CB Instructions:");
         while (hexCode <= 0xFF)
         {
-            if (hexCode >= 0x40)
+            if (hexCode >= 0x40 || hexCode == 0x16)
             {
                 string testFile = $"tests/dd cb __ {hexCode:x2}.json";
                 string json = File.ReadAllText(testFile);
