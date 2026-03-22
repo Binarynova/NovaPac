@@ -43,8 +43,6 @@ public class Game1 : Game
     public Game1(string[] args)
     {
         Args = args;
-        //Args = new string[1];
-        //Args[0] = "-sst";
         GraphicsDeviceManager graphics = new(this);
         graphics.PreferredBackBufferWidth = 224 * resScale;
         graphics.PreferredBackBufferHeight = 288 * resScale;
@@ -66,15 +64,15 @@ public class Game1 : Game
         if(mode == 0)
         {
             Console.WriteLine("Pac-Man Menu");
-            Console.WriteLine("------------");
+            Console.WriteLine("----------------------");
             Console.WriteLine(" 1) Play Pac-Man");
-            Console.WriteLine(" 2) Display Char ROM");
-            Console.WriteLine(" 3) Display Sprite ROM");
-            Console.WriteLine(" 4) Play ZEXDOC ROM");
-            Console.WriteLine(" 5) Run SSTs");
-            Console.WriteLine(" 6) Matrix Grid");
+            Console.WriteLine(" 2) Matrix Homebrew");
+            Console.WriteLine(" 3) Play ZEXDOC ROM");
+            Console.WriteLine(" 4) Display Tile ROM");
+            Console.WriteLine(" 5) Display Sprite ROM");
+            Console.WriteLine(" 6) Run SSTs");
             Console.WriteLine(" Anything else) Quit");
-            Console.WriteLine("------------");
+            Console.WriteLine("----------------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
             Console.WriteLine("");
             switch (menuChoice.Key)
@@ -85,22 +83,24 @@ public class Game1 : Game
 					Window.Title = $"Pac-Man";
                     break;
                 case ConsoleKey.D2:
-                    mode = 2;
-                    break;
-                case ConsoleKey.D3:
-                    mode = 3;
-                    break;
-                case ConsoleKey.D4:
-                    mode = 4;
-                    break;
-                case ConsoleKey.D5:
-                    Console.WriteLine("Running single-step tests...");
-                    RunSingleStepTests();
-                    break;
-                case ConsoleKey.D6:
                     mode = 1;
                     romFileName = "roms/matrix.zip";
-					Window.Title = $"Matrix Homebrew by Scott Lawrence";
+                    Window.Title = $"Matrix Homebrew by Scott Lawrence";
+                    break;
+                case ConsoleKey.D3:
+                    mode = 4;
+                    break;
+                case ConsoleKey.D4:
+                    mode = 2;
+                    romFileName = "roms/pacman.zip";
+                    break;
+                case ConsoleKey.D5:
+                    mode = 3;
+                    romFileName = "roms/pacman.zip";
+                    break;
+                case ConsoleKey.D6:
+                    Console.WriteLine("Running single-step tests...");
+                    RunSingleStepTests();
                     break;
                 default:
                     Environment.Exit(0);
@@ -155,12 +155,9 @@ public class Game1 : Game
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 SteppingThrough = true;
-
-            // 1. Calculate how many cycles SHOULD have happened since the last Update
-            // Multiply elapsed seconds (e.g., 0.0166) by the clock speed
+            
             _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
 
-            // 2. Run the CPU until we've "caught up" to the current time
             while (_cycleAccumulator > 0)
             {
                 int cycles = cpu.Step(SteppingThrough);
@@ -173,7 +170,6 @@ public class Game1 : Game
                     interruptCycleCounter -= CYCLES_PER_INTERRUPT;
                 }
             
-                // Safety break to prevent infinite loops if CPU hangs
                 if (cycles <= 0) break; 
             }
         }
@@ -195,7 +191,6 @@ public class Game1 : Game
                 }
             }
         }
-            
         
         _previousKeyboardState = keyboardState;
         base.Update(gameTime);
@@ -284,8 +279,8 @@ public class Game1 : Game
         {
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
-            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Gray); // tile grid
-            int offset = 3;
+            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Black); // tile grid
+            int offset = 1;
             for(int i = 0; i < 16; i++)
             {
                 for(int j = 0; j < 16; j++)
@@ -302,9 +297,9 @@ public class Game1 : Game
         else if(mode == 3)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 411, 411), Color.Gray); // tile grid
-            int offset = 3;
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
+            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 411, 411), Color.Black); // tile grid
+            int offset = 1;
             for(int i = 0; i < 8; i++)
             {
                 for(int j = 0; j < 8; j++)
@@ -508,7 +503,7 @@ public class Game1 : Game
         // hard-coded because the ROM stores them as intensities of output on hardware, not as color
         colors =
         [
-            new Color(0, 0, 0, 0),
+            new Color(0, 0, 0, 0), // 0 alpha to produce transparency
             new Color(255, 0, 0, 255),
             new Color(222, 151, 81, 255),
             new Color(255, 184, 255, 255),

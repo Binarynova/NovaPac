@@ -35,29 +35,32 @@ public class Pacman : IMemoryProvider
     }
     public byte ReadByte(ushort address)
     {
-        // 0x5000 - 0x503F: IN0 (Joystick, Coin, etc.)
-        if (address >= 0x5000 && address <= 0x503F) 
-            return 0xBF; // Default for no buttons pressed
-
-        // 0x5040 - 0x507F: IN1 (Player Start, Service, etc.)
-        if (address >= 0x5040 && address <= 0x507F) 
-            return 0xFF; 
-
-        // 0x5080 - 0x50BF: DIP Switches
-        if (address >= 0x5080 && address <= 0x50BF) 
-            return 0x89; // Normal game settings (No Test Mode)
-        
-        return Memory[address];
+        switch (address)
+        {
+            case >= 0x5000 and <= 0x503F: // IN0 (Joystick, Coin, etc.)
+                return 0xBF;
+            
+            case >= 0x5040 and <= 0x507F: // IN1 (Player Start, Service, etc.)
+                return 0xFF;
+            
+            case >= 0x5080 and <= 0x50BF: // DIP Switches
+                return 0x89;
+            
+            default:
+                return Memory[address];
+        }
     }
 
     public void WriteByte(ushort address, byte value)
     {
         if (address < 0x4000)
             return;
+        
         if (address is >= 0x4ff0 and <= 0x4fff)
         {
             spriteram[address - 0x4ff0] = value;
         }
+        
         if (address is >= 0x5060 and <= 0x506f)
         {
             spriteram2[address - 0x5060] = value;
@@ -90,6 +93,7 @@ public class Pacman : IMemoryProvider
                 
                 Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
             }
+            
             else
             {
                 throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
