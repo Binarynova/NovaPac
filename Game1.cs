@@ -82,6 +82,7 @@ public class Game1 : Game
                 case ConsoleKey.D1:
                     mode = 1;
                     romFileName = "roms/pacman.zip";
+					Window.Title = $"Pac-Man";
                     break;
                 case ConsoleKey.D2:
                     mode = 2;
@@ -99,6 +100,7 @@ public class Game1 : Game
                 case ConsoleKey.D6:
                     mode = 1;
                     romFileName = "roms/matrix.zip";
+					Window.Title = $"Matrix Homebrew by Scott Lawrence";
                     break;
                 default:
                     Environment.Exit(0);
