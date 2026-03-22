@@ -41,6 +41,7 @@ public class Game1 : Game
     List<int[,]> sprites = [];
     List<Color> colors = [];
     List<List<Color>> palettes = [];
+    string romFileName;
 
     public Game1(string[] args)
     {
@@ -74,6 +75,7 @@ public class Game1 : Game
             Console.WriteLine(" 3) Display Sprite ROM");
             Console.WriteLine(" 4) Play ZEXDOC ROM");
             Console.WriteLine(" 5) Run SSTs");
+            Console.WriteLine(" 6) Matrix Grid");
             Console.WriteLine(" Anything else) Quit");
             Console.WriteLine("------------");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -82,6 +84,7 @@ public class Game1 : Game
             {
                 case ConsoleKey.D1:
                     mode = 1;
+                    romFileName = "roms/pacman.zip";
                     break;
                 case ConsoleKey.D2:
                     mode = 2;
@@ -96,6 +99,10 @@ public class Game1 : Game
                     Console.WriteLine("Running single-step tests...");
                     RunSingleStepTests();
                     break;
+                case ConsoleKey.D6:
+                    mode = 1;
+                    romFileName = "roms/matrix.zip";
+                    break;
                 default:
                     Environment.Exit(0);
                     break;
@@ -108,7 +115,7 @@ public class Game1 : Game
         }
         else
         {
-            pacmanMachine = new Pacman();
+            pacmanMachine = new Pacman(romFileName);
             cpu = new Z80(pacmanMachine);
             pacmanMachine.AttachCPU(cpu);
             base.Initialize();
@@ -279,7 +286,7 @@ public class Game1 : Game
                 bool xFlip = (attr & 0x02) != 0;
                 bool yFlip = (attr & 0x01) != 0;
 
-                int screenX = 224 - rawX + 16;
+                int screenX = 224 - rawX + 15;
                 int screenY = 288 - 16 - rawY;
                 DrawSprite(spriteIndex, paletteIndex & 0x3F, screenX, screenY, xFlip, yFlip);
             }

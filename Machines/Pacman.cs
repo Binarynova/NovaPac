@@ -13,10 +13,10 @@ public class Pacman : IMemoryProvider
     private byte[] spriteram2 = new byte[0x10];
     private Z80 Cpu;
 
-    public Pacman()
+    public Pacman(string romFileName)
     {
         ClearRAM();
-        LoadRom();
+        LoadRom(romFileName);
     }
     
     public byte GetSpriteRam(int index)
@@ -67,9 +67,9 @@ public class Pacman : IMemoryProvider
         Memory[address] = value;
     }
     
-    private void LoadRom()
+    private void LoadRom(string romFileName)
     {
-        using ZipArchive archive = ZipFile.OpenRead("roms/pacman.zip");
+        using ZipArchive archive = ZipFile.OpenRead(romFileName);
         var romMap = new Dictionary<string, int>
         {
             { "pacman.6e", 0x0000 },
