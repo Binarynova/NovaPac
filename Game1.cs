@@ -212,7 +212,7 @@ public class Game1 : Game
         if(mode == 1)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
+            _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
 
             // draw in three sections
             // 1: vram 4000 to 403F is the bottom two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
@@ -269,18 +269,18 @@ public class Game1 : Game
             for (int sprite = 7; sprite >= 0; sprite--)
             {
                 int offset = sprite * 2;
-
-                int attr = pacmanMachine.GetSpriteRam(offset);
                 int rawX = pacmanMachine.GetSpriteRam2(offset);
-                int rawY = pacmanMachine.GetSpriteRam(offset + 1);
-                int spriteIndex = (attr & 0xFC) >> 2; 
-                int xFlip = (pacmanMachine.ReadByte((ushort)(0x4FF0 + sprite * 2)) & 0b00000010) >> 1;
-                int yFlip = pacmanMachine.ReadByte((ushort)(0x4FF0 + sprite * 2)) & 0b00000001;
-                int paletteIndex = pacmanMachine.ReadByte((ushort)(0x4FF1 + sprite * 2));
+                int rawY = pacmanMachine.GetSpriteRam2(offset + 1);
+                
+                int attr = pacmanMachine.GetSpriteRam(offset);
+                int spriteIndex = (attr & 0xFC) >> 2;
+                bool xFlip = (attr & 0x02) != 0;
+                bool yFlip = (attr & 0x01) != 0;
+                int paletteIndex = pacmanMachine.GetSpriteRam(offset + 1);
 
                 int screenX = 224 - rawX + 5;
                 int screenY = 288 - 16 - rawY;
-                DrawSprite(spriteIndex, screenX, screenY);
+                DrawSprite(spriteIndex, paletteIndex & 0x3F, screenX, screenY, xFlip, yFlip);
             }
 
             _spriteBatch.End();
@@ -317,7 +317,7 @@ public class Game1 : Game
                     int spriteIndex = j * 8 + i;
                     int spriteXPos = i * (spriteWidth + offset) + offset;
                     int spriteYPos = j * (spriteWidth + offset) + offset;
-                    DrawSprite(spriteIndex, spriteXPos, spriteYPos);
+                    DrawSprite(spriteIndex, 1, spriteXPos, spriteYPos, false, false);
                 }
             }
 
@@ -376,38 +376,28 @@ public class Game1 : Game
         }
     }
 
-    void DrawSprite(int spriteIndex, int xPos, int yPos)
+    void DrawSprite(int spriteIndex, int paletteIndex, int xPos, int yPos, bool flipX, bool flipY)
     {
+        int x, y;
         for(int i = 0; i < 16; i++)
         {
-            int x = i;
+            if (flipX)
+                x = 16-i;
+            else
+                x = i;
             for(int j = 0; j < 16; j++)
             {
-                int y = j;
-                if(sprites[spriteIndex][i,j] == 0)
-                {
-                    _spriteBatch.Draw(pixelTexture,
+                if (flipY)
+                    y = 16 - j;
+                else
+                    y = j;
+                
+                int colorIndex = sprites[spriteIndex][i, j];
+                if (colorIndex == 0) continue; // transparency
+                
+                _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x+xPos, y+yPos, 1, 1),
-                    new Color(0,0,0));
-                }
-                else if(sprites[spriteIndex][i,j] == 1)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, 1, 1),
-                    new Color(222,222,225));
-                }
-                else if(sprites[spriteIndex][i,j] == 2)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, 1, 1),
-                    new Color(33,33,255));
-                }
-                else if(sprites[spriteIndex][i,j] == 3)
-                {
-                    _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, 1, 1),
-                    new Color(255,0,0));
-                }
+                    palettes[paletteIndex][colorIndex]);
             }
         }
     }
