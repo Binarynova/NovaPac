@@ -29,10 +29,7 @@ public class Game1 : Game
     Zexdoc zexdocMachine;
     Z80 cpu;
 
-    long totalCyclesExecuted;
     int interruptCycleCounter;
-    double emuTimer;
-    double emulationSpeedPercent;
     const int tileWidth = 8;
     const int spriteWidth = 16;
     const int CYCLES_PER_INTERRUPT = 51200;
@@ -176,18 +173,6 @@ public class Game1 : Game
             
                 // Safety break to prevent infinite loops if CPU hangs
                 if (cycles <= 0) break; 
-            }
-
-            emuTimer += gameTime.ElapsedGameTime.TotalSeconds;
-
-            if(emuTimer >= 1.0)
-            {
-                double expectedCycles = 3072000 * emuTimer;
-                emulationSpeedPercent = (totalCyclesExecuted / expectedCycles) * 100.0;
-                Window.Title = $"Pac-Man | Speed: {emulationSpeedPercent:F1}%";
-                
-                totalCyclesExecuted = 0;
-                emuTimer = 0;            
             }
         }
         else if(mode is 2 or 3)
