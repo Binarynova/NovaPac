@@ -472,6 +472,7 @@ public partial class Z80
         _edOpcodes[0x47] = Op_LD_I_A;
         _edOpcodes[0x4A] = Op_ADC_HL_BC;
         _edOpcodes[0x4B] = Op_LD_BC_ptrNN;
+        _edOpcodes[0x4D] = Op_RETI;
         _edOpcodes[0x52] = Op_SBC_HL_DE;
         _edOpcodes[0x53] = Op_LD_ptrNN_DE;
         _edOpcodes[0x56] = Op_IM_1;
@@ -635,8 +636,7 @@ public partial class Z80
     private int Op_UNK()
     {
         throw new NotImplementedException(
-            $"Unhandled opcode {_machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}"
-        );
+            $"Unhandled opcode {_machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}. Next byte: {_machine.ReadByte((ushort)(Reg.PC+1)):X2}");
     }
     
     

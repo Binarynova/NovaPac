@@ -37,6 +37,13 @@ public partial class Z80
         return 20;
     }
     
+    private int Op_RETI() // Opcode: ED 4D
+    {
+        Reg.PC = PopWord();
+
+        return 14;
+    }
+    
     private int Op_LD_ptrNN_DE() // Opcode: ED 53
     {
         ushort addr = ReadImmediateWord(true);
