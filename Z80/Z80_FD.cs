@@ -60,39 +60,16 @@ public partial class Z80
         return 19;
     }
     
-    private int Op_LD_B_ptrIYd() // Opcode: FD 46
+    private int Op_LD_r_ptrIYd(ref byte register) // Opcode: FD 46 4E 56 5E 66 6E 7E
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IY + d);
 
-        Reg.B = _machine.ReadByte(addr);
+        register = _machine.ReadByte(addr);
         
         Reg.PC += 3;
         return 19;
     }
-    
-    private int Op_LD_D_ptrIYd() // Opcode: FD 56
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-
-        Reg.D = _machine.ReadByte(addr);
-        
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_H_ptrIYd() // Opcode: FD 66
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-
-        Reg.H = _machine.ReadByte(addr);
-        
-        Reg.PC += 3;
-        return 19;
-    }
-    
     
     private int Op_LD_ptrIYd(byte register) // Opcode: FD 70 71 72 73 74 75 77
     {
@@ -100,46 +77,6 @@ public partial class Z80
         ushort addr = (ushort)(Reg.IY + d);
         
         _machine.WriteByte(addr, register);
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_C_ptrIYd() // Opcode: FD 4E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-        Reg.C = _machine.ReadByte(addr);
-
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_E_ptrIYd() // Opcode: FD 5E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-        Reg.E = _machine.ReadByte(addr);
-
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_L_ptrIYd() // Opcode: FD 6E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-        Reg.L = _machine.ReadByte(addr);
-
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_A_ptrIYd() // Opcode: FD 7E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
-        Reg.A = _machine.ReadByte(addr);
-
         Reg.PC += 3;
         return 19;
     }
@@ -161,6 +98,14 @@ public partial class Z80
     private int Op_INC_IY() // Opcode: FD 23
     {
         Reg.IY += 1;
+        
+        Reg.PC += 2;
+        return 10;
+    }
+    
+    private int Op_DEC_IY() // Opcode: FD 2B
+    {
+        Reg.IY -= 1;
         
         Reg.PC += 2;
         return 10;

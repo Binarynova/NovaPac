@@ -64,6 +64,27 @@ public partial class Z80
         return 15;
     }
 
+    private int Op_LD_IX_ptrnn() // Opcode: DD 2A
+    {
+        ushort nn = ReadImmediateWord(true);
+        
+        byte low = _machine.ReadByte(nn);
+        byte high = _machine.ReadByte((ushort)(nn + 1));
+        
+        Reg.IX = (ushort)((high << 8) | low);
+        
+        Reg.PC += 4;
+        return 14;
+    }
+
+    private int Op_DEC_IX() // Opcode: DD 2B
+    {
+        Reg.IX -= 1;
+        
+        Reg.PC += 2;
+        return 10;
+    }
+
     private int Op_INC_ptrIXd() // Opcode: DD 34
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
