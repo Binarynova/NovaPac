@@ -37,13 +37,10 @@ public partial class Z80
 
     private int Op_LD_ptrNN_IX() // Opcode: DD 22
     {
-        byte low = (byte)(Reg.IX & 0xFF);
-        byte high = (byte)((Reg.IX >> 8) & 0xFF);
-        
         ushort addr = ReadImmediateWord(true);
         
-        _machine.WriteByte(addr, low);
-        _machine.WriteByte((ushort)(addr + 1), high);
+        _machine.WriteByte(addr, Reg.IXL);
+        _machine.WriteByte((ushort)(addr + 1), Reg.IXH);
         
         Reg.PC += 4;
         return 20;
@@ -68,10 +65,8 @@ public partial class Z80
     {
         ushort nn = ReadImmediateWord(true);
         
-        byte low = _machine.ReadByte(nn);
-        byte high = _machine.ReadByte((ushort)(nn + 1));
-        
-        Reg.IX = (ushort)((high << 8) | low);
+        Reg.IXL = _machine.ReadByte(nn);
+        Reg.IXH = _machine.ReadByte((ushort)(nn + 1));
         
         Reg.PC += 4;
         return 14;
@@ -260,16 +255,14 @@ public partial class Z80
     
     private int Op_EX_ptrSP_IX() // Opcode: DD E3
     {
-        int lowIX = Reg.IX & 0xFF;
-        int highIX = (Reg.IX >> 8) & 0xFF;
+        byte oldIXL = Reg.IXL;
+        byte oldIXH = Reg.IXH;
         
-        byte lowSP = _machine.ReadByte(Reg.SP);
-        byte highSP = _machine.ReadByte((ushort)(Reg.SP + 1));
+        Reg.IXL = _machine.ReadByte(Reg.SP);
+        Reg.IXH = _machine.ReadByte((ushort)(Reg.SP + 1));
         
-        Reg.IX = (ushort)((highSP << 8) | lowSP);
-        
-        _machine.WriteByte(Reg.SP, (byte)lowIX);
-        _machine.WriteByte((ushort)(Reg.SP + 1), (byte)highIX);
+        _machine.WriteByte(Reg.SP, oldIXL);
+        _machine.WriteByte((ushort)(Reg.SP + 1), oldIXH);
 
         Reg.PC += 2;
         return 23;

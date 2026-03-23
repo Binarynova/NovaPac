@@ -116,7 +116,7 @@ public partial class Z80
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IY + d);
         
-        SUB(_machine.ReadByte(addr), Reg.A);
+        SUB(Reg.A, _machine.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -126,8 +126,9 @@ public partial class Z80
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IY + d);
-        _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
         
+        _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
+        SetDecFlags((byte)(_machine.ReadByte(addr) - 1));
         Reg.PC += 3;
         return 23;
     }

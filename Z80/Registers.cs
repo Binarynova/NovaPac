@@ -3,7 +3,8 @@ public static class Registers
     public static byte A, F, B, C, D, E, H, L;
     public static byte A2, F2, B2, C2, D2, E2, H2, L2;
     public static byte I, R;
-    public static ushort PC, SP, IX, IY;
+    public static ushort PC, SP;
+    public static byte IXL, IXH, IYL, IYH;
 
     public static byte HighByte(ushort word)
     {
@@ -92,6 +93,27 @@ public static class Registers
         {
             H2 = HighByte(value);
             L2 = LowByte(value);
+        }
+    }
+
+    public static ushort IX
+    {
+        get => (ushort)((IXH << 8) | IXL);
+        set
+        {
+            IXH = HighByte(value);
+            IXL = LowByte(value);
+        }
+    }
+    
+
+    public static ushort IY
+    {
+        get => (ushort)((IYH << 8) | IYL);
+        set
+        {
+            IYH = HighByte(value);
+            IYL = LowByte(value);
         }
     }
 }
