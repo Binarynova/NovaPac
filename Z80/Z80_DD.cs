@@ -220,6 +220,74 @@ public partial class Z80
         Reg.PC += 2;
         return 15;
     }
+
+    private int Op_ADC_A_ptrIXd() // Opcode: DD 8E
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        
+        Reg.A = ADC(Reg.A, _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_SBC_A_ptrIXd() // Opcode: DD 9E
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        
+        Reg.A = SBC(Reg.A, _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_XOR_A_ptrIXd() // Opcode: DD AE
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        
+        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(addr));
+
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.C | Flags.H | Flags.N);
+        SetParity(Reg.A);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_EX_ptrSP_IX() // Opcode: DD E3
+    {
+        int lowIX = Reg.IX & 0xFF;
+        int highIX = (Reg.IX >> 8) & 0xFF;
+        
+        byte lowSP = _machine.ReadByte(Reg.SP);
+        byte highSP = _machine.ReadByte((ushort)(Reg.SP + 1));
+        
+        Reg.IX = (ushort)((highSP << 8) | lowSP);
+        
+        _machine.WriteByte(Reg.SP, (byte)lowIX);
+        _machine.WriteByte((ushort)(Reg.SP + 1), (byte)highIX);
+
+        Reg.PC += 2;
+        return 23;
+    }
+
+    private int Op_JP_ptrIX()
+    {
+        Reg.PC = Reg.IX;
+
+        return 8;
+    }
+
+    private int Op_LD_SP_IX()
+    {
+        Reg.SP = Reg.IX;
+        Reg.PC += 2;
+        return 10;
+    }
     
     #region Helper Methods
     private void LOAD_ptrIXd(byte reg)

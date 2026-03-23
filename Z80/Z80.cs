@@ -452,12 +452,18 @@ public partial class Z80
         _ddOpcodes[0x77] = () => Op_LD_ptrIXd(Reg.A);
         _ddOpcodes[0x7E] = () => Op_LD_r_ptrIXd(ref Reg.A);
         _ddOpcodes[0x86] = Op_ADD_A_ptrIXd;
+        _ddOpcodes[0x8E] = Op_ADC_A_ptrIXd;
         _ddOpcodes[0x96] = Op_SUB_ptrIXd;
+        _ddOpcodes[0x9E] = Op_SBC_A_ptrIXd;
         _ddOpcodes[0xA6] = Op_AND_ptrIXd;
+        _ddOpcodes[0xAE] = Op_XOR_A_ptrIXd;
         _ddOpcodes[0xB6] = Op_OR_ptrIXd;
         _ddOpcodes[0xBE] = OP_CP_ptrIXd;
         _ddOpcodes[0xE1] = Op_POP_IX;
+        _ddOpcodes[0xE3] = Op_EX_ptrSP_IX;
         _ddOpcodes[0xE5] = Op_PUSH_IX;
+        _ddOpcodes[0xE9] = Op_JP_ptrIX;
+        _ddOpcodes[0xF9] = Op_LD_SP_IX;
 
         _edOpcodes[0x42] = Op_SBC_HL_BC;
         _edOpcodes[0x43] = Op_LD_ptrNN_BC;
