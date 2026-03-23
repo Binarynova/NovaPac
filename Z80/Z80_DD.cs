@@ -113,7 +113,7 @@ public partial class Z80
         return 15;
     }
     
-    private int Op_LD_r_ptrIXd(ref byte register) // Opcode: DD 46
+    private int Op_LD_r_ptrIXd(ref byte register) // Opcode: DD 46 4E 56 5E 66 6E 7E
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
