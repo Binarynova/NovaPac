@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Microsoft.Xna.Framework.Input;
 
 public class Pacman : IMemoryProvider
 {
@@ -38,10 +39,10 @@ public class Pacman : IMemoryProvider
         switch (address)
         {
             case >= 0x5000 and <= 0x503F: // IN0 (Joystick, Coin, etc.)
-                return 0xBF;
+                return GetPort0();
             
             case >= 0x5040 and <= 0x507F: // IN1 (Player Start, Service, etc.)
-                return 0xFF;
+                return GetPort1();
             
             case >= 0x5080 and <= 0x50BF: // DIP Switches
                 return 0x89;
@@ -119,5 +120,27 @@ public class Pacman : IMemoryProvider
     public void ClearRAM()
     {
         Array.Clear(Memory, 0, Memory.Length);
+    }
+
+    public byte GetPort0()
+    {
+        byte port = 0xFF;
+        var state = Keyboard.GetState();
+
+        if (state.IsKeyDown(Keys.C))
+            port &= 0xEF;
+        
+        return port;
+    }
+    
+    public byte GetPort1()
+    {
+        byte port = 0xFF;
+        var state = Keyboard.GetState();
+
+        if (state.IsKeyDown(Keys.Enter))
+            port &= 0x00;
+
+        return port;
     }
 }
