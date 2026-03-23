@@ -14,11 +14,11 @@ public class Game1 : Game
     private double _cycleAccumulator = 0;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
-    Matrix scaleMatrix = Matrix.CreateScale(3.0f, 3.0f, 1.0f);
+    const int resScale = 3;
+    Matrix scaleMatrix = Matrix.CreateScale(resScale, resScale, 1.0f);
     private SpriteBatch _spriteBatch;
     private KeyboardState _previousKeyboardState;
     Texture2D pixelTexture;
-    const int resScale = 3;
     ConsoleKeyInfo menuChoice;
     int mode = 0;
     bool SteppingThrough;

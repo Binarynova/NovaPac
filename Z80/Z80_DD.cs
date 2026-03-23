@@ -13,6 +13,13 @@ public partial class Z80
         return _ddOpcodes[opcode]();
     }
     
+    private static int Op_ADD_IX_BC() // Opcode: DD 09
+    {
+        Reg.IX = ADDWord(Reg.IX, Reg.BC);
+        Reg.PC += 2;
+        return 15;
+    }
+    
     private static int Op_ADD_IX_DE() // Opcode: DD 19
     {
         Reg.IX = ADDWord(Reg.IX, Reg.DE);
@@ -28,6 +35,20 @@ public partial class Z80
         return 14;
     }
 
+    private int Op_LD_ptrNN_IX() // Opcode: DD 22
+    {
+        byte low = (byte)(Reg.IX & 0xFF);
+        byte high = (byte)((Reg.IX >> 8) & 0xFF);
+        
+        ushort addr = ReadImmediateWord(true);
+        
+        _machine.WriteByte(addr, low);
+        _machine.WriteByte((ushort)(addr + 1), high);
+        
+        Reg.PC += 4;
+        return 20;
+    }
+
     private int Op_INC_IX() // Opcode: DD 23
     {
         Reg.IX += 1;
@@ -35,8 +56,15 @@ public partial class Z80
         Reg.PC += 2;
         return 10;
     }
+    
+    private static int Op_ADD_IX_IX() // Opcode: DD 29
+    {
+        Reg.IX = ADDWord(Reg.IX, Reg.IX);
+        Reg.PC += 2;
+        return 15;
+    }
 
-    private int Op_INC_ptrIXd() // Opcode: 34
+    private int Op_INC_ptrIXd() // Opcode: DD 34
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
@@ -78,65 +106,20 @@ public partial class Z80
         return 23;
     }
     
-    private int Op_LD_B_ptrIXd() // Opcode: DD 46
+    private static int Op_ADD_IX_SP() // Opcode: DD 39
+    {
+        Reg.IX = ADDWord(Reg.IX, Reg.SP);
+        Reg.PC += 2;
+        return 15;
+    }
+    
+    private int Op_LD_r_ptrIXd(ref byte register) // Opcode: DD 46
     {
         sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(Reg.IX + d);
 
-        Reg.B = _machine.ReadByte(addr);
+        register = _machine.ReadByte(addr);
         
-        Reg.PC += 3;
-        return 19;
-    }
-
-    private int Op_LD_C_ptrIXd() // Opcode: DD 4E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-        Reg.C = _machine.ReadByte(addr);
-
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_D_ptrIXd() // Opcode: DD 56
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-
-        Reg.D = _machine.ReadByte(addr);
-        
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_E_ptrIXd() // Opcode: DD 5E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-        Reg.E = _machine.ReadByte(addr);
-
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_H_ptrIXd() // Opcode: DD 66
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-
-        Reg.H = _machine.ReadByte(addr);
-        
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_L_ptrIXd() // Opcode: DD 6E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-        Reg.L = _machine.ReadByte(addr);
-
         Reg.PC += 3;
         return 19;
     }
@@ -144,16 +127,6 @@ public partial class Z80
     private int Op_LD_ptrIXd(byte register) // Opcode: DD 70 71 72 73 74 75 77
     {
         LOAD_ptrIXd(register);
-        Reg.PC += 3;
-        return 19;
-    }
-    
-    private int Op_LD_A_ptrIXd() // Opcode: DD 7E
-    {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IX + d);
-        Reg.A = _machine.ReadByte(addr);
-
         Reg.PC += 3;
         return 19;
     }
@@ -176,6 +149,17 @@ public partial class Z80
         
         Reg.A = SUB(Reg.A, _machine.ReadByte(addr));
 
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_AND_ptrIXd() // Opcode: DD A6
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(Reg.IX + d);
+        
+        AND(_machine.ReadByte(addr));
+        
         Reg.PC += 3;
         return 19;
     }
