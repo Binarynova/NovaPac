@@ -19,7 +19,7 @@ public partial class Z80
 
     private int Op_LD_BC_ptrNN() // Opcode: ED 4B
     {
-        ushort nn = ReadImmediateWord(true);
+        ushort nn = ImmediateWord(true);
 
         Reg.C = _machine.ReadByte(nn);
         Reg.B = _machine.ReadByte((ushort)(nn + 1));
@@ -30,11 +30,19 @@ public partial class Z80
     
     private int Op_LD_ptrNN_BC() // Opcode: ED 43
     {
-        ushort addr = ReadImmediateWord(true);
+        ushort addr = ImmediateWord(true);
         _machine.WriteByte(addr, Reg.C);
         _machine.WriteByte((ushort)(addr + 1), Reg.B);
         Reg.PC += 4;
         return 20;
+    }
+
+    private int Op_RETN() // Opcode: ED 45
+    {
+        _iff1 = _iff2;
+
+        Reg.PC = PopWord();
+        return 14;
     }
     
     private int Op_RETI() // Opcode: ED 4D
@@ -46,7 +54,7 @@ public partial class Z80
     
     private int Op_LD_ptrNN_DE() // Opcode: ED 53
     {
-        ushort addr = ReadImmediateWord(true);
+        ushort addr = ImmediateWord(true);
         _machine.WriteByte(addr, Reg.E);
         _machine.WriteByte((ushort)(addr + 1), Reg.D);
         Reg.PC += 4;
@@ -55,7 +63,7 @@ public partial class Z80
     
     private int Op_LD_ptrNN_SP() // Opcode: ED 73
     {
-        ushort addr = ReadImmediateWord(true);
+        ushort addr = ImmediateWord(true);
         _machine.WriteByte(addr, Reg.E);
         _machine.WriteByte((ushort)(addr + 1), Reg.D);
         Reg.PC += 4;
@@ -64,7 +72,7 @@ public partial class Z80
     
     private int Op_LD_DE_ptrNN() // Opcode: ED 5B
     {
-        ushort nn = ReadImmediateWord(true);
+        ushort nn = ImmediateWord(true);
 
         Reg.E = _machine.ReadByte(nn);
         Reg.D = _machine.ReadByte((ushort)(nn + 1));
@@ -75,7 +83,7 @@ public partial class Z80
     
     private int Op_LD_SP_ptrNN() // Opcode: ED 7B
     {
-        ushort nn = ReadImmediateWord(true);
+        ushort nn = ImmediateWord(true);
 
         byte low = _machine.ReadByte(nn);
         byte high = _machine.ReadByte((ushort)(nn + 1));

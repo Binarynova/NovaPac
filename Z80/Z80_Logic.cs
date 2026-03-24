@@ -20,7 +20,7 @@ public partial class Z80
 
     private int Op_AND_n() // Opcode: E6
     {
-        byte value = ReadImmediateByte();
+        byte value = ImmediateByte();
         AND(value);
         Reg.PC += 2;
         return 7;
@@ -46,7 +46,7 @@ public partial class Z80
     
     private int Op_OR_n() // Opcode: F6
     {
-        byte value = ReadImmediateByte();
+        byte value = ImmediateByte();
         OR(value);
         Reg.PC += 2;
         return 7;
@@ -70,7 +70,7 @@ public partial class Z80
 
     private int Op_XOR_A_n() // Opcode: EE
     {
-        Reg.A = (byte)(Reg.A ^ ReadImmediateByte());
+        Reg.A = (byte)(Reg.A ^ ImmediateByte());
 
         SetSZFlags(Reg.A);
         ClearFlag(Flags.C | Flags.H | Flags.N);

@@ -43,15 +43,14 @@ public partial class Z80
 
     private int Op_LD_IY_nn() // Opcode: FD 21
     {
-        Reg.IY = ReadImmediateWord(true);
+        Reg.IY = ImmediateWord(true);
         Reg.PC += 4;
         return 14;
     }
     
     private int Op_LD_ptrIYd_n() // Opcode: FD 36
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
         byte n = _machine.ReadByte((ushort)(Reg.PC + 3));
         
@@ -62,8 +61,7 @@ public partial class Z80
     
     private int Op_LD_r_ptrIYd(ref byte register) // Opcode: FD 46 4E 56 5E 66 6E 7E
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
 
         register = _machine.ReadByte(addr);
         
@@ -73,8 +71,7 @@ public partial class Z80
     
     private int Op_LD_ptrIYd(byte register) // Opcode: FD 70 71 72 73 74 75 77
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
         _machine.WriteByte(addr, register);
         Reg.PC += 3;
@@ -113,8 +110,7 @@ public partial class Z80
 
     private int OP_CP_ptrIYd() // Opcode: FD BE
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
         SUB(Reg.A, _machine.ReadByte(addr));
 
@@ -124,8 +120,7 @@ public partial class Z80
     
     private int Op_DEC_ptrIYd() // Opcode: FD 35
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        ushort addr = (ushort)(Reg.IY + d);
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
         _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
         SetDecFlags((byte)(_machine.ReadByte(addr) - 1));

@@ -72,7 +72,7 @@ public partial class Z80
 
     private int Op_OUT_ptrn_A() // Opcode: D3
     {
-        byte n = ReadImmediateByte();
+        byte n = ImmediateByte();
         ushort port = (ushort)((Reg.I << 8) | n);
         WritePort(port, Reg.A);
         Reg.PC += 2;
@@ -81,7 +81,7 @@ public partial class Z80
 
     private int Op_IN_A_n() // Opcode: DB
     {
-        byte n = ReadImmediateByte();
+        byte n = ImmediateByte();
         ushort port = (ushort)((Reg.A << 8) | n);
         Reg.A = ReadPort(port);
 

@@ -13,7 +13,7 @@ public partial class Z80
 
     private int Op_ADD_A_n() // Opcode: C6
     {
-        Reg.A = ADD(Reg.A, ReadImmediateByte());
+        Reg.A = ADD(Reg.A, ImmediateByte());
         Reg.PC += 2;
         return 7;
     }
@@ -73,7 +73,7 @@ public partial class Z80
     
     private int Op_ADC_A_n() // Opcode: CE
     {
-        Reg.A = ADC(Reg.A, ReadImmediateByte());
+        Reg.A = ADC(Reg.A, ImmediateByte());
         Reg.PC += 2;
         return 7;
     }
@@ -98,7 +98,7 @@ public partial class Z80
 
     private int Op_SUB_n() // Opcode: D6
     {
-        byte value = ReadImmediateByte();
+        byte value = ImmediateByte();
         Reg.A = SUB(Reg.A, value);
         Reg.PC += 2;
         return 7;
@@ -124,7 +124,7 @@ public partial class Z80
     
     private int Op_SBC_n() // Opcode: DE
     {
-        byte value = ReadImmediateByte();
+        byte value = ImmediateByte();
         Reg.A = SBC(Reg.A, value);
         Reg.PC += 2;
         return 7;
@@ -259,7 +259,7 @@ public partial class Z80
     
     private int Op_CP_n() // Opcode: FE
     {
-        byte n = ReadImmediateByte();
+        byte n = ImmediateByte();
         InternalCP(n);
 
         Reg.PC += 2;

@@ -5,7 +5,7 @@ public partial class Z80
 {
     private int Op_JR_e() // Opcode: 18
     {
-        sbyte offset = (sbyte)ReadImmediateByte();
+        sbyte offset = (sbyte)ImmediateByte();
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         Reg.PC = (ushort)(nextPC + offset);
@@ -20,7 +20,7 @@ public partial class Z80
     private int Op_JP_nn() // Opcode: C3
     {
         // jump to address nn
-        ushort address = ReadImmediateWord();
+        ushort address = ImmediateWord();
         Reg.PC = address;
         return 10;
     }
@@ -30,7 +30,7 @@ public partial class Z80
         if (!GetFlag(Flags.C))
         {
             // jump to address nn
-            ushort address = ReadImmediateWord();
+            ushort address = ImmediateWord();
             Reg.PC = address;
             return 10;
         }
@@ -41,7 +41,7 @@ public partial class Z80
 
     private int Op_JP_NZ_nn() // Opcode: C2
     {
-        ushort address = ReadImmediateWord();
+        ushort address = ImmediateWord();
         
         if (!GetFlag(Flags.Z))
         {
@@ -58,7 +58,7 @@ public partial class Z80
     {
         if (GetFlag(Flags.C))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -72,7 +72,7 @@ public partial class Z80
     {
         if (!GetFlag(Flags.S))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -86,7 +86,7 @@ public partial class Z80
     {
         if (GetFlag(Flags.S))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -100,7 +100,7 @@ public partial class Z80
     {
         if (GetFlag(Flags.P))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -114,7 +114,7 @@ public partial class Z80
     {
         if (!GetFlag(Flags.P))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -128,7 +128,7 @@ public partial class Z80
     {
         if (GetFlag(Flags.Z))
         {
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
         }
         else
         {
@@ -250,7 +250,7 @@ public partial class Z80
     private int Op_CALL_nn() // Opcode: CD
     {
         PushWord((ushort)(Reg.PC + 3));
-        Reg.PC = ReadImmediateWord();
+        Reg.PC = ImmediateWord();
         return 17;
     }
 
@@ -259,7 +259,7 @@ public partial class Z80
         if (!GetFlag(Flags.Z))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -274,7 +274,7 @@ public partial class Z80
         if (GetFlag(Flags.Z))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -289,7 +289,7 @@ public partial class Z80
         if (!GetFlag(Flags.C))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -304,7 +304,7 @@ public partial class Z80
         if (GetFlag(Flags.C))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -319,7 +319,7 @@ public partial class Z80
         if (!GetFlag(Flags.P))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -334,7 +334,7 @@ public partial class Z80
         if (GetFlag(Flags.P))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -349,7 +349,7 @@ public partial class Z80
         if (!GetFlag(Flags.S))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -364,7 +364,7 @@ public partial class Z80
         if (GetFlag(Flags.S))
         {
             PushWord((ushort)(Reg.PC + 3));
-            Reg.PC = ReadImmediateWord();
+            Reg.PC = ImmediateWord();
             return 17;
         }
         else
@@ -404,7 +404,7 @@ public partial class Z80
 
     private int JR_Cond(Func<bool> condition)
     {
-        sbyte offset = (sbyte)ReadImmediateByte();
+        sbyte offset = (sbyte)ImmediateByte();
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         if (condition())

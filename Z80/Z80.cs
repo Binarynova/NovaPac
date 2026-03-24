@@ -54,7 +54,7 @@ public partial class Z80
         PushWord(Reg.PC);
         InterruptPending = _halted = false;
         _iff1 = false;
-        _iff2 = false;
+        _iff2 = _iff1;
 
         switch(_interruptMode)
         {
@@ -468,6 +468,7 @@ public partial class Z80
         _edOpcodes[0x42] = Op_SBC_HL_BC;
         _edOpcodes[0x43] = Op_LD_ptrNN_BC;
         _edOpcodes[0x44] = Op_NEG;
+        _edOpcodes[0x45] = Op_RETN;
         _edOpcodes[0x46] = Op_IM_0;
         _edOpcodes[0x47] = Op_LD_I_A;
         _edOpcodes[0x4A] = Op_ADC_HL_BC;
@@ -617,11 +618,11 @@ public partial class Z80
         WriteFlag(Flags.F3, (value & 0x08) != 0);   // if bit 3 is 1
     }
     
-    byte ReadImmediateByte()
+    byte ImmediateByte()
     {
         return _machine.ReadByte((ushort)(Reg.PC + 1));
     }
-    ushort ReadImmediateWord(bool prefixed = false)
+    ushort ImmediateWord(bool prefixed = false)
     {
         if(!prefixed)
             return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 1)) | 
@@ -630,8 +631,15 @@ public partial class Z80
             return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 2)) | 
                             (_machine.ReadByte((ushort)(Reg.PC + 3)) << 8));
     }
+    private byte PeekNextByte() => ImmediateByte();
+    
+    private ushort IndexAddressingWithDisplacement(ushort indexPair)
+    {
+        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        ushort addr = (ushort)(indexPair + d);
 
-    private byte PeekNextByte() => ReadImmediateByte();
+        return addr;
+    }
     
     private int Op_UNK()
     {
