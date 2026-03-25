@@ -482,6 +482,7 @@ public partial class Z80
         _edOpcodes[0x62] = Op_SBC_HL_HL;
         _edOpcodes[0x6A] = Op_ADC_HL_HL;
         _edOpcodes[0x72] = Op_SBC_HL_SP;
+        _edOpcodes[0x73] = Op_LD_ptrNN_SP;
         _edOpcodes[0x7A] = Op_ADC_HL_SP;
         _edOpcodes[0x7B] = Op_LD_SP_ptrNN;
         _edOpcodes[0xA0] = Op_LDI;

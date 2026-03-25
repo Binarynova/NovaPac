@@ -64,8 +64,9 @@ public partial class Z80
     private int Op_LD_ptrNN_SP() // Opcode: ED 73
     {
         ushort addr = ImmediateWord(true);
-        _machine.WriteByte(addr, Reg.E);
-        _machine.WriteByte((ushort)(addr + 1), Reg.D);
+        
+        _machine.WriteByte(addr, (byte)(Reg.SP & 0x00FF));
+        _machine.WriteByte((ushort)(addr + 1), (byte)((Reg.SP & 0xFF00) >> 8));
         Reg.PC += 4;
         return 20;
     }
