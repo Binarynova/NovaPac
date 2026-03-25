@@ -9,144 +9,25 @@ public partial class Z80
         return 4;
     }
 
-    private int Op_LD_A_n() // Opcode: 3E
+    private int Op_LD_r_n(ref byte register)
     {
-        Reg.A = ImmediateByte();
+        register = ImmediateByte();
         Reg.PC += 2;
         return 7;
     }
 
-    private int Op_LD_A_ptrHL() // Opcode: 7E
+    private int Op_LD_r_ptrHL(ref byte register)
     {
-        Reg.A = _machine.ReadByte(Reg.HL);
+        register = _machine.ReadByte(Reg.HL);
         Reg.PC += 1;
         return 7;
     }
-    
-    private static int Op_LD_B(byte register) // Opcode: 40 41 42 43 44 45 47
+
+    private static int Op_LD_r_R(ref byte destination, byte source)
     {
-        Reg.B = register;
+        destination = source;
         Reg.PC += 1;
         return 4;
-    }
-
-    private int Op_LD_B_n() // Opcode: 06
-    {
-        Reg.B = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_B_ptrHL() // Opcode: 46
-    {
-        Reg.B = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
-    }
-    
-    private static int Op_LD_C(byte register) // Opcode: 48 49 4A 4B 4C 4D 4F
-    {
-        Reg.C = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_LD_C_n() // Opcode: 0E
-    {
-        Reg.C = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_C_ptrHL() // Opcode: 4E
-    {
-        Reg.C = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
-    }
-
-    private static int Op_LD_D(byte register) // Opcode: 50 51 52 53 54 55 57
-    {
-        Reg.D = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_LD_D_n() // Opcode: 16
-    {
-        Reg.D = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_D_ptrHL() // Opcode: 56
-    {
-        Reg.D = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
-    }
-    
-    private static int Op_LD_E(byte register) // Opcode: 58 59 5A 5B 5C 5D 5F
-    {
-        Reg.E = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_LD_E_n() // Opcode: 1E
-    {
-        Reg.E = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_E_ptrHL() // Opcode: 5E
-    {
-        Reg.E = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
-    }
-    
-    private static int Op_LD_H(byte register) // Opcode: 60 61 62 63 64 65 67
-    {
-        Reg.H = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_LD_H_n() // Opcode: 26
-    {
-        Reg.H = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_H_ptrHL() // Opcode: 66
-    {
-        Reg.H = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
-    }
-
-    private static int Op_LD_L(byte register) // Opcode: 68 69 6A 6B 6C 6D 6F
-    {
-        Reg.L = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
-    private int Op_LD_L_n() // Opcode: 2E
-    {
-        Reg.L = ImmediateByte();
-        Reg.PC += 2;
-        return 7;
-    }
-    
-    private int Op_LD_L_ptrHL() // Opcode: 6E
-    {
-        Reg.L = _machine.ReadByte(Reg.HL);
-        Reg.PC += 1;
-        return 7;
     }
     
     private int Op_LD_ptrHL(byte register) // Opcode: 70 71 72 73 74 75 77
