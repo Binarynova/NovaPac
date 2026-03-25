@@ -301,7 +301,7 @@ public partial class Z80
         WriteFlag(Flags.P, Reg.BC - 1 != 0); // repeat flag
 
         // PC handling
-        if (Reg.BC == 0 || Reg.A == _machine.ReadByte(Reg.HL))
+        if (Reg.BC == 0 || GetFlag(Flags.Z))
         {
             // terminate
             Reg.PC += 2; // move past ED B1
