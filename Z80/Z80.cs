@@ -53,12 +53,13 @@ public partial class Z80
     {
         PushWord(Reg.PC);
         InterruptPending = _halted = false;
-        _iff1 = false;
         _iff2 = _iff1;
+        _iff1 = false;
 
         switch(_interruptMode)
         {
             case 0:
+                Reg.PC = 0x38;
                 break;
             case 1:
                 Reg.PC = 0x38;

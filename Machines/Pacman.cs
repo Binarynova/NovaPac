@@ -54,6 +54,11 @@ public class Pacman : IMemoryProvider
 
     public void WriteByte(ushort address, byte value)
     {
+        if (address == 0x4E6E) 
+        {
+            Console.WriteLine($"CREDITS CHANGED TO: {value}");
+        }
+        
         if (address < 0x4000)
             return;
         
@@ -127,8 +132,8 @@ public class Pacman : IMemoryProvider
         byte port = 0xFF;
         var state = Keyboard.GetState();
 
-        if (state.IsKeyDown(Keys.C))
-            port &= 0xEF;
+        if (state.IsKeyDown(Keys.C)) // insert coin
+            port &= 0x10;
         
         return port;
     }
