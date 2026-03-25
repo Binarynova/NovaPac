@@ -522,7 +522,7 @@ public class Game1 : Game
         ];
         for (int i = 16; i < 32; i++)
         {
-            colors.Add(new Color(0, 0, 0, 0));
+            colors.Add(new Color(0, 0, 0, 255));
         }
     }
 
@@ -541,10 +541,10 @@ public class Game1 : Game
         for (int i = 0; i < 32; i++)
         {
             palettes.Add([
-            new Color(0,0,0,0),
-            new Color(0,0,0,0),
-            new Color(0,0,0,0),
-            new Color(0,0,0,0)]);
+            new Color(0,0,0,255),
+            new Color(0,0,0,255),
+            new Color(0,0,0,255),
+            new Color(0,0,0,255)]);
         }
     }
 

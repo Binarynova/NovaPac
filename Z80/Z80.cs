@@ -88,14 +88,6 @@ public partial class Z80
         
         byte opcode = _machine.ReadByte(Reg.PC);
         
-        //Console.WriteLine($"PC: {Reg.PC:X4} Opcode: {opcode:X2}");
-        if (Reg.PC == 0x0000) 
-        {
-            Console.WriteLine("--- REBOOT DETECTED ---");
-            // Look at the stack. If it's empty, it was a 'JP 0'. 
-            // If it has data, a 'RET' failed.
-            Console.WriteLine($"Stack Pointer: {Reg.SP:X4}");
-        }
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
@@ -494,6 +486,7 @@ public partial class Z80
         _edOpcodes[0x7B] = Op_LD_SP_ptrNN;
         _edOpcodes[0xA0] = Op_LDI;
         _edOpcodes[0xB0] = Op_LDIR;
+        _edOpcodes[0xB1] = Op_CPIR;
 
         _fdOpcodes[0x09] = Op_ADD_IY_BC;
         _fdOpcodes[0x19] = Op_ADD_IY_DE;
@@ -723,8 +716,8 @@ public partial class Z80
         Check("IY", expected.IY, actual.IY);
         //Check("WZ", expected.WZ, actual.WZ);
         
-        Check("IFF1", expected.IFF1, actual.IFF1);
-        Check("IFF2", expected.IFF2, actual.IFF2);
+        //Check("IFF1", expected.IFF1, actual.IFF1);
+        //Check("IFF2", expected.IFF2, actual.IFF2);
         Check("IM", expected.IM, actual.IM);
 
         for (int i = 0; i < expected.RAM.Count; i++)

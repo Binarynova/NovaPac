@@ -424,18 +424,12 @@ public partial class Z80
     {
         int res = Reg.A - val;
     
-        // 1. Standard Flags
         WriteFlag(Flags.S, (res & 0x80) != 0);
         WriteFlag(Flags.Z, (res & 0xFF) == 0);
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (val & 0x0F));
         WriteFlag(Flags.P, ((Reg.A ^ val) & (Reg.A ^ (res & 0xFF)) & 0x80) != 0); // Overflow
         SetFlag(Flags.N); // Always 1 for CP
         WriteFlag(Flags.C, Reg.A < val);
-
-        // 2. THE FIX: XY bits come from the OPERAND (val), not the result!
-        // This is a unique quirk of the CP instruction.
-        WriteFlag(Flags.F5, (val & 0x20) != 0);
-        WriteFlag(Flags.F3, (val & 0x08) != 0);
     }
 
     #endregion

@@ -54,11 +54,6 @@ public class Pacman : IMemoryProvider
 
     public void WriteByte(ushort address, byte value)
     {
-        if (address == 0x4E6E) 
-        {
-            Console.WriteLine($"CREDITS CHANGED TO: {value}");
-        }
-        
         if (address < 0x4000)
             return;
         
@@ -132,10 +127,17 @@ public class Pacman : IMemoryProvider
         byte port = 0xFF;
         var state = Keyboard.GetState();
 
-        if (state.IsKeyDown(Keys.C)) // insert coin
-            port &= 0x10;
-        
-        return port;
+        return (byte)
+        (
+            ((state.IsKeyDown(Keys.Up) ? 0 : 1) << 0)
+            | ((state.IsKeyDown(Keys.Left) ? 0 : 1) << 1)
+            | ((state.IsKeyDown(Keys.Right) ? 0 : 1) << 2)
+            | ((state.IsKeyDown(Keys.Down) ? 0 : 1) << 3)
+            | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
+            | ((state.IsKeyDown(Keys.C) ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
+            | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
+        );
     }
     
     public byte GetPort1()
@@ -143,9 +145,15 @@ public class Pacman : IMemoryProvider
         byte port = 0xFF;
         var state = Keyboard.GetState();
 
-        if (state.IsKeyDown(Keys.Enter))
-            port &= 0x10;
-
-        return port;
+        return (byte)
+        (
+            ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
+            | ((state.IsKeyDown(Keys.NumPad4) ? 0 : 1) << 1)
+            | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
+            | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
+            | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
+            | ((state.IsKeyDown(Keys.Enter) ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+        );
     }
 }

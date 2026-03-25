@@ -279,12 +279,38 @@ public partial class Z80
         if (Reg.BC == 0)
         {
             Reg.PC += 2; // move past ED B0
-            return 16; // last iteration cycles
+            return 16;
         }
         else
         {
             // stay on ED B0 until BC == 0
-            return 21; // cycles per iteration
+            return 21;
+        }
+    }
+
+    private int Op_CPIR() // Opcode: ED B1
+    {
+        // Compare HL with Accumulator
+        InternalCP(_machine.ReadByte(Reg.HL));
+
+        Reg.HL++;
+        Reg.BC--;
+
+        // Flags
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, Reg.BC - 1 != 0); // repeat flag
+
+        // PC handling
+        if (Reg.BC == 0 || Reg.A == _machine.ReadByte(Reg.HL))
+        {
+            // terminate
+            Reg.PC += 2; // move past ED B1
+            return 16;
+        }
+        else
+        {
+            // stay on ED B0 until BC == 0
+            return 21;
         }
     }
 }
