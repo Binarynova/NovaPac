@@ -144,7 +144,7 @@ public class Pacman : IMemoryProvider
         var state = Keyboard.GetState();
 
         if (state.IsKeyDown(Keys.Enter))
-            port &= 0x00;
+            port &= 0x10;
 
         return port;
     }

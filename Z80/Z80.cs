@@ -89,7 +89,13 @@ public partial class Z80
         byte opcode = _machine.ReadByte(Reg.PC);
         
         //Console.WriteLine($"PC: {Reg.PC:X4} Opcode: {opcode:X2}");
-        
+        if (Reg.PC == 0x0000) 
+        {
+            Console.WriteLine("--- REBOOT DETECTED ---");
+            // Look at the stack. If it's empty, it was a 'JP 0'. 
+            // If it has data, a 'RET' failed.
+            Console.WriteLine($"Stack Pointer: {Reg.SP:X4}");
+        }
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
