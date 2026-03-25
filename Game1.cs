@@ -372,13 +372,13 @@ public class Game1 : Game
         for(int i = 0; i < 16; i++)
         {
             if (flipX)
-                x = 16-i;
+                x = 15-i;
             else
                 x = i;
             for(int j = 0; j < 16; j++)
             {
                 if (flipY)
-                    y = 16 - j;
+                    y = 15 - j;
                 else
                     y = j;
                 

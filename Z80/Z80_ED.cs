@@ -274,7 +274,7 @@ public partial class Z80
 
         // Flags
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC-1 != 0); // repeat flag
+        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
 
         // PC handling
         if (Reg.BC == 0)
@@ -299,7 +299,7 @@ public partial class Z80
 
         // Flags
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC - 1 != 0); // repeat flag
+        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
 
         // PC handling
         if (Reg.BC == 0 || GetFlag(Flags.Z))
