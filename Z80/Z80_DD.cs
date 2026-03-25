@@ -69,7 +69,7 @@ public partial class Z80
         Reg.IXH = _machine.ReadByte((ushort)(nn + 1));
         
         Reg.PC += 4;
-        return 14;
+        return 20;
     }
 
     private int Op_DEC_IX() // Opcode: DD 2B
@@ -117,7 +117,7 @@ public partial class Z80
         _machine.WriteByte(addr, n);
         
         Reg.PC += 4;
-        return 23;
+        return 19;
     }
     
     private static int Op_ADD_IX_SP() // Opcode: DD 39

@@ -2,13 +2,6 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    private static int Op_LD_A(byte register) // Opcode: 78 79 7A 7B 7C 7D 7F
-    {
-        Reg.A = register;
-        Reg.PC += 1;
-        return 4;
-    }
-
     private int Op_LD_r_n(ref byte register)
     {
         register = ImmediateByte();
