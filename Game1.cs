@@ -117,7 +117,7 @@ public class Game1 : Game
         {
             pacmanMachine = new Pacman(romFileName);
             cpu = new Z80(pacmanMachine);
-            pacmanMachine.AttachCPU(cpu);
+            //pacmanMachine.AttachCPU(cpu);
             base.Initialize();
         }
     }

@@ -12,7 +12,6 @@ public class Pacman : IMemoryProvider
     public byte[] spriteMemory;
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
-    private Z80 Cpu;
 
     public Pacman(string romFileName)
     {
@@ -30,10 +29,6 @@ public class Pacman : IMemoryProvider
         return spriteram2[index];
     }
 
-    public void AttachCPU(Z80 cpuInstance)
-    {
-        Cpu = cpuInstance;
-    }
     public byte ReadByte(ushort address)
     {
         switch (address)
@@ -122,10 +117,9 @@ public class Pacman : IMemoryProvider
         Array.Clear(Memory, 0, Memory.Length);
     }
 
-    public byte GetPort0()
+    private static byte GetPort0()
     {
-        byte port = 0xFF;
-        var state = Keyboard.GetState();
+        KeyboardState state = Keyboard.GetState();
 
         return (byte)
         (
@@ -140,10 +134,9 @@ public class Pacman : IMemoryProvider
         );
     }
     
-    public byte GetPort1()
+    private static byte GetPort1()
     {
-        byte port = 0xFF;
-        var state = Keyboard.GetState();
+        KeyboardState state = Keyboard.GetState();
 
         return (byte)
         (
