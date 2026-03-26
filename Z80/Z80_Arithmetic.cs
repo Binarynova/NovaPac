@@ -25,30 +25,9 @@ public partial class Z80
         return 7;
     }
 
-    private static int Op_ADD_HL_BC() // Opcode: 09
+    private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
     {
-        Reg.HL = ADDWord(Reg.HL, Reg.BC);
-        Reg.PC += 1;
-        return 11;
-    }
-
-    private static int Op_ADD_HL_DE() // Opcode: 19
-    {
-        Reg.HL = ADDWord(Reg.HL, Reg.DE);
-        Reg.PC += 1;
-        return 11;
-    }
-
-    private static int Op_ADD_HL_HL() // Opcode: 29
-    {
-        Reg.HL = ADDWord(Reg.HL, Reg.HL);
-        Reg.PC += 1;
-        return 11;
-    }
-    
-    private static int Op_ADD_HL_SP() // Opcode: 39
-    {
-        Reg.HL = ADDWord(Reg.HL, Reg.SP);
+        Reg.HL = ADDWord(Reg.HL, registerPair);
         Reg.PC += 1;
         return 11;
     }
@@ -134,7 +113,7 @@ public partial class Z80
 
     #region INC
 
-    private static int Op_INC(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
+    private static int Op_INC_r(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
     {
         SetIncFlags(register);
         register += 1;
@@ -193,7 +172,7 @@ public partial class Z80
 
     #region DEC
 
-    private static int Op_DEC(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
+    private static int Op_DEC_r(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
     {
         SetDecFlags(register);
         register--;

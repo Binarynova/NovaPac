@@ -156,16 +156,16 @@ public partial class Z80
         _mainOpcodes[0x01] = Op_LD_BC_nn;
         _mainOpcodes[0x02] = Op_LD_ptrBC_A;
         _mainOpcodes[0x03] = Op_INC_BC;
-        _mainOpcodes[0x04] = () => Op_INC(ref Reg.B);
-        _mainOpcodes[0x05] = () => Op_DEC(ref Reg.B);
+        _mainOpcodes[0x04] = () => Op_INC_r(ref Reg.B);
+        _mainOpcodes[0x05] = () => Op_DEC_r(ref Reg.B);
         _mainOpcodes[0x06] = () => Op_LD_r_n(ref Reg.B);
         _mainOpcodes[0x07] = Op_RLCA;
         _mainOpcodes[0x08] = Op_EX_AF_AF2;
-        _mainOpcodes[0x09] = Op_ADD_HL_BC;
+        _mainOpcodes[0x09] = () => Op_ADD_HL(Reg.BC);
         _mainOpcodes[0x0A] = Op_LD_A_ptrBC;
         _mainOpcodes[0x0B] = Op_DEC_BC;
-        _mainOpcodes[0x0C] = () => Op_INC(ref Reg.C);
-        _mainOpcodes[0x0D] = () => Op_DEC(ref Reg.C);
+        _mainOpcodes[0x0C] = () => Op_INC_r(ref Reg.C);
+        _mainOpcodes[0x0D] = () => Op_DEC_r(ref Reg.C);
         _mainOpcodes[0x0E] = () => Op_LD_r_n(ref Reg.C);
         _mainOpcodes[0x0F] = Op_RRCA;
 
@@ -173,16 +173,16 @@ public partial class Z80
         _mainOpcodes[0x11] = Op_LD_DE_nn;
         _mainOpcodes[0x12] = Op_LD_ptrDE_A;
         _mainOpcodes[0x13] = Op_INC_DE;
-        _mainOpcodes[0x14] = () => Op_INC(ref Reg.D);
-        _mainOpcodes[0x15] = () => Op_DEC(ref Reg.D);
+        _mainOpcodes[0x14] = () => Op_INC_r(ref Reg.D);
+        _mainOpcodes[0x15] = () => Op_DEC_r(ref Reg.D);
         _mainOpcodes[0x16] = () => Op_LD_r_n(ref Reg.D);
         _mainOpcodes[0x17] = Op_RLA;
         _mainOpcodes[0x18] = Op_JR_e;
-        _mainOpcodes[0x19] = Op_ADD_HL_DE;
+        _mainOpcodes[0x19] = () => Op_ADD_HL(Reg.DE);
         _mainOpcodes[0x1A] = Op_LD_A_ptrDE;
         _mainOpcodes[0x1B] = Op_DEC_DE;
-        _mainOpcodes[0x1C] = () => Op_INC(ref Reg.E);
-        _mainOpcodes[0x1D] = () => Op_DEC(ref Reg.E);
+        _mainOpcodes[0x1C] = () => Op_INC_r(ref Reg.E);
+        _mainOpcodes[0x1D] = () => Op_DEC_r(ref Reg.E);
         _mainOpcodes[0x1E] = () => Op_LD_r_n(ref Reg.E);
         _mainOpcodes[0x1F] = Op_RRA;
 
@@ -190,16 +190,16 @@ public partial class Z80
         _mainOpcodes[0x21] = Op_LD_HL_nn;
         _mainOpcodes[0x22] = Op_LD_ptrNN_HL;
         _mainOpcodes[0x23] = Op_INC_HL;
-        _mainOpcodes[0x24] = () => Op_INC(ref Reg.H);
-        _mainOpcodes[0x25] = () => Op_DEC(ref Reg.H);
+        _mainOpcodes[0x24] = () => Op_INC_r(ref Reg.H);
+        _mainOpcodes[0x25] = () => Op_DEC_r(ref Reg.H);
         _mainOpcodes[0x26] = () => Op_LD_r_n(ref Reg.H);
         _mainOpcodes[0x27] = Op_DAA;
         _mainOpcodes[0x28] = Op_JR_Z_e;
-        _mainOpcodes[0x29] = Op_ADD_HL_HL;
+        _mainOpcodes[0x29] = () => Op_ADD_HL(Reg.HL);
         _mainOpcodes[0x2A] = Op_LD_HL_ptrNN;
         _mainOpcodes[0x2B] = Op_DEC_HL;
-        _mainOpcodes[0x2C] = () => Op_INC(ref Reg.L);
-        _mainOpcodes[0x2D] = () => Op_DEC(ref Reg.L);
+        _mainOpcodes[0x2C] = () => Op_INC_r(ref Reg.L);
+        _mainOpcodes[0x2D] = () => Op_DEC_r(ref Reg.L);
         _mainOpcodes[0x2E] = () => Op_LD_r_n(ref Reg.L);
         _mainOpcodes[0x2F] = Op_CPL;
 
@@ -212,11 +212,11 @@ public partial class Z80
         _mainOpcodes[0x36] = Op_LD_ptrHL_n;
         _mainOpcodes[0x37] = Op_SCF;
         _mainOpcodes[0x38] = Op_JR_C_e;
-        _mainOpcodes[0x39] = Op_ADD_HL_SP;
+        _mainOpcodes[0x39] = () => Op_ADD_HL(Reg.SP);
         _mainOpcodes[0x3A] = Op_LD_A_ptrNN;
         _mainOpcodes[0x3B] = Op_DEC_SP;
-        _mainOpcodes[0x3C] = () => Op_INC(ref Reg.A);
-        _mainOpcodes[0x3D] = () => Op_DEC(ref Reg.A);
+        _mainOpcodes[0x3C] = () => Op_INC_r(ref Reg.A);
+        _mainOpcodes[0x3D] = () => Op_DEC_r(ref Reg.A);
         _mainOpcodes[0x3E] = () => Op_LD_r_n(ref Reg.A);
         _mainOpcodes[0x3F] = Op_CCF;
 
