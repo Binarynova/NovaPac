@@ -49,6 +49,15 @@ public class Pacman : IMemoryProvider
 
     public void WriteByte(ushort address, byte value)
     {
+        //if (address >= 0x43CB && address <= 0x43D4) // these are the HIGH SCORE tile locations
+        //{
+        //    if (value == 0x40)
+        //    {
+        //        Console.WriteLine($"Writing {value:X2} to {address:X4}.");
+        //        Console.ReadKey();
+        //    }
+        //}
+        
         if (address < 0x4000)
             return;
         

@@ -48,8 +48,8 @@ public class Game1 : Game
         graphics.PreferredBackBufferHeight = 288 * resScale;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        this.IsFixedTimeStep = true;
-        this.TargetElapsedTime = TimeSpan.FromTicks(166667); // Exactly 1/60th of a second
+        IsFixedTimeStep = true;
+        TargetElapsedTime = TimeSpan.FromTicks(166667); // Exactly 1/60th of a second
         graphics.SynchronizeWithVerticalRetrace = true;    // VSync
     }
 
@@ -68,7 +68,7 @@ public class Game1 : Game
             Console.WriteLine(" 2) Matrix Homebrew");
             
             Console.WriteLine("\nTests:");
-            Console.WriteLine(" 3) ZEXDOC Test ROM");
+            Console.WriteLine(" 3) ZEXDOC Test ROM (needs more opcodes)");
             Console.WriteLine(" 4) Display Tile ROM");
             Console.WriteLine(" 5) Display Sprite ROM");
             Console.WriteLine(" 6) Run SSTs");
@@ -86,7 +86,7 @@ public class Game1 : Game
                 case ConsoleKey.D2:
                     mode = 1;
                     romFileName = "roms/matrix.zip";
-                    Window.Title = $"Matrix Homebrew by Scott Lawrence";
+                    Window.Title = "Matrix Homebrew by Scott Lawrence";
                     break;
                 case ConsoleKey.D3:
                     mode = 4;
@@ -794,15 +794,56 @@ public class Game1 : Game
         sw.Close();
         Environment.Exit(0);
     }
-
+    
     private void RunZexdocTests()
     {
         zexdocMachine = new Zexdoc();
         cpu = new Z80(zexdocMachine);
+        // ... Initialization code ...
         Reg.SP = 0xF000;
         Reg.PC = 0x0100;
+
+        while (true)
+        {
+            // 1. Intercept the CP/M Call 5 BEFORE executing the opcode
+            if (Reg.PC == 0x0005)
+            {
+                HandleCpmCall();
+                // This manually performs the RET and continues the loop
+                continue; 
+            }
+
+            // 2. Safety check: Did we hit the exit?
+            if (Reg.PC == 0x0000) break;
+
+            // 3. Execute the instruction
+            byte opcode = zexdocMachine.ReadByte(Reg.PC);
+            cpu._mainOpcodes[opcode]();
         
-        Console.WriteLine("CPU and Machine initialized.");
-        Environment.Exit(0);
+            // Note: Your opcodes handle the PC incrementing, so we don't do it here.
+        }
+    
+        Console.WriteLine("\nTests Finished.");
+    }
+
+    private void HandleCpmCall()
+    {
+        if (Reg.C == 2) // Output character
+        {
+            Console.Write((char)Reg.E);
+        }
+        else if (Reg.C == 9) // Output string
+        {
+            ushort addr = Reg.DE;
+            byte current;
+            while ((current = zexdocMachine.ReadByte(addr++)) != (byte)'$')
+            {
+                Console.Write((char)current);
+            }
+        }
+
+        // IMPORTANT: After handling the print, we must return to where 
+        // the Zexdoc code called us from.
+        cpu.Op_RET(); 
     }
 }

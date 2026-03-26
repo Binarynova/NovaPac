@@ -145,7 +145,7 @@ public partial class Z80
         return 4;
     }
 
-    private int Op_RET() // Opcode: C9
+    public int Op_RET() // Opcode: C9
     {
         Reg.PC = PopWord();
         return 10;
