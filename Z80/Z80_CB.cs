@@ -30,6 +30,28 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_RLC_ptrHL() // Opcode: CB 06
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        // save off bit 7
+        byte bit7 = (byte)((value & 0x80) >> 7);
+        
+        // rotate left (bit0 = bit7, Flags.C = bit7)
+        value = (byte)((value << 1) | bit7);
+        WriteFlag(Flags.C, bit7 != 0);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
+        
+        Reg.PC += 2;
+        return 15;
+    }
+    
     private int Op_RRC(ref byte register) // Opcodes: CB 08 09 0A 0B 0C 0D 0F
     {
         // save off bit 0
@@ -42,6 +64,28 @@ public partial class Z80
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
+    private int Op_RRC_ptrHL() // Opcodes: CB 0E
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        // save off bit 0
+        byte origBit0 = (byte)(value & 0x01);
+        
+        // rotate right (bit 0 = origCarry, Flags.C = origBit7)
+        value = (byte)((value >> 1) | (origBit0 << 7));
+        WriteFlag(Flags.C, origBit0 != 0);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
         
         Reg.PC += 2;
         return 8;
@@ -65,6 +109,29 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_RL_ptrHL() // Opcodes: CB 16
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        // save off the carry flag and the register's bit 7
+        byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+        byte origBit7 = (byte)((value & 0x80) >> 7);
+        
+        // rotate left (bit 0 = origCarry, Flags.C = origBit7)
+        value = (byte)((value << 1) | origCarry);
+        WriteFlag(Flags.C, origBit7 != 0);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
     private int Op_RR(ref byte register) // Opcodes: CB 18 19 1A 1B 1C 1D 1F
     {
         // save off the carry flag and the register's bit 0
@@ -83,6 +150,29 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_RR_ptrHL() // Opcodes: CB 1E
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        // save off the carry flag and the register's bit 0
+        byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+        byte origBit0 = (byte)(value & 0x01);
+        
+        // rotate right (bit 0 = origCarry, Flags.C = origBit7)
+        value = (byte)((value >> 1) | (origCarry << 7));
+        WriteFlag(Flags.C, origBit0 != 0);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
     private int Op_SLA(ref byte register) // Opcode: CB 20 21 22 23 24 25 27
     {
         byte carry = (byte)(register & 0x80);
@@ -93,6 +183,26 @@ public partial class Z80
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
+
+        Reg.PC += 2;
+        return 8;
+    }
+    
+    private int Op_SLA_ptrHL() // Opcode: CB 26
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        byte carry = (byte)(value & 0x80);
+        WriteFlag(Flags.C, carry != 0);
+
+        value = (byte)(value << 1);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
 
         Reg.PC += 2;
         return 8;
@@ -115,6 +225,29 @@ public partial class Z80
         Reg.PC += 2;
         return 8;
     }
+
+    private int Op_SRA_ptrHL() // Opcode: CB 2E
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        byte bit7 = (byte)((value & 0x80) >> 7);
+        byte carry = (byte)(value & 0x01);
+        WriteFlag(Flags.C, carry != 0);
+
+        value = (byte)(value >> 1);
+        value |= (byte)(bit7 << 7);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+
+        WriteFlag(Flags.C, carry != 0);
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
+        
+        Reg.PC += 2;
+        return 8;
+    }
     
     private int Op_SLL(ref byte register) // Opcode: CB 30 31 32 33 34 35 37
     {
@@ -132,6 +265,27 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_SLL_ptrHL() // Opcode: CB 36
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        byte carry = (byte)(value & 0x80);
+        WriteFlag(Flags.C, carry != 0);
+
+        value = (byte)(value << 1);
+        value |= 0x1;
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
+
+        Reg.PC += 2;
+        return 8;
+    }
+    
     private int Op_SRL(ref byte register) // Opcode: CB 38 39 3A 3B 3C 3D 3F
     {
         byte carry = (byte)(register & 0x01);
@@ -144,6 +298,28 @@ public partial class Z80
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
+    private int Op_SRL_ptrHL() // Opcode: CB 3E
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        
+        byte carry = (byte)(value & 0x01);
+        WriteFlag(Flags.C, carry != 0);
+
+        value = (byte)(value >> 1);
+        
+        // write rotated value back to HL
+        _machine.WriteByte(Reg.HL, value);
+
+        WriteFlag(Flags.C, carry != 0);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(value);
+        SetParity(value);
         
         Reg.PC += 2;
         return 8;
