@@ -270,6 +270,68 @@ public partial class Z80
         Reg.PC += 2;
         return 10;
     }
+
+    private static int Op_DD_ADD_A(byte register) // Opcodes: DD 80 81 82 83 84 85 87
+    {
+        Reg.A = ADD(Reg.A, register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private static int Op_DD_ADC_A(byte register) // Opcodes: DD 88 89 8A 8B 8C 8D 8F
+    {
+        Reg.A = ADC(Reg.A, register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private static int Op_DD_SUB(byte register) // Opcodes: DD 90 91 92 93 94 95 97
+    {
+        Reg.A = SUB(Reg.A, register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private static int Op_DD_SBC(byte register) // Opcodes: DD 98 99 9A 9B 9C 9D 9F
+    {
+        Reg.A = SBC(Reg.A, register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private int Op_DD_AND(byte register) // Opcodes: DD A0 A1 A2 A3 A4 A5 A7
+    {
+        AND(register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private int Op_DD_XOR(byte register) // Opcodes: DD A8 A9 AA AB AC AD AF
+    {
+        Reg.A = (byte)(Reg.A ^ register);
+
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.C | Flags.H | Flags.N);
+        SetParity(Reg.A);
+
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private int Op_DD_OR(byte register) // Opcodes: DD B0 B1 B2 B3 B4 B5 B7
+    {
+        OR(register);
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private int Op_DD_CP(byte register) // Opcodes: DD B8 B9 BA BB BC BD BF
+    {
+        InternalCP(register); ;
+
+        Reg.PC += 2;
+        return 8;
+    }
     
     #region Helper Methods
 
