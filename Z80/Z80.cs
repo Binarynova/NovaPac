@@ -523,6 +523,13 @@ public partial class Z80
         _cbOpcodes[0x04] = () => Op_RLC(ref Reg.H);
         _cbOpcodes[0x05] = () => Op_RLC(ref Reg.L);
         _cbOpcodes[0x07] = () => Op_RLC(ref Reg.A);
+        _cbOpcodes[0x08] = () => Op_RRC(ref Reg.B);
+        _cbOpcodes[0x09] = () => Op_RRC(ref Reg.C);
+        _cbOpcodes[0x0A] = () => Op_RRC(ref Reg.D);
+        _cbOpcodes[0x0B] = () => Op_RRC(ref Reg.E);
+        _cbOpcodes[0x0C] = () => Op_RRC(ref Reg.H);
+        _cbOpcodes[0x0D] = () => Op_RRC(ref Reg.L);
+        _cbOpcodes[0x0F] = () => Op_RRC(ref Reg.A);
         _cbOpcodes[0x10] = () => Op_RL(ref Reg.B);
         _cbOpcodes[0x11] = () => Op_RL(ref Reg.C);
         _cbOpcodes[0x12] = () => Op_RL(ref Reg.D);
@@ -530,6 +537,13 @@ public partial class Z80
         _cbOpcodes[0x14] = () => Op_RL(ref Reg.H);
         _cbOpcodes[0x15] = () => Op_RL(ref Reg.L);
         _cbOpcodes[0x17] = () => Op_RL(ref Reg.A);
+        _cbOpcodes[0x18] = () => Op_RR(ref Reg.B);
+        _cbOpcodes[0x19] = () => Op_RR(ref Reg.C);
+        _cbOpcodes[0x1A] = () => Op_RR(ref Reg.D);
+        _cbOpcodes[0x1B] = () => Op_RR(ref Reg.E);
+        _cbOpcodes[0x1C] = () => Op_RR(ref Reg.H);
+        _cbOpcodes[0x1D] = () => Op_RR(ref Reg.L);
+        _cbOpcodes[0x1F] = () => Op_RR(ref Reg.A);
         _cbOpcodes[0x20] = () => Op_SLA(ref Reg.B);
         _cbOpcodes[0x21] = () => Op_SLA(ref Reg.C);
         _cbOpcodes[0x22] = () => Op_SLA(ref Reg.D);

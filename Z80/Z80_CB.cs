@@ -30,6 +30,23 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_RRC(ref byte register) // Opcodes: CB 08 09 0A 0B 0C 0D 0F
+    {
+        // save off bit 0
+        byte origBit0 = (byte)(register & 0x01);
+        
+        // rotate right (bit 0 = origCarry, Flags.C = origBit7)
+        register = (byte)((register >> 1) | (origBit0 << 7));
+        WriteFlag(Flags.C, origBit0 != 0);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
     private int Op_RL(ref byte register) // Opcodes: CB 10 11 12 13 14 15 17
     {
         // save off the carry flag and the register's bit 7
@@ -39,6 +56,24 @@ public partial class Z80
         // rotate left (bit 0 = origCarry, Flags.C = origBit7)
         register = (byte)((register << 1) | origCarry);
         WriteFlag(Flags.C, origBit7 != 0);
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
+    private int Op_RR(ref byte register) // Opcodes: CB 18 19 1A 1B 1C 1D 1F
+    {
+        // save off the carry flag and the register's bit 0
+        byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+        byte origBit0 = (byte)(register & 0x01);
+        
+        // rotate right (bit 0 = origCarry, Flags.C = origBit7)
+        register = (byte)((register >> 1) | (origCarry << 7));
+        WriteFlag(Flags.C, origBit0 != 0);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
