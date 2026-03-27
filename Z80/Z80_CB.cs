@@ -15,12 +15,13 @@ public partial class Z80
 
     private int Op_RLC(ref byte register) // Opcodes: CB 00 01 02 03 04 05 07
     {
-        // extract bit 7
+        // save off bit 7
         byte bit7 = (byte)((register & 0x80) >> 7);
-        // rotate (including wrapping bit 7)
-        register = (byte)((register << 1) | bit7);
         
+        // rotate left (bit0 = bit7, Flags.C = bit7)
+        register = (byte)((register << 1) | bit7);
         WriteFlag(Flags.C, bit7 != 0);
+        
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
@@ -31,13 +32,14 @@ public partial class Z80
     
     private int Op_RL(ref byte register) // Opcodes: CB 10 11 12 13 14 15 17
     {
-        byte oldCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
-        // extract bit 7
-        byte newCarry = (byte)((register & 0x80) >> 7);
-        // rotate (including wrapping bit 7)
-        register = (byte)((register << 1) | oldCarry);
+        // save off the carry flag and the register's bit 7
+        byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+        byte origBit7 = (byte)((register & 0x80) >> 7);
         
-        WriteFlag(Flags.C, newCarry != 0);
+        // rotate left (bit 0 = origCarry, Flags.C = origBit7)
+        register = (byte)((register << 1) | origCarry);
+        WriteFlag(Flags.C, origBit7 != 0);
+        
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
@@ -45,7 +47,7 @@ public partial class Z80
         Reg.PC += 2;
         return 8;
     }
-
+    
     private int Op_SLA(ref byte register) // Opcode: CB 20 21 22 23 24 25 27
     {
         byte carry = (byte)(register & 0x80);
@@ -53,8 +55,7 @@ public partial class Z80
 
         register = (byte)(register << 1);
         
-        ClearFlag(Flags.N);
-        ClearFlag(Flags.H);
+        ClearFlag(Flags.H | Flags.N);
         SetSZFlags(register);
         SetParity(register);
 
@@ -62,6 +63,40 @@ public partial class Z80
         return 8;
     }
 
+    private int Op_SRA(ref byte register) // Opcode: CB 28 29 2A 2B 2C 2D 2F
+    {
+        byte bit7 = (byte)((register & 0x80) >> 7);
+        byte carry = (byte)(register & 0x01);
+        WriteFlag(Flags.C, carry != 0);
+
+        register = (byte)(register >> 1);
+        register |= (byte)(bit7 << 7);
+
+        WriteFlag(Flags.C, carry != 0);
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
+        
+        Reg.PC += 2;
+        return 8;
+    }
+    
+    private int Op_SLL(ref byte register) // Opcode: CB 30 31 32 33 34 35 37
+    {
+        byte carry = (byte)(register & 0x80);
+        WriteFlag(Flags.C, carry != 0);
+
+        register = (byte)(register << 1);
+        register |= 0x1;
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
+
+        Reg.PC += 2;
+        return 8;
+    }
+    
     private int Op_SRL(ref byte register) // Opcode: CB 38 39 3A 3B 3C 3D 3F
     {
         byte carry = (byte)(register & 0x01);
@@ -70,10 +105,10 @@ public partial class Z80
         register = (byte)(register >> 1);
 
         WriteFlag(Flags.C, carry != 0);
-        ClearFlag(Flags.N); // N is always cleared
-        ClearFlag(Flags.H); // H is always cleared
-        SetSZFlags(register);  // Updates S, Z, F5, F3
-        SetParity(register);   // P/V indicates parity for shift instructions
+        
+        ClearFlag(Flags.H | Flags.N);
+        SetSZFlags(register);
+        SetParity(register);
         
         Reg.PC += 2;
         return 8;
@@ -151,6 +186,7 @@ public partial class Z80
         // (HL) operations take 12 or 15 cycles, registers take 8
         return (regIdx == 6) ? (group == 1 ? 12 : 15) : 8;
     }
+    
     private byte GetRegisterByIndex(int index)
     {
         return index switch

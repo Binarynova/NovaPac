@@ -11,22 +11,11 @@ public partial class Z80
         return _edOpcodes[opcode]();
     }
 
-    private int Op_NEG() // Opcode: ED 44
+    private static int Op_SBC_HL_BC() // Opcode: ED 42
     {
-        Reg.A = (byte)(0 - Reg.A);
+        Reg.HL = SBCWord(Reg.HL, Reg.BC);
         Reg.PC += 2;
-        return 8;
-    }
-
-    private int Op_LD_BC_ptrNN() // Opcode: ED 4B
-    {
-        ushort nn = ImmediateWord(true);
-
-        Reg.C = _machine.ReadByte(nn);
-        Reg.B = _machine.ReadByte((ushort)(nn + 1));
-        
-        Reg.PC += 4;
-        return 20;
+        return 15;
     }
     
     private int Op_LD_ptrNN_BC() // Opcode: ED 43
@@ -38,12 +27,30 @@ public partial class Z80
         return 20;
     }
 
+    private int Op_NEG() // Opcode: ED 44
+    {
+        Reg.A = (byte)(0 - Reg.A);
+        Reg.PC += 2;
+        return 8;
+    }
+
     private int Op_RETN() // Opcode: ED 45
     {
         _iff1 = _iff2;
 
         Reg.PC = PopWord();
         return 14;
+    }
+
+    private int Op_LD_BC_ptrNN() // Opcode: ED 4B
+    {
+        ushort nn = ImmediateWord(true);
+
+        Reg.C = _machine.ReadByte(nn);
+        Reg.B = _machine.ReadByte((ushort)(nn + 1));
+        
+        Reg.PC += 4;
+        return 20;
     }
     
     private int Op_RETI() // Opcode: ED 4D
@@ -62,16 +69,6 @@ public partial class Z80
         return 20;
     }
     
-    private int Op_LD_ptrNN_SP() // Opcode: ED 73
-    {
-        ushort addr = ImmediateWord(true);
-        
-        _machine.WriteByte(addr, (byte)(Reg.SP & 0x00FF));
-        _machine.WriteByte((ushort)(addr + 1), (byte)((Reg.SP & 0xFF00) >> 8));
-        Reg.PC += 4;
-        return 20;
-    }
-    
     private int Op_LD_DE_ptrNN() // Opcode: ED 5B
     {
         ushort nn = ImmediateWord(true);
@@ -79,6 +76,16 @@ public partial class Z80
         Reg.E = _machine.ReadByte(nn);
         Reg.D = _machine.ReadByte((ushort)(nn + 1));
         
+        Reg.PC += 4;
+        return 20;
+    }
+    
+    private int Op_LD_ptrNN_SP() // Opcode: ED 73
+    {
+        ushort addr = ImmediateWord(true);
+        
+        _machine.WriteByte(addr, (byte)(Reg.SP & 0x00FF));
+        _machine.WriteByte((ushort)(addr + 1), (byte)((Reg.SP & 0xFF00) >> 8));
         Reg.PC += 4;
         return 20;
     }
@@ -93,13 +100,6 @@ public partial class Z80
         
         Reg.PC += 4;
         return 20;
-    }
-
-    private static int Op_SBC_HL_BC() // Opcode: ED 42
-    {
-        Reg.HL = SBCWord(Reg.HL, Reg.BC);
-        Reg.PC += 2;
-        return 15;
     }
 
     private static int Op_SBC_HL_DE() // Opcode: ED 52
