@@ -333,6 +333,57 @@ public partial class Z80
         return 8;
     }
     
+    private int Op_LD_IXH_r(byte register)
+    {
+        Reg.IXH = register;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_IXL_r(byte register)
+    {
+        Reg.IXL = register;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_r_IXH(ref byte register)
+    {
+        register = Reg.IXH;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_r_IXL(ref byte register)
+    {
+        register = Reg.IXL;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_DD_LD_r_n(ref byte register)
+    {
+        register = _machine.ReadByte((ushort)(Reg.PC + 2));
+        Reg.PC += 3;
+        return 11;
+    }
+
+    private static int Op_DD_INC_r(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
+    {
+        SetIncFlags(register);
+        register += 1;
+        Reg.PC += 2;
+        return 8;
+    }
+
+    private static int Op_DD_DEC_r(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
+    {
+        SetDecFlags(register);
+        register--;
+        Reg.PC += 2;
+        return 8;
+    }
+    
     #region Helper Methods
 
     private void LOAD_ptrIXd(byte reg)
