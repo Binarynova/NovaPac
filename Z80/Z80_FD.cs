@@ -5,6 +5,9 @@ public partial class Z80
     private int Op_FD() // Opcode: FD
     {
         byte opcode = PeekNextByte();
+        
+        if (opcode == 0xCB)
+            return Op_FD_CB();
         IncrementRegisterR();
         return _fdOpcodes[opcode]();
     }
@@ -24,6 +27,17 @@ public partial class Z80
         Reg.PC += 2;
         return 15;
     }
+
+    private int Op_LD_ptrNN_IY() // Opcode: DD 22
+    {
+        ushort addr = ImmediateWord(true);
+        
+        _machine.WriteByte(addr, Reg.IYL);
+        _machine.WriteByte((ushort)(addr + 1), Reg.IYH);
+        
+        Reg.PC += 4;
+        return 20;
+    }
     
     private int Op_ADD_IY_IY() // Opcode: FD 29
     {
@@ -31,6 +45,37 @@ public partial class Z80
         
         Reg.PC += 2;
         return 15;
+    }
+
+    private int Op_LD_IY_ptrnn() // Opcode: DD 2A
+    {
+        ushort nn = ImmediateWord(true);
+        
+        Reg.IYL = _machine.ReadByte(nn);
+        Reg.IYH = _machine.ReadByte((ushort)(nn + 1));
+        
+        Reg.PC += 4;
+        return 20;
+    }
+
+    private int Op_INC_ptrIYd() // Opcode: DD 34
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        byte originalValue = _machine.ReadByte(addr);
+        byte result = (byte)(_machine.ReadByte(addr) + 1);
+        _machine.WriteByte(addr, result);
+        
+        SetSZFlags(result);
+        ClearFlag(Flags.N);
+        if ((result & 0x0F) == 0x0F) // Opcode: if lower nibble is F, half-carry will occur when adding 1
+            SetFlag(Flags.H);
+        else
+            ClearFlag(Flags.H);
+        SetParity(result);
+        
+        Reg.PC += 3;
+        return 23;
     }
     
     private int Op_ADD_IY_SP() // Opcode: FD 39
@@ -126,5 +171,136 @@ public partial class Z80
         SetDecFlags((byte)(_machine.ReadByte(addr) - 1));
         Reg.PC += 3;
         return 23;
+    }
+    
+    private int Op_LD_IYH_r(byte register)
+    {
+        Reg.IYH = register;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_IYL_r(byte register)
+    {
+        Reg.IYL = register;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_r_IYH(ref byte register)
+    {
+        register = Reg.IYH;
+        Reg.PC += 2;
+        return 7;
+    }
+    
+    private int Op_LD_r_IYL(ref byte register)
+    {
+        register = Reg.IYL;
+        Reg.PC += 2;
+        return 7;
+    }
+
+    private int Op_ADD_A_ptrIYd() // Opcode: DD 86
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+
+        Reg.A = (byte)(Reg.A + _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+
+    private int Op_SUB_ptrIYd() // Opcode: DD 96
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        Reg.A = SUB(Reg.A, _machine.ReadByte(addr));
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_AND_ptrIYd() // Opcode: DD A6
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        AND(_machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+
+    private int Op_ADC_A_ptrIYd() // Opcode: DD 8E
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        Reg.A = ADC(Reg.A, _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_SBC_A_ptrIYd() // Opcode: DD 9E
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        Reg.A = SBC(Reg.A, _machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_XOR_A_ptrIYd() // Opcode: DD AE
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(addr));
+
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.C | Flags.H | Flags.N);
+        SetParity(Reg.A);
+
+        Reg.PC += 3;
+        return 19;
+    }
+    
+    private int Op_EX_ptrSP_IY() // Opcode: DD E3
+    {
+        byte oldIYL = Reg.IYL;
+        byte oldIYH = Reg.IYH;
+        
+        Reg.IYL = _machine.ReadByte(Reg.SP);
+        Reg.IYH = _machine.ReadByte((ushort)(Reg.SP + 1));
+        
+        _machine.WriteByte(Reg.SP, oldIYL);
+        _machine.WriteByte((ushort)(Reg.SP + 1), oldIYH);
+
+        Reg.PC += 2;
+        return 23;
+    }
+
+    private int Op_JP_ptrIY()
+    {
+        Reg.PC = Reg.IY;
+
+        return 8;
+    }
+
+    private int Op_LD_SP_IY()
+    {
+        Reg.SP = Reg.IY;
+        Reg.PC += 2;
+        return 10;
+    }
+
+    private int Op_OR_ptrIYd() // Opcode: DD B6
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IY);
+        
+        OR(_machine.ReadByte(addr));
+        
+        Reg.PC += 3;
+        return 19;
     }
 }
