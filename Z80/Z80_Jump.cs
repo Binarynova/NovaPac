@@ -29,7 +29,6 @@ public partial class Z80
     {
         if (!GetFlag(Flags.C))
         {
-            // jump to address nn
             ushort address = ImmediateWord();
             Reg.PC = address;
             return 10;
@@ -45,7 +44,6 @@ public partial class Z80
         
         if (!GetFlag(Flags.Z))
         {
-            // jump to address nn
             Reg.PC = address;
             return 10;
         }
@@ -140,7 +138,6 @@ public partial class Z80
 
     private static int Op_JP_ptrHL() // Opcode: E9
     {
-        // jump to address at location stored HL
         Reg.PC = Reg.HL;
         return 4;
     }

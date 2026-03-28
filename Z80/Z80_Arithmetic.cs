@@ -2,8 +2,6 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    #region ADD
-
     private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
     {
         Reg.HL = ADDWord(Reg.HL, registerPair);
@@ -32,10 +30,6 @@ public partial class Z80
         return 7;
     }
 
-    #endregion
-
-    #region ADC
-
     private static int Op_ADC_A(byte register) // Opcodes: 88 89 8A 8B 8C 8D 8F
     {
         Reg.A = ADC(Reg.A, register);
@@ -56,10 +50,6 @@ public partial class Z80
         Reg.PC += 2;
         return 7;
     }
-
-    #endregion
-
-    #region SUB
 
     private static int Op_SUB(byte register) // Opcodes: 90 91 92 93 94 95 97
     {
@@ -83,10 +73,6 @@ public partial class Z80
         return 7;
     }
 
-    #endregion
-
-    #region SBC
-
     private static int Op_SBC(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
     {
         Reg.A = SBC(Reg.A, register);
@@ -108,10 +94,6 @@ public partial class Z80
         Reg.PC += 2;
         return 7;
     }
-
-    #endregion
-
-    #region INC
 
     private static int Op_INC_r(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
     {
@@ -168,10 +150,6 @@ public partial class Z80
         return 11;
     }
 
-    #endregion
-
-    #region DEC
-
     private static int Op_DEC_r(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
     {
         SetDecFlags(register);
@@ -224,10 +202,6 @@ public partial class Z80
         return 11;
     }
 
-    #endregion
-
-    #region CP
-
     private int Op_CP(byte register) // Opcodes: B8 B9 BA BB BC BD BF
     {
         InternalCP(register); ;
@@ -253,8 +227,6 @@ public partial class Z80
         Reg.PC += 1;
         return 7;
     }
-
-    #endregion
 
     #region HelperMethods
 

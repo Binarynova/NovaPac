@@ -41,7 +41,6 @@ public partial class Z80
         value = (byte)((value << 1) | bit7);
         WriteFlag(Flags.C, bit7 != 0);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -80,7 +79,6 @@ public partial class Z80
         value = (byte)((value >> 1) | (origBit0 << 7));
         WriteFlag(Flags.C, origBit0 != 0);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -121,7 +119,6 @@ public partial class Z80
         value = (byte)((value << 1) | origCarry);
         WriteFlag(Flags.C, origBit7 != 0);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -162,7 +159,6 @@ public partial class Z80
         value = (byte)((value >> 1) | (origCarry << 7));
         WriteFlag(Flags.C, origBit0 != 0);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -197,7 +193,6 @@ public partial class Z80
 
         value = (byte)(value << 1);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -237,7 +232,6 @@ public partial class Z80
         value = (byte)(value >> 1);
         value |= (byte)(bit7 << 7);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
 
         WriteFlag(Flags.C, carry != 0);
@@ -275,7 +269,6 @@ public partial class Z80
         value = (byte)(value << 1);
         value |= 0x1;
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
@@ -312,7 +305,6 @@ public partial class Z80
 
         value = (byte)(value >> 1);
         
-        // write rotated value back to HL
         _machine.WriteByte(Reg.HL, value);
 
         WriteFlag(Flags.C, carry != 0);
@@ -343,10 +335,8 @@ public partial class Z80
     #region Helper Methods
     private int BIT(byte n, byte value, bool isMemory = false)
     {
-        // Test the bit
         bool bitSet = (value & (1 << n)) != 0;
 
-        // Flags
         ClearFlag(Flags.N);
         WriteFlag(Flags.H, true);
         WriteFlag(Flags.S, n == 7 && bitSet);
@@ -355,15 +345,14 @@ public partial class Z80
         WriteFlag(Flags.F5, (value & 0x20) != 0);
         WriteFlag(Flags.F3, (value & 0x08) != 0);
 
-        // Return cycles
         return isMemory ? 12 : 8;
     }
     
     private int Handle_CB_Bitwise(byte opcode)
     {
-        int group = opcode >> 6;      // 1=BIT, 2=RES, 3=SET
-        int bit = (opcode >> 3) & 0x07; // Which bit (0-7)
-        int regIdx = opcode & 0x07;   // Which register (0-7)
+        int group = opcode >> 6; 
+        int bit = (opcode >> 3) & 0x07;
+        int regIdx = opcode & 0x07;
 
         byte val = GetRegisterByIndex(regIdx);
 
@@ -376,10 +365,6 @@ public partial class Z80
                 WriteFlag(Flags.N, false);
                 WriteFlag(Flags.P, !isSet); // P/V mirrors Z for BIT
                 WriteFlag(Flags.S, (bit == 7 && isSet));
-            
-                // Undocumented: F5/F3 mirror the register's bits 5/3
-                WriteFlag(Flags.F5, (val & 0x20) != 0);
-                WriteFlag(Flags.F3, (val & 0x08) != 0);
                 break;
 
             case 2: // RES n, r
@@ -394,7 +379,6 @@ public partial class Z80
         }
 
         Reg.PC += 2;
-        // (HL) operations take 12 or 15 cycles, registers take 8
         return (regIdx == 6) ? (group == 1 ? 12 : 15) : 8;
     }
     

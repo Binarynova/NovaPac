@@ -34,7 +34,6 @@ public partial class Z80
         int result = 0 - originalA;
         Reg.A = (byte)result;
 
-        // Flags
         WriteFlag(Flags.C, originalA != 0x00);
         WriteFlag(Flags.H, (0 & 0x0F) < (originalA & 0x0F));
         WriteFlag(Flags.P, originalA == 0x80);
@@ -141,7 +140,6 @@ public partial class Z80
         int carry = GetFlag(Flags.C) ? 1 : 0;
         int result = val1 + val2 + carry;
 
-        // Set Flags
         WriteFlag(Flags.N, false);
         WriteFlag(Flags.C, result > 0xFFFF);
         WriteFlag(Flags.Z, (ushort)result == 0);
@@ -149,12 +147,8 @@ public partial class Z80
         WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
         WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
     
-        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
-        WriteFlag(Flags.F5, (result & 0x2000) != 0);
-        WriteFlag(Flags.F3, (result & 0x0800) != 0);
-
         Reg.HL = (ushort)result;
-        Reg.PC += 2; // ED 4A
+        Reg.PC += 2;
         return 15;
     }
     
@@ -165,7 +159,6 @@ public partial class Z80
         int carry = GetFlag(Flags.C) ? 1 : 0;
         int result = val1 + val2 + carry;
 
-        // Set Flags
         WriteFlag(Flags.N, false);
         WriteFlag(Flags.C, result > 0xFFFF);
         WriteFlag(Flags.Z, (ushort)result == 0);
@@ -173,12 +166,8 @@ public partial class Z80
         WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
         WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
     
-        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
-        WriteFlag(Flags.F5, (result & 0x2000) != 0);
-        WriteFlag(Flags.F3, (result & 0x0800) != 0);
-
         Reg.HL = (ushort)result;
-        Reg.PC += 2; // ED 4A
+        Reg.PC += 2;
         return 15;
     }
     
@@ -189,7 +178,6 @@ public partial class Z80
         int carry = GetFlag(Flags.C) ? 1 : 0;
         int result = val1 + val2 + carry;
 
-        // Set Flags
         WriteFlag(Flags.N, false);
         WriteFlag(Flags.C, result > 0xFFFF);
         WriteFlag(Flags.Z, (ushort)result == 0);
@@ -197,12 +185,8 @@ public partial class Z80
         WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
         WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
     
-        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
-        WriteFlag(Flags.F5, (result & 0x2000) != 0);
-        WriteFlag(Flags.F3, (result & 0x0800) != 0);
-
         Reg.HL = (ushort)result;
-        Reg.PC += 2; // ED 4A
+        Reg.PC += 2;
         return 15;
     }
     
@@ -213,7 +197,6 @@ public partial class Z80
         int carry = GetFlag(Flags.C) ? 1 : 0;
         int result = val1 + val2 + carry;
 
-        // Set Flags
         WriteFlag(Flags.N, false);
         WriteFlag(Flags.C, result > 0xFFFF);
         WriteFlag(Flags.Z, (ushort)result == 0);
@@ -221,12 +204,8 @@ public partial class Z80
         WriteFlag(Flags.H, ((val1 & 0x0FFF) + (val2 & 0x0FFF) + carry) > 0x0FFF);
         WriteFlag(Flags.P, ((val1 ^ result) & (val2 ^ result) & 0x8000) != 0);
     
-        // Undocumented F3/F5 usually mirror bits 13 and 11 of the result
-        WriteFlag(Flags.F5, (result & 0x2000) != 0);
-        WriteFlag(Flags.F3, (result & 0x0800) != 0);
-
         Reg.HL = (ushort)result;
-        Reg.PC += 2; // ED 4A
+        Reg.PC += 2;
         return 15;
     }
 
@@ -297,7 +276,6 @@ public partial class Z80
 
     private int Op_LDIR() // Opcode: ED B0
     {
-        // Transfer one byte
         byte value = _machine.ReadByte(Reg.HL);
         _machine.WriteByte(Reg.DE, value);
 
@@ -305,11 +283,9 @@ public partial class Z80
         Reg.DE++;
         Reg.BC--;
 
-        // Flags
         ClearFlag(Flags.N | Flags.H);
         WriteFlag(Flags.P, Reg.BC != 0);
 
-        // PC handling
         if (Reg.BC == 0)
         {
             Reg.PC += 2; // move past ED B0
@@ -340,7 +316,6 @@ public partial class Z80
 
     private int Op_LDDR() // Opcode: ED B8
     {
-        // Transfer one byte
         byte value = _machine.ReadByte(Reg.HL);
         _machine.WriteByte(Reg.DE, value);
 
@@ -348,11 +323,9 @@ public partial class Z80
         Reg.DE--;
         Reg.BC--;
 
-        // Flags
         ClearFlag(Flags.N | Flags.H);
         WriteFlag(Flags.P, Reg.BC != 0);
 
-        // PC handling
         if (Reg.BC == 0)
         {
             Reg.PC += 2; // move past ED B0
@@ -368,25 +341,16 @@ public partial class Z80
     private int Op_CPI()
     {
         byte value = _machine.ReadByte(Reg.HL);
-        int result = Reg.A - value; // Temporary subtraction for flags
+        int result = Reg.A - value;
 
-        // 1. Affect HL and BC
         Reg.HL++;
         Reg.BC--;
 
-        // 2. Update Flags
-        // S, Z, and H are set by the subtraction result
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, (result & 0xFF) == 0);
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
-    
-        // P/V is set if BC is NOT zero
         WriteFlag(Flags.P, Reg.BC != 0);
-    
-        // N is always 1 for compare/subtract
         SetFlag(Flags.N);
-    
-        // CARRY IS NOT AFFECTED - Do not call a method that changes it!
 
         Reg.PC += 2;
         return 16;
@@ -394,40 +358,30 @@ public partial class Z80
 
     private int Op_CPIR() // Opcode: ED B1
     {
-        int cycles = Op_CPI(); // Perform one CPI step
+        int cycles = Op_CPI();
     
-        // If BC is not 0 AND we haven't found a match (Z is clear)
         if (Reg.BC != 0 && !GetFlag(Flags.Z))
         {
-            Reg.PC -= 2; // Loop back to the CPIR instruction
-            return 21;   // Repeating takes 21 cycles
+            Reg.PC -= 2;
+            return 21;
         }
     
-        return 16; // Finishing takes 16 cycles
+        return 16;
     }
 
     private int Op_CPD() // ED A9
     {
         byte value = _machine.ReadByte(Reg.HL);
-        int result = Reg.A - value; // Temporary subtraction for flags
+        int result = Reg.A - value;
 
-        // 1. Affect HL and BC
         Reg.HL--;
         Reg.BC--;
 
-        // 2. Update Flags
-        // S, Z, and H are set by the subtraction result
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, (result & 0xFF) == 0);
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
-    
-        // P/V is set if BC is NOT zero
         WriteFlag(Flags.P, Reg.BC != 0);
-    
-        // N is always 1 for compare/subtract
         SetFlag(Flags.N);
-    
-        // CARRY IS NOT AFFECTED - Do not call a method that changes it!
 
         Reg.PC += 2;
         return 16;
@@ -435,23 +389,19 @@ public partial class Z80
 
     private int Op_CPDR() // Opcode: ED B9
     {
-        int cycles = Op_CPD(); // Perform one CPI step
+        int cycles = Op_CPD();
     
-        // If BC is not 0 AND we haven't found a match (Z is clear)
         if (Reg.BC != 0 && !GetFlag(Flags.Z))
         {
-            Reg.PC -= 2; // Loop back to the CPIR instruction
-            return 21;   // Repeating takes 21 cycles
+            Reg.PC -= 2;
+            return 21;
         }
     
-        return 16; // Finishing takes 16 cycles
+        return 16;
     }
 
     private int Op_RLD()
     {
-        // |= toggles bits you send a 1 to, doesn't change bits you send a 0 to
-        // &= clears bits that aren't both 1
-        
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
         byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
@@ -474,9 +424,6 @@ public partial class Z80
 
     private int Op_RRD()
     {
-        // |= toggles bits you send a 1 to, doesn't change bits you send a 0 to
-        // &= clears bits that aren't both 1
-        
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
         byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);

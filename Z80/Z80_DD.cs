@@ -104,13 +104,11 @@ public partial class Z80
         byte result = (byte)(val - 1);
         _machine.WriteByte(addr, result);
 
-        // Update Flags
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, result == 0);
         WriteFlag(Flags.H, (val & 0x0F) == 0x00);
-        WriteFlag(Flags.P, val == 0x80); // V flag: -128 -> 127
+        WriteFlag(Flags.P, val == 0x80);
         SetFlag(Flags.N);
-        // Note: Carry (C) is NOT affected
     
         Reg.PC += 3;
         return 23;

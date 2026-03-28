@@ -2,8 +2,6 @@ using Reg = Registers;
 
 public partial class Z80
 {
-    #region AND
-
     private int Op_AND(byte register) // Opcodes: A0 A1 A2 A3 A4 A5 A7
     {
         AND(register);
@@ -26,10 +24,6 @@ public partial class Z80
         return 7;
     }
 
-    #endregion AND
-
-    #region OR
-
     private int Op_OR(byte register) // Opcodes: B0 B1 B2 B3 B4 B5 B7
     {
         OR(register);
@@ -51,10 +45,6 @@ public partial class Z80
         Reg.PC += 2;
         return 7;
     }
-
-    #endregion
-
-    #region XOR
 
     private int Op_XOR(byte register) // Opcodes: A8 A9 AA AB AC AD AF
     {
@@ -79,8 +69,6 @@ public partial class Z80
         Reg.PC += 1;
         return 7;
     }
-
-    #endregion
 
     #region Helper Methods
 

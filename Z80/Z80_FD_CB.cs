@@ -180,10 +180,6 @@ public partial class Z80
 
                         break;
                     }
-
-        
-                    default:
-                        throw new NotImplementedException($"FD CB rotate op {op}");
                 }
 
                 break;
@@ -228,9 +224,6 @@ public partial class Z80
                 }
                 break;
             }
-
-            default:
-                throw new NotImplementedException($"FD CB group {group}");
         }
 
         Reg.PC += 4;
