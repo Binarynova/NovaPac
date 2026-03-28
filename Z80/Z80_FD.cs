@@ -61,19 +61,18 @@ public partial class Z80
     private int Op_INC_ptrIYd() // Opcode: DD 34
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        
-        byte originalValue = _machine.ReadByte(addr);
-        byte result = (byte)(_machine.ReadByte(addr) + 1);
+        byte val = _machine.ReadByte(addr);
+        byte result = (byte)(val + 1);
         _machine.WriteByte(addr, result);
-        
-        SetSZFlags(result);
+
+        // Documented Flag Logic
+        WriteFlag(Flags.S, (result & 0x80) != 0);
+        WriteFlag(Flags.Z, result == 0);
+        WriteFlag(Flags.H, (val & 0x0F) == 0x0F); // Check original nibble
+        WriteFlag(Flags.P, val == 0x7F);          // V-flag: 127 -> -128
         ClearFlag(Flags.N);
-        if ((result & 0x0F) == 0x0F) // Opcode: if lower nibble is F, half-carry will occur when adding 1
-            SetFlag(Flags.H);
-        else
-            ClearFlag(Flags.H);
-        SetParity(result);
-        
+        // Carry is NOT affected
+
         Reg.PC += 3;
         return 23;
     }
@@ -157,7 +156,7 @@ public partial class Z80
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        SUB(Reg.A, _machine.ReadByte(addr));
+        InternalCP(_machine.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -166,9 +165,18 @@ public partial class Z80
     private int Op_DEC_ptrIYd() // Opcode: FD 35
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        
-        _machine.WriteByte(addr, (byte)(_machine.ReadByte(addr) - 1));
-        SetDecFlags((byte)(_machine.ReadByte(addr) - 1));
+        byte val = _machine.ReadByte(addr);
+        byte result = (byte)(val - 1);
+        _machine.WriteByte(addr, result);
+
+        // Documented Flag Logic
+        WriteFlag(Flags.S, (result & 0x80) != 0);
+        WriteFlag(Flags.Z, result == 0);
+        WriteFlag(Flags.H, (val & 0x0F) == 0x00); // Check original nibble
+        WriteFlag(Flags.P, val == 0x80);          // V-flag: -128 -> 127
+        SetFlag(Flags.N);
+        // Carry is NOT affected
+
         Reg.PC += 3;
         return 23;
     }
@@ -201,11 +209,11 @@ public partial class Z80
         return 8;
     }
 
-    private int Op_ADD_A_ptrIYd() // Opcode: DD 86
+    private int Op_ADD_A_ptrIYd() // Opcode: FD 86
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
 
-        Reg.A = (byte)(Reg.A + _machine.ReadByte(addr));
+        Reg.A = ADD(Reg.A, _machine.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -254,12 +262,7 @@ public partial class Z80
     private int Op_XOR_A_ptrIYd() // Opcode: DD AE
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        
-        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(addr));
-
-        SetSZFlags(Reg.A);
-        ClearFlag(Flags.C | Flags.H | Flags.N);
-        SetParity(Reg.A);
+        XOR(_machine.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;

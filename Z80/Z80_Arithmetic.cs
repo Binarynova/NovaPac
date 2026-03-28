@@ -316,12 +316,21 @@ public partial class Z80
     private static byte SBC(byte acc, byte value)
     {
         int carry = GetFlag(Flags.C) ? 1 : 0;
-        byte result = (byte)(acc - value - carry);
+    
+        // Perform math in 'int' to preserve the negative sign for the Carry check
+        int fullResult = acc - value - carry;
+        byte result = (byte)fullResult;
 
-        WriteFlag(Flags.C, acc < value + carry);
+        // 1. Carry: In SBC, Carry is set if the result is negative (a borrow occurred)
+        WriteFlag(Flags.C, fullResult < 0);
+
+        // 2. Half-Carry: Borrow from bit 4
         WriteFlag(Flags.H, (acc & 0x0F) < (value & 0x0F) + carry);
+
+        // 3. Overflow (V): For subtraction
         WriteFlag(Flags.P, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
-        SetFlag(Flags.N);
+
+        SetFlag(Flags.N); // Subtraction flag
         SetSZFlags(result);
 
         return result;
@@ -330,9 +339,10 @@ public partial class Z80
     private static ushort SBCWord(ushort acc, ushort value)
     {
         int carry = GetFlag(Flags.C) ? 1 : 0;
-        ushort result = (ushort)(acc - value - carry);
+        int fullResult = acc - value - carry;
+        ushort result = (ushort)fullResult;
 
-        WriteFlag(Flags.C, acc < value + carry);
+        WriteFlag(Flags.C, fullResult < 0);
         WriteFlag(Flags.H, (acc & 0x0FFF) < (value & 0x0FFF) + carry);
         SetFlag(Flags.N);
 

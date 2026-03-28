@@ -87,13 +87,11 @@ public partial class Z80
         byte result = (byte)(val + 1);
         _machine.WriteByte(addr, result);
 
-        // Update Flags
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, result == 0);
         WriteFlag(Flags.H, (val & 0x0F) == 0x0F);
-        WriteFlag(Flags.P, val == 0x7F); // V flag: 127 -> -128
+        WriteFlag(Flags.P, val == 0x7F);
         ClearFlag(Flags.N);
-        // Note: Carry (C) is NOT affected by INC/DEC
     
         Reg.PC += 3;
         return 23;
@@ -157,7 +155,7 @@ public partial class Z80
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IX);
 
-        Reg.A = (byte)(Reg.A + _machine.ReadByte(addr));
+        Reg.A = ADD(Reg.A, _machine.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -197,7 +195,7 @@ public partial class Z80
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IX);
         
-        SUB(_machine.ReadByte(addr), Reg.A);
+        InternalCP(_machine.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -240,12 +238,7 @@ public partial class Z80
     private int Op_XOR_A_ptrIXd() // Opcode: DD AE
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IX);
-        
-        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(addr));
-
-        SetSZFlags(Reg.A);
-        ClearFlag(Flags.C | Flags.H | Flags.N);
-        SetParity(Reg.A);
+        XOR(_machine.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;

@@ -58,11 +58,7 @@ public partial class Z80
 
     private int Op_XOR(byte register) // Opcodes: A8 A9 AA AB AC AD AF
     {
-        Reg.A = (byte)(Reg.A ^ register);
-
-        SetSZFlags(Reg.A);
-        ClearFlag(Flags.C | Flags.H | Flags.N);
-        SetParity(Reg.A);
+        XOR(register);
 
         Reg.PC += 1;
         return 4;
@@ -70,11 +66,7 @@ public partial class Z80
 
     private int Op_XOR_A_n() // Opcode: EE
     {
-        Reg.A = (byte)(Reg.A ^ ImmediateByte());
-
-        SetSZFlags(Reg.A);
-        ClearFlag(Flags.C | Flags.H | Flags.N);
-        SetParity(Reg.A);
+        XOR(ImmediateByte());
 
         Reg.PC += 2;
         return 7;
@@ -82,11 +74,7 @@ public partial class Z80
     
     private int Op_XOR_A_ptrHL() // Opcode: AE
     {
-        Reg.A = (byte)(Reg.A ^ _machine.ReadByte(Reg.HL));
-
-        SetSZFlags(Reg.A);
-        ClearFlag(Flags.C | Flags.H | Flags.N);
-        SetParity(Reg.A);
+        XOR(_machine.ReadByte(Reg.HL));
 
         Reg.PC += 1;
         return 7;
@@ -115,6 +103,15 @@ public partial class Z80
 
         ClearFlag(Flags.C | Flags.N | Flags.H);
         SetSZFlags(Reg.A);
+        SetParity(Reg.A);
+    }
+
+    private void XOR(byte value)
+    {
+        Reg.A ^= value;
+
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.C | Flags.H | Flags.N);
         SetParity(Reg.A);
     }
 
