@@ -290,11 +290,25 @@ public partial class Z80
         }
     }
 
+    private int Op_CPI()
+    {
+        // Compare
+        InternalCP(_machine.ReadByte(Reg.HL));
+
+        // Increment
+        Reg.HL++;
+        Reg.BC--;
+
+        Reg.PC += 2;
+        return 16;
+    }
+
     private int Op_CPIR() // Opcode: ED B1
     {
         // Compare HL with Accumulator
         InternalCP(_machine.ReadByte(Reg.HL));
 
+        // Increment
         Reg.HL++;
         Reg.BC--;
 
@@ -302,7 +316,89 @@ public partial class Z80
         ClearFlag(Flags.N | Flags.H);
         WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
 
+        // Repeat - PC handling
+        if (Reg.BC == 0 || GetFlag(Flags.Z))
+        {
+            // terminate
+            Reg.PC += 2; // move past ED B1
+            return 16;
+        }
+        else
+        {
+            // stay on ED B0 until BC == 0
+            return 21;
+        }
+    }
+    private int Op_LDD() // Opcode: ED A8
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        _machine.WriteByte(Reg.DE, value);
+
+        Reg.HL--;
+        Reg.DE--;
+        Reg.BC--;
+        
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, (byte)(Reg.BC - 1) != 0);
+        
+        Reg.PC += 2;
+        return 16;
+    }
+
+    private int Op_LDDR() // Opcode: ED B8
+    {
+        // Transfer one byte
+        byte value = _machine.ReadByte(Reg.HL);
+        _machine.WriteByte(Reg.DE, value);
+
+        Reg.HL--;
+        Reg.DE--;
+        Reg.BC--;
+
+        // Flags
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
+
         // PC handling
+        if (Reg.BC == 0)
+        {
+            Reg.PC += 2; // move past ED B0
+            return 16;
+        }
+        else
+        {
+            // stay on ED B0 until BC == 0
+            return 21;
+        }
+    }
+
+    private int Op_CPD() // ED A9
+    {
+        // Compare
+        InternalCP(_machine.ReadByte(Reg.HL));
+
+        // decrement
+        Reg.HL--;
+        Reg.BC--;
+
+        Reg.PC += 2;
+        return 16;
+    }
+
+    private int Op_CPDR() // Opcode: ED B9
+    {
+        // Compare HL with Accumulator
+        InternalCP(_machine.ReadByte(Reg.HL));
+
+        // decrement
+        Reg.HL--;
+        Reg.BC--;
+
+        // Flags
+        ClearFlag(Flags.N | Flags.H);
+        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
+
+        // Repeat - PC handling
         if (Reg.BC == 0 || GetFlag(Flags.Z))
         {
             // terminate
