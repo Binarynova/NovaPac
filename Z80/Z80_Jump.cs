@@ -408,9 +408,11 @@ public partial class Z80
         sbyte offset = (sbyte)ImmediateByte();
         ushort nextPC = (ushort)(Reg.PC + 2);
 
+        Reg.P = Reg.Q = 0;
         if (condition())
         {
             Reg.PC = (ushort)(nextPC + offset);
+            Reg.WZ = Reg.PC;
             return 12;
         }
         

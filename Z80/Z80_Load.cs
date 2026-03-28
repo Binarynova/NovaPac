@@ -99,6 +99,10 @@ public partial class Z80
         ushort address = ImmediateWord();
         _machine.WriteByte(address, Reg.L);
         _machine.WriteByte((ushort)(address + 1), Reg.H);
+        
+        Reg.WZ = (ushort)(address + 1);
+        Reg.P = Reg.Q = 0;
+        
         Reg.PC += 3;
         return 16;
     }

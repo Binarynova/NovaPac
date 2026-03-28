@@ -91,6 +91,8 @@ public partial class Z80
         SetSZFlags(Reg.A);
         SetParity(Reg.A);
 
+        Reg.P = 0;
+
         Reg.PC += 1;
         return 4;
     }

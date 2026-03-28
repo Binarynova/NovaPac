@@ -27,6 +27,7 @@ public class Game1 : Game
     const float _speedMultiplier = 1f;
     
     Pacman pacmanMachine;
+    Galaxian galaxianMachine;
     Zexdoc zexdocMachine;
     Z80 cpu;
 
@@ -69,10 +70,10 @@ public class Game1 : Game
             Console.WriteLine(" 2) Matrix Homebrew");
             
             Console.WriteLine("\nTests:");
-            Console.WriteLine(" 3) ZEXDOC Test ROM (needs more opcodes)");
+            Console.WriteLine(" 3) ZEXDOC");
             Console.WriteLine(" 4) Display Tile ROM");
             Console.WriteLine(" 5) Display Sprite ROM");
-            Console.WriteLine(" 6) Run SSTs");
+            Console.WriteLine(" 6) SSTs");
             
             Console.WriteLine("\nAnything else) Quit");
             Console.Write(" > "); menuChoice = Console.ReadKey();
@@ -83,11 +84,15 @@ public class Game1 : Game
                     mode = 1;
                     romFileName = "roms/pacman.zip";
 					Window.Title = $"Pac-Man";
+                    pacmanMachine = new Pacman(romFileName);
+                    cpu = new Z80(pacmanMachine);
                     break;
                 case ConsoleKey.D2:
                     mode = 1;
                     romFileName = "roms/matrix.zip";
                     Window.Title = "Matrix Homebrew by Scott Lawrence";
+                    pacmanMachine = new Pacman(romFileName);
+                    cpu = new Z80(pacmanMachine);
                     break;
                 case ConsoleKey.D3:
                     mode = 4;
@@ -95,14 +100,25 @@ public class Game1 : Game
                 case ConsoleKey.D4:
                     mode = 2;
                     romFileName = "roms/pacman.zip";
+                    pacmanMachine = new Pacman(romFileName);
+                    cpu = new Z80(pacmanMachine);
                     break;
                 case ConsoleKey.D5:
                     mode = 3;
                     romFileName = "roms/pacman.zip";
+                    pacmanMachine = new Pacman(romFileName);
+                    cpu = new Z80(pacmanMachine);
                     break;
                 case ConsoleKey.D6:
                     Console.WriteLine("Running single-step tests...");
                     RunSingleStepTests();
+                    break;
+                case ConsoleKey.D7:
+                    mode = 1;
+                    romFileName = "roms/galaxian.zip";
+                    Window.Title = $"Galaxian";
+                    galaxianMachine = new Galaxian(romFileName);
+                    cpu = new Z80(galaxianMachine);
                     break;
                 default:
                     Environment.Exit(0);
@@ -117,8 +133,6 @@ public class Game1 : Game
         }
         else
         {
-            pacmanMachine = new Pacman(romFileName);
-            cpu = new Z80(pacmanMachine);
             base.Initialize();
         }
     }
