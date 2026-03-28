@@ -114,7 +114,7 @@ public partial class Z80
         return 19;
     }
     
-    private int Op_LD_ptrIYd(byte register) // Opcode: FD 70 71 72 73 74 75 77
+    private int Op_LD_ptrIYd_r(byte register) // Opcode: FD 70 71 72 73 74 75 77
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
@@ -177,28 +177,28 @@ public partial class Z80
     {
         Reg.IYH = register;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_IYL_r(byte register)
     {
         Reg.IYL = register;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_r_IYH(ref byte register)
     {
         register = Reg.IYH;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_r_IYL(ref byte register)
     {
         register = Reg.IYL;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
 
     private int Op_ADD_A_ptrIYd() // Opcode: DD 86
