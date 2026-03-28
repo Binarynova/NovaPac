@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 using System.Text.Json;
 using Reg = Registers;
 
@@ -118,17 +119,18 @@ public class Game1 : Game
         {
             pacmanMachine = new Pacman(romFileName);
             cpu = new Z80(pacmanMachine);
-            //pacmanMachine.AttachCPU(cpu);
             base.Initialize();
         }
     }
 
     protected override void LoadContent()
     {
+        PlayTestBeep();
+        
         trace = new StreamWriter("trace.txt");
         trace.AutoFlush = false;
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-
+        
         // Create a 1x1 white texture
         pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData([Color.White]);
@@ -863,5 +865,31 @@ public class Game1 : Game
         // IMPORTANT: After handling the print, we must return to where 
         // the Zexdoc code called us from.
         cpu.Op_RET(); 
+    }
+
+    private void PlayTestBeep()
+    {
+        int sampleRate = 44_000;
+        var dynamicSound = new DynamicSoundEffectInstance(sampleRate, AudioChannels.Mono);
+        short volume = short.MaxValue / 2;
+        
+        float frequency = 440f; // A4 note
+        TimeSpan duration = TimeSpan.FromMilliseconds(100);
+        int sampleCount = dynamicSound.GetSampleSizeInBytes(duration) / 2; // 2 bytes per 16-bit sample
+        byte[] buffer = new byte[sampleCount * 2];
+        
+        for (int i = 0; i < sampleCount; i++)
+        {
+            // Calculate the sine value (-1.0 to 1.0)
+            float time = (float)i / sampleRate;
+            short sample = (short)(Math.Sin(2 * Math.PI * frequency * time) * volume);
+    
+            // Convert short to 2 bytes (Little Endian)
+            buffer[i * 2] = (byte)(sample & 0xFF);
+            buffer[i * 2 + 1] = (byte)((sample >> 8) & 0xFF);
+        }
+
+        dynamicSound.SubmitBuffer(buffer);
+        dynamicSound.Play();
     }
 }
