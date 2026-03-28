@@ -383,6 +383,13 @@ public partial class Z80
         Reg.PC += 2;
         return 8;
     }
+
+    private static int Op_DD_LD_r_R(ref byte destination, byte source)
+    {
+        destination = source;
+        Reg.PC += 2;
+        return 8;
+    }
     
     #region Helper Methods
 
