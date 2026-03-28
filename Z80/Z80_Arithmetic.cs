@@ -4,18 +4,18 @@ public partial class Z80
 {
     #region ADD
 
+    private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
+    {
+        Reg.HL = ADDWord(Reg.HL, registerPair);
+        Reg.PC += 1;
+        return 11;
+    }
+
     private static int Op_ADD_A(byte register) // Opcodes: 80 81 82 83 84 85 87
     {
         Reg.A = ADD(Reg.A, register);
         Reg.PC += 1;
         return 4;
-    }
-
-    private int Op_ADD_A_n() // Opcode: C6
-    {
-        Reg.A = ADD(Reg.A, ImmediateByte());
-        Reg.PC += 2;
-        return 7;
     }
 
     private int Op_ADD_A_ptrHL() // Opcode: 86
@@ -25,11 +25,11 @@ public partial class Z80
         return 7;
     }
 
-    private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
+    private int Op_ADD_A_n() // Opcode: C6
     {
-        Reg.HL = ADDWord(Reg.HL, registerPair);
-        Reg.PC += 1;
-        return 11;
+        Reg.A = ADD(Reg.A, ImmediateByte());
+        Reg.PC += 2;
+        return 7;
     }
 
     #endregion
@@ -279,9 +279,7 @@ public partial class Z80
         WriteFlag(Flags.C, sum > 0xFFFF);
         WriteFlag(Flags.H, (acc & 0x0FFF) + (value & 0x0FFF) > 0x0FFF);
         ClearFlag(Flags.N);
-
-        WriteFlag(Flags.F5, (sum & 0x2000) != 0); // Bit 13
-        WriteFlag(Flags.F3, (sum & 0x0800) != 0); // Bit 11
+        
         return (ushort)sum;
     }
 
@@ -321,16 +319,10 @@ public partial class Z80
         int fullResult = acc - value - carry;
         byte result = (byte)fullResult;
 
-        // 1. Carry: In SBC, Carry is set if the result is negative (a borrow occurred)
         WriteFlag(Flags.C, fullResult < 0);
-
-        // 2. Half-Carry: Borrow from bit 4
         WriteFlag(Flags.H, (acc & 0x0F) < (value & 0x0F) + carry);
-
-        // 3. Overflow (V): For subtraction
         WriteFlag(Flags.P, ((acc ^ value) & (acc ^ result) & 0x80) != 0);
-
-        SetFlag(Flags.N); // Subtraction flag
+        SetFlag(Flags.N);
         SetSZFlags(result);
 
         return result;
@@ -346,11 +338,8 @@ public partial class Z80
         WriteFlag(Flags.H, (acc & 0x0FFF) < (value & 0x0FFF) + carry);
         SetFlag(Flags.N);
 
-        // Opcode: 16-bit signed overflow detection
         bool overflow = ((acc ^ value) & (acc ^ result) & 0x8000) != 0;
         WriteFlag(Flags.P, overflow);
-
-        // Opcode: S/Z for 16-bit
         WriteFlag(Flags.S, (result & 0x8000) != 0);
         WriteFlag(Flags.Z, result == 0);
 
@@ -378,35 +367,21 @@ public partial class Z80
         byte result = (byte)(target + 1);
         CheckINCOverflow(target);
         
-        WriteFlag(Flags.H, (target & 0x0F) == 0x0F); // if lower nibble is 0F, half-carry will occur when adding 1
+        WriteFlag(Flags.H, (target & 0x0F) == 0x0F);
         SetSZFlags(result);
         ClearFlag(Flags.N);
     }
 
     private static void SetDecFlags(byte target)
     {
-        // 1. Calculate the result first
         byte original = target;
-        target--; // Perform the actual decrement
+        target--;
     
-        // 2. Half Carry: Set if borrowing from bit 4 (i.e., lower nibble was 0)
         WriteFlag(Flags.H, (original & 0x0F) == 0x0);
-
-        // 3. Overflow (V): Set if we go from 0x80 (-128) to 0x7F (+127)
         WriteFlag(Flags.P, original == 0x80);
-
-        // 4. N Flag: Always set for subtraction/decrement
         SetFlag(Flags.N);
-
-        // 5. Sign and Zero: Based on the NEW value
         WriteFlag(Flags.S, (target & 0x80) != 0);
         WriteFlag(Flags.Z, target == 0);
-
-        // 6. F3 and F5: Copied from the NEW value
-        WriteFlag(Flags.F3, (target & 0x08) != 0);
-        WriteFlag(Flags.F5, (target & 0x20) != 0);
-    
-        // CARRY IS UNTOUCHED
     }
     
     private void InternalCP(byte val)
@@ -416,7 +391,7 @@ public partial class Z80
         WriteFlag(Flags.S, (res & 0x80) != 0);
         WriteFlag(Flags.Z, (res & 0xFF) == 0);
         WriteFlag(Flags.H, (Reg.A & 0x0F) < (val & 0x0F));
-        WriteFlag(Flags.P, ((Reg.A ^ val) & (Reg.A ^ (res & 0xFF)) & 0x80) != 0); // Overflow
+        WriteFlag(Flags.P, ((Reg.A ^ val) & (Reg.A ^ (res & 0xFF)) & 0x80) != 0);
         SetFlag(Flags.N); // Always 1 for CP
         WriteFlag(Flags.C, Reg.A < val);
     }
