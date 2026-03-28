@@ -26,6 +26,44 @@ public partial class Z80
 
                 switch (op)
                 {
+                    case 0: // RLC
+                    {
+                        byte newCarry = (byte)((value & 0x80) >> 7);
+
+                        result = (byte)((value << 1) | newCarry);
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
+                    case 1: // RRC
+                    {
+                        byte newCarry = (byte)(value & 0x01);
+
+                        result = (byte)((value >> 1) | (newCarry << 7));
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
                     case 2: // RL
                     {
                         byte oldCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
@@ -45,8 +83,104 @@ public partial class Z80
 
                         break;
                     }
+                    
+                    case 3: // RR
+                    {
+                        byte oldCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
+                        byte newCarry = (byte)(value & 0x01);
 
-                    // later: RLC, RRC, SLA, SRA, SRL, etc.
+                        result = (byte)((value >> 1) | (oldCarry << 7));
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
+                    case 4: // SLA
+                    {
+                        byte newCarry = (byte)((value & 0x80) >> 7);
+
+                        result = (byte)(value << 1);
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
+                    case 5: // SRA
+                    {
+                        byte newCarry = (byte)(value & 0x01);
+                        byte prevBit7 = (byte)((value & 0x80) >> 7);
+
+                        result = (byte)((value >> 1) |  (prevBit7 << 7));
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
+                    case 6: // SLL
+                    {
+                        byte newCarry = (byte)((value & 0x80) >> 7);
+
+                        result = (byte)((value << 1) | 0x1);
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+                    
+                    case 7: // SRL
+                    {
+                        byte newCarry = (byte)(value & 0x01);
+
+                        result = (byte)(value >> 1);
+
+                        WriteFlag(Flags.C, newCarry != 0);
+                        ClearFlag(Flags.H | Flags.N);
+                        SetSZFlags(result);
+                        SetParity(result);
+
+                        _machine.WriteByte(addr, result);
+
+                        if (reg != 6)
+                            SetRegisterByIndex(reg, result);
+
+                        break;
+                    }
+
         
                     default:
                         throw new NotImplementedException($"DD CB rotate op {op}");

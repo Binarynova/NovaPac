@@ -226,6 +226,27 @@ public partial class Z80
         return 9;
     }
 
+    private static int Op_LD_A_I() // Opcode: ED 47
+    {
+        Reg.A = Reg.I;
+        Reg.PC += 2;
+        return 9;
+    }
+
+    private static int Op_LD_R_A() // Opcode: ED 47
+    {
+        Reg.R = Reg.A;
+        Reg.PC += 2;
+        return 9;
+    }
+
+    private static int Op_LD_A_R() // Opcode: ED 47
+    {
+        Reg.A = Reg.R;
+        Reg.PC += 2;
+        return 9;
+    }
+
     private int Op_IM_0() // Opcode: ED 46
     {
         _interruptMode = 0;
@@ -460,5 +481,23 @@ public partial class Z80
         
         Reg.PC += 2;
         return 18;
+    }
+    
+    private int Op_ED_LD_HL_ptrNN() // Opcode: ED 6B
+    {
+        ushort addr = ImmediateWord(prefixed:true);
+        Reg.L = _machine.ReadByte(addr);
+        Reg.H = _machine.ReadByte((ushort)(addr + 1));
+        Reg.PC += 4;
+        return 20;
+    }
+
+    private int Op_ED_LD_ptrNN_HL() // Opcode: ED 63
+    {
+        ushort address = ImmediateWord(prefixed:true);
+        _machine.WriteByte(address, Reg.L);
+        _machine.WriteByte((ushort)(address + 1), Reg.H);
+        Reg.PC += 4;
+        return 20;
     }
 }
