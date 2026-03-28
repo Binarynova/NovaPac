@@ -146,7 +146,7 @@ public partial class Z80
         return 19;
     }
 
-    private int Op_LD_ptrIXd(byte register) // Opcode: DD 70 71 72 73 74 75 77
+    private int Op_LD_ptrIXd_r(byte register) // Opcode: DD 70 71 72 73 74 75 77
     {
         LOAD_ptrIXd(register);
         Reg.PC += 3;
@@ -183,22 +183,22 @@ public partial class Z80
         return 19;
     }
 
-    private int OP_CP_ptrIXd() // Opcode: DD BE
-    {
-        ushort addr = IndexAddressingWithDisplacement(Reg.IX);
-        
-        SUB(_machine.ReadByte(addr), Reg.A);
-
-        Reg.PC += 3;
-        return 19;
-    }
-
     private int Op_OR_ptrIXd() // Opcode: DD B6
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IX);
         
         OR(_machine.ReadByte(addr));
         
+        Reg.PC += 3;
+        return 19;
+    }
+
+    private int OP_CP_ptrIXd() // Opcode: DD BE
+    {
+        ushort addr = IndexAddressingWithDisplacement(Reg.IX);
+        
+        SUB(_machine.ReadByte(addr), Reg.A);
+
         Reg.PC += 3;
         return 19;
     }
@@ -266,14 +266,14 @@ public partial class Z80
         return 23;
     }
 
-    private int Op_JP_ptrIX()
+    private int Op_JP_ptrIX() // DD E9
     {
         Reg.PC = Reg.IX;
 
         return 8;
     }
 
-    private int Op_LD_SP_IX()
+    private int Op_LD_SP_IX() // DD F9
     {
         Reg.SP = Reg.IX;
         Reg.PC += 2;
@@ -346,28 +346,28 @@ public partial class Z80
     {
         Reg.IXH = register;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_IXL_r(byte register)
     {
         Reg.IXL = register;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_r_IXH(ref byte register)
     {
         register = Reg.IXH;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_LD_r_IXL(ref byte register)
     {
         register = Reg.IXL;
         Reg.PC += 2;
-        return 7;
+        return 8;
     }
     
     private int Op_DD_LD_r_n(ref byte register)
