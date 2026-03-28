@@ -9,6 +9,9 @@ public partial class Z80
         ushort nextPC = (ushort)(Reg.PC + 2);
 
         Reg.PC = (ushort)(nextPC + offset);
+
+        Reg.P = Reg.Q = 0;
+        Reg.WZ = Reg.PC;
         return 12;
     }
 
@@ -384,12 +387,13 @@ public partial class Z80
         sbyte offset = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 1));
     
         Reg.PC += 2;
-
+        Reg.P = Reg.Q = 0;
         Reg.B--;
         if (Reg.B != 0)
         {
             ushort target = (ushort)(Reg.PC + offset);
             Reg.PC = target;
+            Reg.WZ = target;
         
             return 13;
         }

@@ -122,6 +122,8 @@ public partial class Z80
 
     private int Op_LD_DE_nn() // Opcode: 11
     {
+        Reg.P = Reg.Q = 0;
+        
         Reg.DE = ImmediateWord();
         Reg.PC += 3;
         return 10;
@@ -129,6 +131,8 @@ public partial class Z80
     
     private int Op_LD_HL_nn() // Opcode: 21
     {
+        Reg.P = Reg.Q = 0;
+        
         Reg.HL = ImmediateWord();
         Reg.PC += 3;
         return 10;
@@ -136,6 +140,8 @@ public partial class Z80
 
     private int Op_LD_SP_nn() // Opcode: 31
     {
+        Reg.P = Reg.Q = 0;
+        
         Reg.SP = ImmediateWord();
         Reg.PC += 3;
         return 10;

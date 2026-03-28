@@ -42,6 +42,9 @@ public partial class Z80
         WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
         WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
         ClearFlag(Flags.H | Flags.N);
+
+        Reg.Q = Reg.F;
+        Reg.P = 0;
         Reg.PC += 1;
         return 4;
     }
@@ -128,7 +131,12 @@ public partial class Z80
         
         Reg.A = (byte)((Reg.A >> 1) | (carry << 7));
 
+        WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
+        WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
         ClearFlag(Flags.H | Flags.N);
+        
+        Reg.Q = Reg.F;
+        Reg.P = 0;
         Reg.PC += 1;
         return 4;
     }
