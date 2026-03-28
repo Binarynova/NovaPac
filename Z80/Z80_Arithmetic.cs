@@ -4,7 +4,13 @@ public partial class Z80
 {
     private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
     {
+        Reg.WZ = (ushort)(Reg.HL + 1);
+        
         Reg.HL = ADDWord(Reg.HL, registerPair);
+        
+        Reg.P = 0;
+        Reg.Q = Reg.F;
+        
         Reg.PC += 1;
         return 11;
     }
@@ -12,6 +18,7 @@ public partial class Z80
     private static int Op_ADD_A(byte register) // Opcodes: 80 81 82 83 84 85 87
     {
         Reg.A = ADD(Reg.A, register);
+
         Reg.PC += 1;
         return 4;
     }
@@ -106,6 +113,9 @@ public partial class Z80
     private static int Op_INC_BC() // Opcode: 03
     {
         Reg.BC++;
+        
+        Reg.P = Reg.Q = 0;
+        
         Reg.PC += 1;
         return 6;
     }
@@ -113,6 +123,9 @@ public partial class Z80
     private static int Op_INC_DE() // Opcode: 13
     {
         Reg.DE++;
+        
+        Reg.P = Reg.Q = 0;
+
         Reg.PC += 1;
         return 6;
     }
@@ -120,6 +133,9 @@ public partial class Z80
     private static int Op_INC_HL() // Opcode: 23
     {
         Reg.HL++;
+        
+        Reg.P = Reg.Q = 0;
+
         Reg.PC += 1;
         return 6;
     }
@@ -127,6 +143,9 @@ public partial class Z80
     private static int Op_INC_SP() // Opcode: 33
     {
         Reg.SP++;
+        
+        Reg.P = Reg.Q = 0;
+
         Reg.PC += 1;
         return 6;
     }
@@ -161,6 +180,8 @@ public partial class Z80
     private static int Op_DEC_BC() // Opcode: 0B
     {
         Reg.BC--;
+
+        Reg.P = Reg.Q = 0;
         Reg.PC += 1;
         return 6;
     }
@@ -168,6 +189,8 @@ public partial class Z80
     private static int Op_DEC_DE() // Opcode: 1B
     {
         Reg.DE--;
+        
+        Reg.P = Reg.Q = 0;
         Reg.PC += 1;
         return 6;
     }
@@ -175,6 +198,8 @@ public partial class Z80
     private static int Op_DEC_HL() // Opcode: 2B
     {
         Reg.HL--;
+        
+        Reg.P = Reg.Q = 0;
         Reg.PC += 1;
         return 6;
     }
@@ -182,6 +207,8 @@ public partial class Z80
     private static int Op_DEC_SP() // Opcode: 3B
     {
         Reg.SP--;
+        
+        Reg.P = Reg.Q = 0;
         Reg.PC += 1;
         return 6;
     }
@@ -251,6 +278,9 @@ public partial class Z80
         WriteFlag(Flags.C, sum > 0xFFFF);
         WriteFlag(Flags.H, (acc & 0x0FFF) + (value & 0x0FFF) > 0x0FFF);
         ClearFlag(Flags.N);
+        
+        byte highByte = (byte)(sum >> 8);
+        Reg.F = (byte)((Reg.F & 0xD7) | (highByte & 0x28));
         
         return (ushort)sum;
     }
@@ -340,7 +370,13 @@ public partial class Z80
         CheckINCOverflow(target);
         
         WriteFlag(Flags.H, (target & 0x0F) == 0x0F);
+        ClearFlag(Flags.N);
         SetSZFlags(result);
+
+        Reg.P = 0;
+        Reg.F = (byte)((Reg.F & 0xD7) | (result & 0x28));
+        Reg.Q = Reg.F;
+        
         ClearFlag(Flags.N);
     }
 
@@ -354,6 +390,10 @@ public partial class Z80
         SetFlag(Flags.N);
         WriteFlag(Flags.S, (target & 0x80) != 0);
         WriteFlag(Flags.Z, target == 0);
+        
+        Reg.P = 0;
+        Reg.F = (byte)((Reg.F & 0xD7) | (target & 0x28));
+        Reg.Q = Reg.F;
     }
     
     private void InternalCP(byte val)

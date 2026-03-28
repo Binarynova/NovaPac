@@ -10,6 +10,8 @@ public class Pacman : IMemoryProvider
     public byte[] paletteMemory;
     public byte[] charMemory;
     public byte[] spriteMemory;
+    public byte[] waveformMemory1 = new byte[0xFF];
+    public byte[] waveformMemory2 = new byte[0xFF];
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
 
@@ -108,6 +110,8 @@ public class Pacman : IMemoryProvider
         charMemory = ExtractRom(archive, "pacman.5e");
         spriteMemory = ExtractRom(archive, "pacman.5f");
         paletteMemory = ExtractRom(archive, "82s126.4a");
+        waveformMemory1 = ExtractRom(archive, "82s126.1m");
+        waveformMemory2 = ExtractRom(archive, "82s126.3m");
     }
 
     private static byte[] ExtractRom(ZipArchive archive, string fileName)

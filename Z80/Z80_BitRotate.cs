@@ -18,6 +18,11 @@ public partial class Z80
         WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
         WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
         ClearFlag(Flags.N | Flags.H);
+
+        // this instruction touches flags so:
+        Reg.P = 0;
+        Reg.Q = Reg.F;
+        
         Reg.PC += 1;
         return 4;
     }
@@ -103,6 +108,10 @@ public partial class Z80
         WriteFlag(Flags.F5, (Reg.A & 0x20) != 0);
         WriteFlag(Flags.F3, (Reg.A & 0x08) != 0);
         ClearFlag(Flags.N | Flags.H);
+
+        Reg.P = 0;
+        Reg.Q = Reg.F;
+        
         Reg.PC += 1;
         return 4;
     }

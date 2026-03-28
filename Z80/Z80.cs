@@ -975,7 +975,9 @@ public partial class Z80
         Reg.L = test.Initial.L;
         Reg.I =  test.Initial.I;
         Reg.R = test.Initial.R;
-        //Reg.WZ = test.Initial.WZ;
+        Reg.P =  test.Initial.P;
+        Reg.Q = test.Initial.Q;
+        Reg.WZ = test.Initial.WZ;
         Reg.IX = test.Initial.IX;
         Reg.IY = test.Initial.IY;
         Reg.AF2 = test.Initial.AF_;
@@ -1002,7 +1004,7 @@ public partial class Z80
                 errors.Add($"{name}: expected {exp:X} got {act:X}");
         }
         
-        //Check("F", expected.F, actual.F);
+        Check("F", expected.F, actual.F);
         Check("A", expected.A, actual.A);
         Check("B", expected.B, actual.B);
         Check("C", expected.C, actual.C);
@@ -1026,10 +1028,10 @@ public partial class Z80
         Check("SP", expected.SP, actual.SP);
         Check("IX", expected.IX, actual.IX);
         Check("IY", expected.IY, actual.IY);
-        //Check("WZ", expected.WZ, actual.WZ);
+        Check("WZ", expected.WZ, actual.WZ);
         
-        //Check("IFF1", expected.IFF1, actual.IFF1);
-        //Check("IFF2", expected.IFF2, actual.IFF2);
+        Check("IFF1", expected.IFF1, actual.IFF1);
+        Check("IFF2", expected.IFF2, actual.IFF2);
         Check("IM", expected.IM, actual.IM);
 
         for (int i = 0; i < expected.RAM.Count; i++)
@@ -1062,6 +1064,8 @@ public partial class Z80
         
         actualCPUState.I = Reg.I;
         actualCPUState.R = Reg.R;
+        actualCPUState.P = Reg.P;
+        actualCPUState.Q = Reg.Q;
 
         actualCPUState.AF_ = Reg.AF2;
         actualCPUState.BC_ = Reg.BC2;
@@ -1072,6 +1076,7 @@ public partial class Z80
         actualCPUState.SP = Reg.SP;
         actualCPUState.IX = Reg.IX;
         actualCPUState.IY = Reg.IY;
+        actualCPUState.WZ = Reg.WZ;
         actualCPUState.IFF1 = (byte)(_iff1 ? 1 : 0);
         actualCPUState.IFF2 = (byte)(_iff2 ? 1 : 0);
         actualCPUState.IM = (byte)_interruptMode;
@@ -1104,6 +1109,8 @@ public partial class Z80
         
         expectedCPUState.I = test.Final.I;
         expectedCPUState.R = test.Final.R;
+        expectedCPUState.P = test.Final.P;
+        expectedCPUState.Q = test.Final.Q;
 
         expectedCPUState.AF_ = test.Final.AF_;
         expectedCPUState.BC_ = test.Final.BC_;
@@ -1114,6 +1121,7 @@ public partial class Z80
         expectedCPUState.SP = test.Final.SP;
         expectedCPUState.IX = test.Final.IX;
         expectedCPUState.IY = test.Final.IY;
+        expectedCPUState.WZ = test.Final.WZ;
         expectedCPUState.IFF1 = test.Final.IFF1;
         expectedCPUState.IFF2 = test.Final.IFF2;
         expectedCPUState.IM = test.Final.IM;

@@ -5,6 +5,9 @@ public partial class Z80
     private int Op_LD_r_n(ref byte register)
     {
         register = ImmediateByte();
+
+        Reg.P = Reg.Q = 0;
+        
         Reg.PC += 2;
         return 7;
     }
@@ -33,6 +36,10 @@ public partial class Z80
     private int Op_LD_A_ptrBC() // Opcode: 0A
     {
         Reg.A = _machine.ReadByte(Reg.BC);
+        
+        Reg.P = Reg.Q = 0;
+        wz_LD_A_ptrRR(Reg.BC);
+        
         Reg.PC += 1;
         return 7;
     }
@@ -40,6 +47,10 @@ public partial class Z80
     private int Op_LD_A_ptrDE() // Opcode: 1A
     {
         Reg.A = _machine.ReadByte(Reg.DE);
+        
+        Reg.P = Reg.Q = 0;
+        wz_LD_A_ptrRR(Reg.DE);
+        
         Reg.PC += 1;
         return 7;
     }
@@ -64,6 +75,10 @@ public partial class Z80
     private int Op_LD_ptrBC_A() // Opcode: 02
     {
         _machine.WriteByte(Reg.BC, Reg.A);
+        
+        Reg.P = Reg.Q = 0;
+        wz_LD_ptrRR_A(Reg.C);
+        
         Reg.PC += 1;
         return 7;
     }
@@ -71,6 +86,10 @@ public partial class Z80
     private int Op_LD_ptrDE_A() // Opcode: 12
     {
         _machine.WriteByte(Reg.DE, Reg.A);
+        
+        Reg.P = Reg.Q = 0;
+        wz_LD_ptrRR_A(Reg.E);
+        
         Reg.PC += 1;
         return 7;
     }
@@ -94,6 +113,8 @@ public partial class Z80
 
     private int Op_LD_BC_nn() // Opcode: 01
     {
+        Reg.P = Reg.Q = 0;
+        
         Reg.BC = ImmediateWord();
         Reg.PC += 3;
         return 10;
@@ -133,4 +154,20 @@ public partial class Z80
         Reg.PC += 1;
         return 10;
     }
+    
+    #region HELPER_METHODS
+
+    private void wz_LD_ptrRR_A(byte lowerReg)
+    {
+        byte wzLow = (byte)((lowerReg + 1) & 0xFF);
+        byte wzHigh = Reg.A;
+        Reg.WZ = (ushort)((wzHigh << 8) | wzLow);
+    }
+
+    private void wz_LD_A_ptrRR(ushort registerPair)
+    {
+        Reg.WZ = (ushort)(registerPair + 1);
+    }
+    
+    #endregion
 }

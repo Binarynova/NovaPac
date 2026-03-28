@@ -39,6 +39,10 @@ public class Z80SingleStepTest
         public byte I { get; set; }
         [JsonPropertyName("r")]
         public byte R { get; set; }
+        [JsonPropertyName("p")]
+        public byte P { get; set; }
+        [JsonPropertyName("q")]
+        public byte Q { get; set; }
         [JsonPropertyName("ix")]
         public ushort IX { get; set; }
         [JsonPropertyName("iy")]
@@ -57,6 +61,8 @@ public class Z80SingleStepTest
         public byte IFF1 { get; set; }
         [JsonPropertyName("iff2")]
         public byte IFF2 { get; set; }
+        [JsonPropertyName("wz")]
+        public ushort WZ { get; set; }
 
         [JsonPropertyName("ram")]
         public List<List<int>> RAM { get; set; } = new();

@@ -4,6 +4,10 @@ public partial class Z80
 {
     private static int Op_NOP() // Opcode: 00
     {
+        // this instruction doesn't touch flags, so:
+        Reg.Q = 0;
+        Reg.P = 0;
+        
         Reg.PC += 1;
         return 4;
     }
@@ -44,6 +48,8 @@ public partial class Z80
     {
         (Reg.AF, Reg.AF2) = (Reg.AF2, Reg.AF); // tuples from .NET 7 allow swapping values without a temp var
 
+        Reg.P = Reg.Q = 0;
+        
         Reg.PC += 1;
         return 4;
     }
