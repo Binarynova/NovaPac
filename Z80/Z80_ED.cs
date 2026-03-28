@@ -411,4 +411,54 @@ public partial class Z80
             return 21;
         }
     }
+
+    private int Op_RLD()
+    {
+        // |= toggles bits you send a 1 to, doesn't change bits you send a 0 to
+        // &= clears bits that aren't both 1
+        
+        // save off bits that are moving
+        byte lower4ofA = (byte)(Reg.A & 0x0F);
+        byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
+        byte upper4ofHL = (byte)((_machine.ReadByte(Reg.HL) & 0xF0) >> 4);
+
+        byte value = _machine.ReadByte(Reg.HL); // save value
+        value <<= 4; // shift it left 4 bits, leaving 0s behind
+        value |= lower4ofA; // because lower 4 of value are 0, this sets those 4 to match
+        Reg.A &= 0xF0;      // clear lower 4 of Reg.A
+        Reg.A |= upper4ofHL; // same as above
+        _machine.WriteByte(Reg.HL, value);
+        
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.H | Flags.N);
+        SetParity(Reg.A);
+        
+        Reg.PC += 2;
+        return 18;
+    }
+
+    private int Op_RRD()
+    {
+        // |= toggles bits you send a 1 to, doesn't change bits you send a 0 to
+        // &= clears bits that aren't both 1
+        
+        // save off bits that are moving
+        byte lower4ofA = (byte)(Reg.A & 0x0F);
+        byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
+        byte upper4ofHL = (byte)((_machine.ReadByte(Reg.HL) & 0xF0) >> 4);
+
+        byte value = _machine.ReadByte(Reg.HL); // save value
+        value >>= 4; // shift it right 4 bits, leaving 0s behind
+        value |= (byte)(lower4ofA << 4); // because upper 4 of value are 0, this sets those 4 to match
+        Reg.A &= 0xF0;      // clear lower 4 of Reg.A
+        Reg.A |= lower4ofHL; // same as above
+        _machine.WriteByte(Reg.HL, value);
+        
+        SetSZFlags(Reg.A);
+        ClearFlag(Flags.H | Flags.N);
+        SetParity(Reg.A);
+        
+        Reg.PC += 2;
+        return 18;
+    }
 }
