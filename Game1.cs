@@ -112,6 +112,7 @@ public class Game1 : Game
         if (mode == 4)
         {
             RunZexdocTests();
+            Environment.Exit(0);
         }
         else
         {

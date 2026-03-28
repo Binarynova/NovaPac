@@ -928,8 +928,6 @@ public partial class Z80
     {
         WriteFlag(Flags.Z, value == 0);
         WriteFlag(Flags.S, (value & 0x80) != 0);    // if bit 7 is not 0, the number is negative
-        WriteFlag(Flags.F5, (value & 0x20) != 0);   // if bit 5 is 1
-        WriteFlag(Flags.F3, (value & 0x08) != 0);   // if bit 3 is 1
     }
     
     byte ImmediateByte()

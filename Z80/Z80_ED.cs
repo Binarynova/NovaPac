@@ -29,7 +29,18 @@ public partial class Z80
 
     private int Op_NEG() // Opcode: ED 44
     {
-        Reg.A = (byte)(0 - Reg.A);
+        byte originalA = Reg.A;
+    
+        int result = 0 - originalA;
+        Reg.A = (byte)result;
+
+        // Flags
+        WriteFlag(Flags.C, originalA != 0x00);
+        WriteFlag(Flags.H, (0 & 0x0F) < (originalA & 0x0F));
+        WriteFlag(Flags.P, originalA == 0x80);
+        SetFlag(Flags.N);
+        SetSZFlags(Reg.A);
+
         Reg.PC += 2;
         return 8;
     }
@@ -278,7 +289,7 @@ public partial class Z80
         Reg.BC--;
         
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, (byte)(Reg.BC - 1) != 0);
+        WriteFlag(Flags.P, Reg.BC != 0);
         
         Reg.PC += 2;
         return 16;
@@ -296,7 +307,7 @@ public partial class Z80
 
         // Flags
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
+        WriteFlag(Flags.P, Reg.BC != 0);
 
         // PC handling
         if (Reg.BC == 0)
@@ -310,46 +321,7 @@ public partial class Z80
             return 21;
         }
     }
-
-    private int Op_CPI()
-    {
-        // Compare
-        InternalCP(_machine.ReadByte(Reg.HL));
-
-        // Increment
-        Reg.HL++;
-        Reg.BC--;
-
-        Reg.PC += 2;
-        return 16;
-    }
-
-    private int Op_CPIR() // Opcode: ED B1
-    {
-        // Compare HL with Accumulator
-        InternalCP(_machine.ReadByte(Reg.HL));
-
-        // Increment
-        Reg.HL++;
-        Reg.BC--;
-
-        // Flags
-        ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
-
-        // Repeat - PC handling
-        if (Reg.BC == 0 || GetFlag(Flags.Z))
-        {
-            // terminate
-            Reg.PC += 2; // move past ED B1
-            return 16;
-        }
-        else
-        {
-            // stay on ED B0 until BC == 0
-            return 21;
-        }
-    }
+    
     private int Op_LDD() // Opcode: ED A8
     {
         byte value = _machine.ReadByte(Reg.HL);
@@ -360,7 +332,7 @@ public partial class Z80
         Reg.BC--;
         
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, (byte)(Reg.BC - 1) != 0);
+        WriteFlag(Flags.P, Reg.BC != 0);
         
         Reg.PC += 2;
         return 16;
@@ -378,7 +350,7 @@ public partial class Z80
 
         // Flags
         ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
+        WriteFlag(Flags.P, Reg.BC != 0);
 
         // PC handling
         if (Reg.BC == 0)
@@ -393,14 +365,69 @@ public partial class Z80
         }
     }
 
+    private int Op_CPI()
+    {
+        byte value = _machine.ReadByte(Reg.HL);
+        int result = Reg.A - value; // Temporary subtraction for flags
+
+        // 1. Affect HL and BC
+        Reg.HL++;
+        Reg.BC--;
+
+        // 2. Update Flags
+        // S, Z, and H are set by the subtraction result
+        WriteFlag(Flags.S, (result & 0x80) != 0);
+        WriteFlag(Flags.Z, (result & 0xFF) == 0);
+        WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
+    
+        // P/V is set if BC is NOT zero
+        WriteFlag(Flags.P, Reg.BC != 0);
+    
+        // N is always 1 for compare/subtract
+        SetFlag(Flags.N);
+    
+        // CARRY IS NOT AFFECTED - Do not call a method that changes it!
+
+        Reg.PC += 2;
+        return 16;
+    }
+
+    private int Op_CPIR() // Opcode: ED B1
+    {
+        int cycles = Op_CPI(); // Perform one CPI step
+    
+        // If BC is not 0 AND we haven't found a match (Z is clear)
+        if (Reg.BC != 0 && !GetFlag(Flags.Z))
+        {
+            Reg.PC -= 2; // Loop back to the CPIR instruction
+            return 21;   // Repeating takes 21 cycles
+        }
+    
+        return 16; // Finishing takes 16 cycles
+    }
+
     private int Op_CPD() // ED A9
     {
-        // Compare
-        InternalCP(_machine.ReadByte(Reg.HL));
+        byte value = _machine.ReadByte(Reg.HL);
+        int result = Reg.A - value; // Temporary subtraction for flags
 
-        // decrement
+        // 1. Affect HL and BC
         Reg.HL--;
         Reg.BC--;
+
+        // 2. Update Flags
+        // S, Z, and H are set by the subtraction result
+        WriteFlag(Flags.S, (result & 0x80) != 0);
+        WriteFlag(Flags.Z, (result & 0xFF) == 0);
+        WriteFlag(Flags.H, (Reg.A & 0x0F) < (value & 0x0F));
+    
+        // P/V is set if BC is NOT zero
+        WriteFlag(Flags.P, Reg.BC != 0);
+    
+        // N is always 1 for compare/subtract
+        SetFlag(Flags.N);
+    
+        // CARRY IS NOT AFFECTED - Do not call a method that changes it!
 
         Reg.PC += 2;
         return 16;
@@ -408,29 +435,16 @@ public partial class Z80
 
     private int Op_CPDR() // Opcode: ED B9
     {
-        // Compare HL with Accumulator
-        InternalCP(_machine.ReadByte(Reg.HL));
-
-        // decrement
-        Reg.HL--;
-        Reg.BC--;
-
-        // Flags
-        ClearFlag(Flags.N | Flags.H);
-        WriteFlag(Flags.P, Reg.BC != 0); // repeat flag
-
-        // Repeat - PC handling
-        if (Reg.BC == 0 || GetFlag(Flags.Z))
+        int cycles = Op_CPD(); // Perform one CPI step
+    
+        // If BC is not 0 AND we haven't found a match (Z is clear)
+        if (Reg.BC != 0 && !GetFlag(Flags.Z))
         {
-            // terminate
-            Reg.PC += 2; // move past ED B1
-            return 16;
+            Reg.PC -= 2; // Loop back to the CPIR instruction
+            return 21;   // Repeating takes 21 cycles
         }
-        else
-        {
-            // stay on ED B0 until BC == 0
-            return 21;
-        }
+    
+        return 16; // Finishing takes 16 cycles
     }
 
     private int Op_RLD()
