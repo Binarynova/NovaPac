@@ -788,6 +788,45 @@ public class Game1 : Game
                 hexCode++;
             }
         }
+        
+        hexCode = 0x00;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine($"\nFD CB Instructions:");
+        while (hexCode <= 0xFF)
+        {
+            if (hexCode >= 0x40 || hexCode == 0x16)
+            {
+                string testFile = $"tests/fd cb __ {hexCode:x2}.json";
+                string json = File.ReadAllText(testFile);
+                var tests = JsonSerializer.Deserialize<List<Z80SingleStepTest>>(json);
+            
+                passedCount = 0;
+            
+                foreach (Z80SingleStepTest test in tests)
+                {
+                    cpu.Reset();
+                    cpu.SetInitialCPUState(test);
+                    cpu.Step();
+                    string error = cpu.CheckFinalCPUState(test, sw);
+                    if (error == "")
+                        passedCount++;
+                }
+
+                Console.ForegroundColor = passedCount == 1000 ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($"  {hexCode:X2}");
+                if ((hexCode & 0x0F) == 0x0F)
+                    Console.WriteLine();
+                hexCode++;
+            }
+        }
 
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("\nTests complete. Errors written to: testlog.txt");
