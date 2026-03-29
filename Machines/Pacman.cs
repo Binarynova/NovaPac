@@ -10,6 +10,7 @@ public class Pacman : IMemoryProvider
     public byte[] paletteMemory;
     public byte[] charMemory;
     public byte[] spriteMemory;
+    private byte[] u5, u6, u7;
     public byte[] waveformMemory1 = new byte[0xFF];
     public byte[] waveformMemory2 = new byte[0xFF];
     private byte[] spriteram = new byte[0x10];
@@ -82,39 +83,82 @@ public class Pacman : IMemoryProvider
     
     private void LoadRom(string romFileName)
     {
-        using ZipArchive archive = ZipFile.OpenRead(romFileName);
-        var romMap = new Dictionary<string, int>
+        if (romFileName == "roms/pacman.zip" || romFileName == "roms/matrix.zip" || romFileName == "roms/newpuckx.zip")
         {
-            { "pacman.6e", 0x0000 },
-            { "pacman.6f", 0x1000 },
-            { "pacman.6h", 0x2000 },
-            { "pacman.6j", 0x3000 }
-        };
-
-        foreach (var entry in romMap)
-        {
-            ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-            if (romEntry != null)
+            using ZipArchive archive = ZipFile.OpenRead(romFileName);
+            var romMap = new Dictionary<string, int>
             {
-                using Stream s = romEntry.Open();
-                byte[] buffer = new byte[romEntry.Length];
-                s.ReadExactly(buffer, 0, buffer.Length);
+                { "pacman.6e", 0x0000 },
+                { "pacman.6f", 0x1000 },
+                { "pacman.6h", 0x2000 },
+                { "pacman.6j", 0x3000 }
+            };
+
+            foreach (var entry in romMap)
+            {
+                ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                if (romEntry != null)
+                {
+                    using Stream s = romEntry.Open();
+                    byte[] buffer = new byte[romEntry.Length];
+                    s.ReadExactly(buffer, 0, buffer.Length);
                 
-                Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-            }
+                    Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                }
             
-            else
-            {
-                throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                else
+                {
+                    throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                }
             }
-        }
 
-        charMemory = ExtractRom(archive, "pacman.5e");
-        spriteMemory = ExtractRom(archive, "pacman.5f");
-        paletteMemory = ExtractRom(archive, "82s126.4a");
-        waveformMemory1 = ExtractRom(archive, "82s126.1m");
-        waveformMemory2 = ExtractRom(archive, "82s126.3m");
+            charMemory = ExtractRom(archive, "pacman.5e");
+            spriteMemory = ExtractRom(archive, "pacman.5f");
+            paletteMemory = ExtractRom(archive, "82s126.4a");
+            waveformMemory1 = ExtractRom(archive, "82s126.1m");
+            waveformMemory2 = ExtractRom(archive, "82s126.3m");
+        }
+        else if (romFileName == "roms/mspacman.zip")
+        {
+            using ZipArchive archive = ZipFile.OpenRead(romFileName);
+            var romMap = new Dictionary<string, int>
+            {
+                { "pacman.6e", 0x0000 },
+                { "pacman.6f", 0x1000 },
+                { "pacman.6h", 0x2000 },
+                { "pacman.6j", 0x3000 }
+            };
+
+            foreach (var entry in romMap)
+            {
+                ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                if (romEntry != null)
+                {
+                    using Stream s = romEntry.Open();
+                    byte[] buffer = new byte[romEntry.Length];
+                    s.ReadExactly(buffer, 0, buffer.Length);
+                
+                    Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                }
+            
+                else
+                {
+                    throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                }
+            }
+
+            charMemory = ExtractRom(archive, "5e");
+            spriteMemory = ExtractRom(archive, "5f");
+            paletteMemory = ExtractRom(archive, "82s126.4a");
+            waveformMemory1 = ExtractRom(archive, "82s126.1m");
+            waveformMemory2 = ExtractRom(archive, "82s126.3m");
+            
+            u5 = ExtractRom(archive, "u5");
+            u6 = ExtractRom(archive, "u6");
+            u7 = ExtractRom(archive, "u7");
+        }
     }
 
     private static byte[] ExtractRom(ZipArchive archive, string fileName)
@@ -164,5 +208,46 @@ public class Pacman : IMemoryProvider
             | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
             | (0x1 << 7)
         );
+    }
+
+    // methods for decrypting Ms. Pac-Man data and applying the data to Pac-Man
+    // referenced from JustinCredible and MAME
+    private static uint decryptData(uint data)
+    {
+        uint decryptedData = (data & 0x80) >> 3;
+        decryptedData |= (data & 0x40) >> 3;
+        decryptedData |= data & 0x20;
+        decryptedData |= (data & 0x10) << 2;
+        decryptedData |= (data & 0x08) >> 1;
+        decryptedData |= (data & 0x04) >> 1;
+        decryptedData |= (data & 0x02) >> 1;
+        decryptedData |= (data & 0x01) << 7;
+        
+        return decryptedData;
+    }
+
+    private static uint decryptAddr1(uint data)
+    {
+        uint decryptedData = data & 0x807;
+        decryptedData |= (data & 0x400) >> 7;
+        decryptedData |= (data & 0x200) >> 2;
+        decryptedData |= (data & 0x080) << 3;
+        decryptedData |= (data & 0x040) << 2;
+        decryptedData |= (data & 0x138) << 1;
+        
+        return decryptedData;
+    }
+
+    private static uint decryptAddr2(uint data)
+    {
+        uint decryptedData = data & 0x807;
+        decryptedData |= (data & 0x040) << 4;
+        decryptedData |= (data & 0x100) >> 3;
+        decryptedData |= (data & 0x080) << 2;
+        decryptedData |= (data & 0x600) >> 2;
+        decryptedData |= (data & 0x028) << 1;
+        decryptedData |= (data & 0x010) >> 1;
+        
+        return decryptedData;
     }
 }

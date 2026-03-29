@@ -110,6 +110,11 @@ public class Game1 : Game
                     Window.Title = $"New Puck-X (Unofficial)";
                     romFileName = "roms/newpuckx.zip";
                     break;
+                case ConsoleKey.D8:
+                    mode = 1;
+                    Window.Title = $"Ms. Pac-Man";
+                    romFileName = "roms/mspacman.zip";
+                    break;
                 default:
                     Environment.Exit(0);
                     break;
