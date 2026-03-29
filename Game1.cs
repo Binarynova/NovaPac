@@ -520,10 +520,6 @@ public class Game1 : Game
             new Color(255, 184, 174, 255),
             new Color(222, 222, 255, 255)
         ];
-        for (int i = 16; i < 32; i++)
-        {
-            colors.Add(new Color(0, 0, 0, 255));
-        }
     }
 
     void ReadPalettes()

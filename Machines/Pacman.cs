@@ -51,15 +51,6 @@ public class Pacman : IMemoryProvider
 
     public void WriteByte(ushort address, byte value)
     {
-        //if (address >= 0x43CB && address <= 0x43D4) // these are the HIGH SCORE tile locations
-        //{
-        //    if (value == 0x40)
-        //    {
-        //        Console.WriteLine($"Writing {value:X2} to {address:X4}.");
-        //        Console.ReadKey();
-        //    }
-        //}
-        
         if (address < 0x4000)
             return;
         
@@ -150,7 +141,6 @@ public class Pacman : IMemoryProvider
     private static byte GetPort1()
     {
         KeyboardState state = Keyboard.GetState();
-
         return (byte)
         (
             ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
@@ -160,6 +150,7 @@ public class Pacman : IMemoryProvider
             | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
             | ((state.IsKeyDown(Keys.Enter) ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+            | (0x1 << 7)
         );
     }
 }
