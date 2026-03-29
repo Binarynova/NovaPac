@@ -85,8 +85,7 @@ public partial class Z80
             else
                 return 4;              // stay halted, do not fetch opcode
         }
-        if(Reg.PC == 0x2ae0)
-            Console.WriteLine("Draw HIGH SCORE code.");
+        
         byte opcode = _machine.ReadByte(Reg.PC);
         
         if (SteppingThrough)
