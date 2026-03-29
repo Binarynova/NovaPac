@@ -199,6 +199,8 @@ public class Pacman : IMemoryProvider
     private static byte GetPort1()
     {
         KeyboardState state = Keyboard.GetState();
+        GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
+        
         return (byte)
         (
             ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
@@ -206,9 +208,9 @@ public class Pacman : IMemoryProvider
             | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
             | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.Enter) || GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-            | (0x1 << 7)
+            | (0x1 << 7) // 1 for upright, 0 for cocktail
         );
     }
 
