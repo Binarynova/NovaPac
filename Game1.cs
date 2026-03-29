@@ -67,8 +67,10 @@ public class Game1 : Game
         
         if(mode == 0)
         {
-            Console.WriteLine("Pac-Man ROMs:");
+            Console.WriteLine("Official ROMs:");
             Console.WriteLine(" 1) Pac-Man");
+            
+            Console.WriteLine("\nUnofficial or Homebrew ROMs");
             Console.WriteLine(" 2) Matrix Homebrew");
             Console.WriteLine(" 3) New Puck-X");
             
@@ -209,25 +211,17 @@ public class Game1 : Game
             else if (keyboardState.IsKeyDown(Keys.Up) && _previousKeyboardState.IsKeyUp(Keys.Up))
             {
                 if (tileViewerPaletteIndex == 20)
-                {
                     tileViewerPaletteIndex = 0;
-                }
                 else
-                {
                     tileViewerPaletteIndex++;
-                }
             }
             
             else if (keyboardState.IsKeyDown(Keys.Down) && _previousKeyboardState.IsKeyUp(Keys.Down))
             {
                 if (tileViewerPaletteIndex == 0)
-                {
                     tileViewerPaletteIndex = 20;
-                }
                 else
-                {
                     tileViewerPaletteIndex--;
-                }
             }
         }
         
