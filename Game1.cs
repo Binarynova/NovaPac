@@ -67,6 +67,7 @@ public class Game1 : Game
             Console.WriteLine("Pac-Man ROMs:");
             Console.WriteLine(" 1) Pac-Man");
             Console.WriteLine(" 2) Matrix Homebrew");
+            Console.WriteLine(" 7) New Puck-X");
             
             Console.WriteLine("\nTests:");
             Console.WriteLine(" 3) ZEXDOC");
@@ -82,23 +83,32 @@ public class Game1 : Game
                 case ConsoleKey.D1:
                     mode = 1;
 					Window.Title = $"Pac-Man";
+                    romFileName = "roms/pacman.zip";
                     break;
                 case ConsoleKey.D2:
                     mode = 1;
                     Window.Title = "Matrix Homebrew by Scott Lawrence";
+                    romFileName = "roms/matrix.zip";
                     break;
                 case ConsoleKey.D3:
                     mode = 4;
                     break;
                 case ConsoleKey.D4:
                     mode = 2;
+                    romFileName = "roms/pacman.zip";
                     break;
                 case ConsoleKey.D5:
                     mode = 3;
+                    romFileName = "roms/pacman.zip";
                     break;
                 case ConsoleKey.D6:
                     Console.WriteLine("Running single-step tests...");
                     RunSingleStepTests();
+                    break;
+                case ConsoleKey.D7:
+                    mode = 1;
+                    Window.Title = $"New Puck-X (Unofficial)";
+                    romFileName = "roms/newpuckx.zip";
                     break;
                 default:
                     Environment.Exit(0);
@@ -113,7 +123,6 @@ public class Game1 : Game
         }
         else
         {
-            romFileName = "roms/pacman.zip";
             pacmanMachine = new Pacman(romFileName);
             cpu = new Z80(pacmanMachine);
             base.Initialize();
