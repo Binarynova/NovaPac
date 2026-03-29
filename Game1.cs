@@ -208,24 +208,49 @@ public class Game1 : Game
             // 2: vram 43c0 to 43ff is the top two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
             // 3: vram 4040 to 43bf is the main grid of the game, top-to-bottom, right-to-left, starting on screen at the top-right below section 2
 
-            // 224x288 game pixels -> 896x1152 screen pixels
-            // 912 is two tiles off-screen right
-            // -16 is two tiles off-screen left
+            //for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
+            //{
+            //    for(int tileCol = 0; tileCol < 32; tileCol++)
+            //    {
+            //        ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
+            //        ushort pram = (ushort)(vram + 0x400);
+            //        int xPos = 232 - (tileCol * 8);
+            //        int yPos = tileRow * 8;
+            //        byte tileNumber = pacmanMachine.ReadByte(vram);
+            //        if(tileNumber is >= 0x47 and <= 0x49 || tileNumber == 0x55)
+            //            Console.WriteLine($"Tile {tileNumber:X2}");
+            //        byte paletteNumber = pacmanMachine.ReadByte(pram);
+            //        DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
+            //    }
+            //}
 
-            for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
+            for (int i = 0x3DF; i >= 0x3C0; i--)
             {
-                for(int tileCol = 0; tileCol < 32; tileCol++)
-                {
-                    ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
-                    ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 232 - (tileCol * 8);
-                    int yPos = tileRow * 8;
-                    byte tileNumber = pacmanMachine.ReadByte(vram);
-                    byte paletteNumber = pacmanMachine.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
-                }
-            }
+                int tileAddress = 0x4000 + i;
+                int paletteAddress = 0x4400 + i;
 
+                byte tileIndex = pacmanMachine.ReadByte((ushort)tileAddress);
+                byte paletteIndex = pacmanMachine.ReadByte((ushort)paletteAddress);
+
+                const int yPos = 0;
+                int xPos = 232 - (i - 0x3C0) * 8;
+                
+                DrawTile(tileIndex, paletteIndex & 0x3F, xPos, yPos);
+            }
+            for (int i = 0x3FF; i >= 0x3E0; i--)
+            {
+                int tileAddress = 0x4000 + i;
+                int paletteAddress = 0x4400 + i;
+
+                byte tileIndex = pacmanMachine.ReadByte((ushort)tileAddress);
+                byte paletteIndex = pacmanMachine.ReadByte((ushort)paletteAddress);
+
+                const int yPos = 8;
+                int xPos = 232 - (i - 0x3E0) * 8;
+                
+                DrawTile(tileIndex, paletteIndex & 0x3F, xPos, yPos);
+            }
+            
             for(int tileRow = 0; tileRow < 32; tileRow++) // main grid
             {
                 for(int tileCol = 0; tileCol < 28; tileCol++)

@@ -30,42 +30,54 @@ public class Pacman : IMemoryProvider
     {
         return spriteram2[index];
     }
+    
+    private ushort NormalizeAddress(ushort address)
+    {
+        // 1. ROM (0x0000-0x3FFF) and I/O (0x5000-0x50FF) are NOT mirrored RAM.
+        if (address < 0x4000 || (address >= 0x5000 && address <= 0x50FF))
+        {
+            return address;
+        }
+
+        // 2. Everything else (0x4000-0x4FFF, 0x8000-0x8FFF, 0xC000-0xCFFF, etc.)
+        // maps down to the primary 4KB RAM block at 0x4000.
+        // (address & 0x0FFF) gets the offset within any 4KB bank.
+        return (ushort)(0x4000 | (address & 0x0FFF));
+    }
 
     public byte ReadByte(ushort address)
     {
-        switch (address)
-        {
-            case >= 0x5000 and <= 0x503F: // IN0 (Joystick, Coin, etc.)
-                return GetPort0();
-            
-            case >= 0x5040 and <= 0x507F: // IN1 (Player Start, Service, etc.)
-                return GetPort1();
-            
-            case >= 0x5080 and <= 0x50BF: // DIP Switches
-                return 0xC9;
-            
-            default:
-                return Memory[address];
-        }
+        // Check hardware ports first (using the original address)
+        if (address >= 0x5000 && address <= 0x503F) return GetPort0();
+        if (address >= 0x5040 && address <= 0x507F) return GetPort1();
+        if (address >= 0x5080 && address <= 0x50BF) return 0xC9; // DIPs
+
+        // For all other memory (ROM or RAM), use the normalized address
+        return Memory[NormalizeAddress(address)];
     }
 
     public void WriteByte(ushort address, byte value)
     {
-        if (address < 0x4000)
-            return;
-        
-        if (address is >= 0x4ff0 and <= 0x4fff)
-        {
-            spriteram[address - 0x4ff0] = value;
-        }
-        
-        if (address is >= 0x5060 and <= 0x506f)
+        if (address < 0x4000) return; // Protect ROM
+
+        // Handle special non-mirrored I/O writes (Sync bus)
+        if (address >= 0x5060 && address <= 0x506F)
         {
             spriteram2[address - 0x5060] = value;
             return;
         }
-            
-        Memory[address] = value;
+
+        ushort normAddr = NormalizeAddress(address);
+
+        // Sync Sprite RAM 1
+        // 0x4FF0 is the canonical location for sprite data
+        if (normAddr >= 0x4FF0 && normAddr <= 0x4FFF)
+        {
+            spriteram[normAddr - 0x4FF0] = value;
+        }
+
+        // Store the value in our normalized "canonical" RAM block
+        Memory[normAddr] = value;
     }
     
     private void LoadRom(string romFileName)
