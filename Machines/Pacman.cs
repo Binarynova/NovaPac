@@ -42,7 +42,7 @@ public class Pacman : IMemoryProvider
                 return GetPort1();
             
             case >= 0x5080 and <= 0x50BF: // DIP Switches
-                return 0x89;
+                return 0xC9;
             
             default:
                 return Memory[address];
