@@ -163,8 +163,7 @@ public class Game1 : Game
         KeyboardState keyboardState = Keyboard.GetState();
         if(mode == 1)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-                Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
             }

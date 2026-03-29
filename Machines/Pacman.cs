@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 public class Pacman : IMemoryProvider
@@ -180,15 +181,16 @@ public class Pacman : IMemoryProvider
     private static byte GetPort0()
     {
         KeyboardState state = Keyboard.GetState();
+        GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
 
         return (byte)
         (
-            ((state.IsKeyDown(Keys.Up) ? 0 : 1) << 0)
-            | ((state.IsKeyDown(Keys.Left) ? 0 : 1) << 1)
-            | ((state.IsKeyDown(Keys.Right) ? 0 : 1) << 2)
-            | ((state.IsKeyDown(Keys.Down) ? 0 : 1) << 3)
+            ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 0)
+            | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 1)
+            | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
+            | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.C) ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
             | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
         );
@@ -204,7 +206,7 @@ public class Pacman : IMemoryProvider
             | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
             | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.Enter) ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.Enter) || GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
             | (0x1 << 7)
         );
