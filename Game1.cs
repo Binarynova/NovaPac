@@ -25,6 +25,9 @@ public class Game1 : Game
     bool SteppingThrough;
     StreamWriter trace;
     const float _speedMultiplier = 1f;
+    int tileViewerPaletteIndex = 0;
+
+    List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
     Pacman pacmanMachine;
     Zexdoc zexdocMachine;
@@ -67,12 +70,13 @@ public class Game1 : Game
             Console.WriteLine("Pac-Man ROMs:");
             Console.WriteLine(" 1) Pac-Man");
             Console.WriteLine(" 2) Matrix Homebrew");
-            Console.WriteLine(" 7) New Puck-X");
+            Console.WriteLine(" 3) New Puck-X");
+            
+            Console.WriteLine("\nDebug:");
+            Console.WriteLine(" 4) View Tile/Sprite ROM");
             
             Console.WriteLine("\nTests:");
-            Console.WriteLine(" 3) ZEXDOC");
-            Console.WriteLine(" 4) Display Tile ROM");
-            Console.WriteLine(" 5) Display Sprite ROM");
+            Console.WriteLine(" 5) ZEXDOC");
             Console.WriteLine(" 6) SSTs");
             
             Console.WriteLine("\nAnything else) Quit");
@@ -91,26 +95,22 @@ public class Game1 : Game
                     romFileName = "roms/matrix.zip";
                     break;
                 case ConsoleKey.D3:
-                    mode = 4;
+                    mode = 1;
+                    Window.Title = $"New Puck-X (Unofficial)";
+                    romFileName = "roms/newpuckx.zip";
                     break;
                 case ConsoleKey.D4:
                     mode = 2;
                     romFileName = "roms/pacman.zip";
                     break;
                 case ConsoleKey.D5:
-                    mode = 3;
-                    romFileName = "roms/pacman.zip";
+                    mode = 4;
                     break;
                 case ConsoleKey.D6:
                     Console.WriteLine("Running single-step tests...");
                     RunSingleStepTests();
                     break;
                 case ConsoleKey.D7:
-                    mode = 1;
-                    Window.Title = $"New Puck-X (Unofficial)";
-                    romFileName = "roms/newpuckx.zip";
-                    break;
-                case ConsoleKey.D8:
                     mode = 1;
                     Window.Title = $"Ms. Pac-Man";
                     romFileName = "roms/mspacman.zip";
@@ -191,7 +191,8 @@ public class Game1 : Game
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            else if (keyboardState.IsKeyDown(Keys.Tab) && _previousKeyboardState.IsKeyUp(Keys.Tab))
+            else if (keyboardState.IsKeyDown(Keys.Left) && _previousKeyboardState.IsKeyUp(Keys.Left) ||
+                     keyboardState.IsKeyDown(Keys.Right) && _previousKeyboardState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
                 switch(mode)
@@ -202,6 +203,30 @@ public class Game1 : Game
                     case 3:
                         mode = 2;
                         break;
+                }
+            }
+            
+            else if (keyboardState.IsKeyDown(Keys.Up) && _previousKeyboardState.IsKeyUp(Keys.Up))
+            {
+                if (tileViewerPaletteIndex == 20)
+                {
+                    tileViewerPaletteIndex = 0;
+                }
+                else
+                {
+                    tileViewerPaletteIndex++;
+                }
+            }
+            
+            else if (keyboardState.IsKeyDown(Keys.Down) && _previousKeyboardState.IsKeyUp(Keys.Down))
+            {
+                if (tileViewerPaletteIndex == 0)
+                {
+                    tileViewerPaletteIndex = 20;
+                }
+                else
+                {
+                    tileViewerPaletteIndex--;
                 }
             }
         }
@@ -327,7 +352,7 @@ public class Game1 : Game
                     int tileIndex = j * 16 + i;
                     int tileXPos = i * (tileWidth + offset) + offset;
                     int tileYPos = j * (tileWidth + offset) + offset;
-                    DrawTile(tileIndex, 1, tileXPos, tileYPos);
+                    DrawTile(tileIndex, tileViewerPalettes[tileViewerPaletteIndex], tileXPos, tileYPos);
                 }
             }
 
@@ -346,7 +371,7 @@ public class Game1 : Game
                     int spriteIndex = j * 8 + i;
                     int spriteXPos = i * (spriteWidth + offset) + offset;
                     int spriteYPos = j * (spriteWidth + offset) + offset;
-                    DrawSprite(spriteIndex, 1, spriteXPos, spriteYPos, false, false);
+                    DrawSprite(spriteIndex, tileViewerPalettes[tileViewerPaletteIndex], spriteXPos, spriteYPos, false, false);
                 }
             }
 
