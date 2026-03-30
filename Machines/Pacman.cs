@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using pacman;
 
 public class Pacman : IMemoryProvider
 {
@@ -12,14 +13,14 @@ public class Pacman : IMemoryProvider
     public byte[] charMemory;
     public byte[] spriteMemory;
     private byte[] u5, u6, u7;
-    public byte[] waveformMemory1 = new byte[0xFF];
-    public byte[] waveformMemory2 = new byte[0xFF];
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
-
+    private WSG soundGenerator;
+    
     public Pacman(string romFileName)
     {
         ClearRAM();
+        soundGenerator = new WSG(romFileName);
         LoadRom(romFileName);
     }
     
@@ -62,6 +63,13 @@ public class Pacman : IMemoryProvider
     {
         if (address < 0x4000) return; // Protect ROM
 
+        // Intercept sound writes
+        if (address >= 0x5040 && address <= 0x505F)
+        {
+            soundGenerator.UpdateRegister(address, value);
+            return;
+        }
+        
         // Handle special non-mirrored I/O writes (Sync bus)
         if (address >= 0x5060 && address <= 0x506F)
         {
@@ -117,8 +125,6 @@ public class Pacman : IMemoryProvider
             charMemory = ExtractRom(archive, "pacman.5e");
             spriteMemory = ExtractRom(archive, "pacman.5f");
             paletteMemory = ExtractRom(archive, "82s126.4a");
-            waveformMemory1 = ExtractRom(archive, "82s126.1m");
-            waveformMemory2 = ExtractRom(archive, "82s126.3m");
         }
         else if (romFileName == "roms/mspacman.zip")
         {
@@ -153,8 +159,6 @@ public class Pacman : IMemoryProvider
             charMemory = ExtractRom(archive, "5e");
             spriteMemory = ExtractRom(archive, "5f");
             paletteMemory = ExtractRom(archive, "82s126.4a");
-            waveformMemory1 = ExtractRom(archive, "82s126.1m");
-            waveformMemory2 = ExtractRom(archive, "82s126.3m");
             
             u5 = ExtractRom(archive, "u5");
             u6 = ExtractRom(archive, "u6");
