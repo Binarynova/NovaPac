@@ -55,6 +55,10 @@
             "MonoGame.Framework.DesktopGL": {
               "target": "Package",
               "version": "[3.8.*, )"
+            },
+            "Myra": {
+              "target": "Package",
+              "version": "[1.5.11, )"
             }
           },
           "imports": [

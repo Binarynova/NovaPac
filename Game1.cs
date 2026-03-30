@@ -7,16 +7,22 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using System.Text.Json;
 using Reg = Registers;
+using Myra;
+using Myra.Graphics2D.UI;
 
 namespace pacman;
 
 public class Game1 : Game
 {
+    private Desktop desktop;
     private double _cycleAccumulator = 0;
+    KeyboardState _lastState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
     const int resScale = 3;
-    Matrix scaleMatrix = Matrix.CreateScale(resScale, resScale, 1.0f);
+    int internalWidth = 224;
+    int internalHeight = 288;
+    int sidePadding = 20;
     private SpriteBatch _spriteBatch;
     private KeyboardState _previousKeyboardState;
     Texture2D pixelTexture;
@@ -26,6 +32,8 @@ public class Game1 : Game
     StreamWriter trace;
     const float _speedMultiplier = 1f;
     int tileViewerPaletteIndex = 0;
+    GraphicsDeviceManager graphics;
+    Rectangle _renderDestination;
 
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
@@ -43,13 +51,14 @@ public class Game1 : Game
     List<Color> colors = [];
     List<List<Color>> palettes = [];
     string romFileName;
+    RenderTarget2D _nativeRenderTarget;
 
     public Game1(string[] args)
     {
         Args = args;
-        GraphicsDeviceManager graphics = new(this);
-        graphics.PreferredBackBufferWidth = 224 * resScale;
-        graphics.PreferredBackBufferHeight = 288 * resScale;
+        graphics = new GraphicsDeviceManager(this);
+        graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
+        graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         IsFixedTimeStep = true;
@@ -59,6 +68,7 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
+        UpdateRenderDestination();
         if (Args.Length != 0)
         {
             if (Args[0] == "-debug")
@@ -138,7 +148,22 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
+        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
         PlayTestBeep();
+        MyraEnvironment.Game = this;
+
+        var grid = new Grid
+        {
+            RowSpacing = 8,
+            ColumnSpacing = 8
+        };
+
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Auto));
+
+        desktop = new Desktop();
+        desktop.Root = grid;
+        
         
         trace = new StreamWriter("trace.txt");
         trace.AutoFlush = false;
@@ -163,6 +188,14 @@ public class Game1 : Game
         KeyboardState keyboardState = Keyboard.GetState();
         if(mode == 1)
         {
+            if (keyboardState.IsKeyDown(Keys.Enter) && 
+                (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt)) &&
+                _lastState.IsKeyUp(Keys.Enter))
+            {
+                ToggleFullscreen();
+            }
+
+            _lastState = keyboardState;
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
@@ -230,10 +263,11 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
+        GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         if(mode == 1)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
+            _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
 
             // draw in three sections
             // 1: vram 4000 to 403F is the bottom two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
@@ -335,7 +369,7 @@ public class Game1 : Game
         else if(mode == 2)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Black); // tile grid
             int offset = 1;
             for(int i = 0; i < 16; i++)
@@ -354,7 +388,7 @@ public class Game1 : Game
         else if(mode == 3)
         {
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: scaleMatrix);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 411, 411), Color.Black); // tile grid
             int offset = 1;
             for(int i = 0; i < 8; i++)
@@ -370,6 +404,14 @@ public class Game1 : Game
 
             _spriteBatch.End();
         }
+
+        desktop.Render();
+        GraphicsDevice.SetRenderTarget(null);
+        
+        GraphicsDevice.Clear(Color.Black);
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
+        _spriteBatch.End();
     }
 
     int GetPixelValue(byte pixelData, int pixelIndex)
@@ -941,5 +983,58 @@ public class Game1 : Game
 
         dynamicSound.SubmitBuffer(buffer);
         dynamicSound.Play();
+    }
+    
+    public void ToggleFullscreen()
+    {
+        graphics.IsFullScreen = !graphics.IsFullScreen;
+
+        // Use "Borderless" mode for a smoother experience
+        graphics.HardwareModeSwitch = false; 
+
+        if (graphics.IsFullScreen)
+        {
+            // Set to monitor's native resolution
+            graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        }
+        else
+        {
+            // Back to your 3x windowed mode with padding
+            graphics.PreferredBackBufferWidth = (224 * 3) + (sidePadding * 2);
+            graphics.PreferredBackBufferHeight = (288 * 3) + (sidePadding * 2);
+        }
+
+        graphics.ApplyChanges();
+    
+        // After applying changes, recalculate where the game renders
+        UpdateRenderDestination(); 
+    }
+
+    private void UpdateRenderDestination()
+    {
+        int screenWidth = GraphicsDevice.Viewport.Width;
+        int screenHeight = GraphicsDevice.Viewport.Height;
+
+        // 1. Calculate the raw float scales
+        float scaleX = (float)screenWidth / 224f;
+        float scaleY = (float)screenHeight / 288f;
+
+        // 2. Find the smallest one and "Floor" it to the nearest whole number
+        // This is the "Integer Scale"
+        int integerScale = (int)Math.Floor(Math.Min(scaleX, scaleY));
+
+        // 3. Safety check: Ensure scale is at least 1
+        if (integerScale < 1) integerScale = 1;
+
+        // 4. Calculate the resulting dimensions
+        int finalWidth = 224 * integerScale;
+        int finalHeight = 288 * integerScale;
+
+        // 5. Center it
+        int x = (screenWidth - finalWidth) / 2;
+        int y = (screenHeight - finalHeight) / 2;
+
+        _renderDestination = new Rectangle(x, y, finalWidth, finalHeight);
     }
 }
