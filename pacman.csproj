@@ -28,4 +28,7 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
     <PackageReference Include="Myra" Version="1.5.11" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CRT.fx" />
+  </ItemGroup>
 </Project>

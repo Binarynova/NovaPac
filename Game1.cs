@@ -274,22 +274,8 @@ public class Game1 : Game
             // 2: vram 43c0 to 43ff is the top two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
             // 3: vram 4040 to 43bf is the main grid of the game, top-to-bottom, right-to-left, starting on screen at the top-right below section 2
 
-            //for(int tileRow = 0; tileRow < 2; tileRow++) // top rows
-            //{
-            //    for(int tileCol = 0; tileCol < 32; tileCol++)
-            //    {
-            //        ushort vram = (ushort)(0x43C0 + tileCol + (0x20 * tileRow));
-            //        ushort pram = (ushort)(vram + 0x400);
-            //        int xPos = 232 - (tileCol * 8);
-            //        int yPos = tileRow * 8;
-            //        byte tileNumber = pacmanMachine.ReadByte(vram);
-            //        if(tileNumber is >= 0x47 and <= 0x49 || tileNumber == 0x55)
-            //            Console.WriteLine($"Tile {tileNumber:X2}");
-            //        byte paletteNumber = pacmanMachine.ReadByte(pram);
-            //        DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
-            //    }
-            //}
-
+            // top row (this is an arguably easier to read way to do this compared to my original code
+            // I want to use this format for the rest of the grid eventually
             for (int i = 0x3DF; i >= 0x3C0; i--)
             {
                 int tileAddress = 0x4000 + i;
@@ -303,6 +289,7 @@ public class Game1 : Game
                 
                 DrawTile(tileIndex, paletteIndex & 0x3F, xPos, yPos);
             }
+            // second row
             for (int i = 0x3FF; i >= 0x3E0; i--)
             {
                 int tileAddress = 0x4000 + i;
@@ -467,15 +454,16 @@ public class Game1 : Game
 
     void DrawSprite(int spriteIndex, int paletteIndex, int xPos, int yPos, bool flipX, bool flipY)
     {
-        int x, y;
         for(int i = 0; i < 16; i++)
         {
+            int x;
             if (flipX)
                 x = 15-i;
             else
                 x = i;
             for(int j = 0; j < 16; j++)
             {
+                int y;
                 if (flipY)
                     y = 15 - j;
                 else
@@ -985,7 +973,7 @@ public class Game1 : Game
         dynamicSound.Play();
     }
     
-    public void ToggleFullscreen()
+    private void ToggleFullscreen()
     {
         graphics.IsFullScreen = !graphics.IsFullScreen;
 
@@ -1017,8 +1005,8 @@ public class Game1 : Game
         int screenHeight = GraphicsDevice.Viewport.Height;
 
         // 1. Calculate the raw float scales
-        float scaleX = (float)screenWidth / 224f;
-        float scaleY = (float)screenHeight / 288f;
+        float scaleX = screenWidth / 224f;
+        float scaleY = screenHeight / 288f;
 
         // 2. Find the smallest one and "Floor" it to the nearest whole number
         // This is the "Integer Scale"
