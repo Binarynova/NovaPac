@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using System.Text.Json;
-using Reg = Registers;
 using Myra;
 using Myra.Graphics2D.UI;
 
@@ -15,6 +14,11 @@ namespace pacman;
 public class Game : Microsoft.Xna.Framework.Game
 {
     private Desktop desktop;
+    RenderTarget2D _nativeRenderTarget;
+    GraphicsDeviceManager graphics;
+    private SpriteBatch _spriteBatch;
+    Texture2D pixelTexture;
+    Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
@@ -23,17 +27,13 @@ public class Game : Microsoft.Xna.Framework.Game
     int internalWidth = 224;
     int internalHeight = 288;
     int sidePadding = 20;
-    private SpriteBatch _spriteBatch;
     private KeyboardState _previousKeyboardState;
-    Texture2D pixelTexture;
     ConsoleKeyInfo menuChoice;
     int mode = 0;
     bool SteppingThrough;
     StreamWriter trace;
     const float _speedMultiplier = 1f;
     int tileViewerPaletteIndex = 0;
-    GraphicsDeviceManager graphics;
-    Rectangle _renderDestination;
 
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
@@ -46,16 +46,12 @@ public class Game : Microsoft.Xna.Framework.Game
     const int spriteWidth = 16;
     const int CYCLES_PER_INTERRUPT = 51200;
     
-    List<int[,]> tiles = [];
-    List<int[,]> sprites = [];
-    List<Color> colors = [];
-    List<List<Color>> palettes = [];
     string romFileName;
-    RenderTarget2D _nativeRenderTarget;
 
     public Game(string[] args)
     {
         Args = args;
+        zexdocMachine = new Zexdoc();
         graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
@@ -135,7 +131,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (mode == 4)
         {
-            RunZexdocTests();
+            zexdocMachine.RunZexdocTests();
             Environment.Exit(0);
         }
         else
@@ -697,58 +693,6 @@ public class Game : Microsoft.Xna.Framework.Game
         Console.WriteLine("\nTests complete. Errors written to: testlog.txt");
         sw.Close();
         Environment.Exit(0);
-    }
-    
-    private void RunZexdocTests()
-    {
-        zexdocMachine = new Zexdoc();
-        cpu = new Z80Cpu(zexdocMachine);
-        // ... Initialization code ...
-        Reg.SP = 0xF000;
-        Reg.PC = 0x0100;
-
-        while (true)
-        {
-            // 1. Intercept the CP/M Call 5 BEFORE executing the opcode
-            if (Reg.PC == 0x0005)
-            {
-                HandleCpmCall();
-                // This manually performs the RET and continues the loop
-                continue; 
-            }
-
-            // 2. Safety check: Did we hit the exit?
-            if (Reg.PC == 0x0000) break;
-
-            // 3. Execute the instruction
-            byte opcode = zexdocMachine.ReadByte(Reg.PC);
-            cpu._mainOpcodes[opcode]();
-        
-            // Note: Your opcodes handle the PC incrementing, so we don't do it here.
-        }
-    
-        Console.WriteLine("\nTests Finished.");
-    }
-
-    private void HandleCpmCall()
-    {
-        if (Reg.C == 2) // Output character
-        {
-            Console.Write((char)Reg.E);
-        }
-        else if (Reg.C == 9) // Output string
-        {
-            ushort addr = Reg.DE;
-            byte current;
-            while ((current = zexdocMachine.ReadByte(addr++)) != (byte)'$')
-            {
-                Console.Write((char)current);
-            }
-        }
-
-        // IMPORTANT: After handling the print, we must return to where 
-        // the Zexdoc code called us from.
-        cpu.Op_RET(); 
     }
 
     private void PlayTestBeep()
