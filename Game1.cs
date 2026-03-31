@@ -170,14 +170,6 @@ public class Game1 : Game
         // Create a 1x1 white texture
         pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData([Color.White]);
-
-        if (mode != 4)
-        {
-            ReadTiles();
-            ReadSprites();
-            ReadColors();
-            ReadPalettes();
-        }
     }
 
     protected override void Update(GameTime gameTime)
@@ -398,41 +390,6 @@ public class Game1 : Game
         _spriteBatch.End();
     }
 
-    int GetPixelValue(byte pixelData, int pixelIndex)
-    {
-        int paletteValue = 0;
-        // returns the palette value of a pixel
-        switch(pixelIndex)
-        {
-            case 0 or 4:
-                if((pixelData & 0x80) != 0)
-                    paletteValue += 2;
-                if((pixelData & 0x08) != 0)
-                    paletteValue += 1;
-                break;
-            case 1 or 5:
-                if((pixelData & 0x40) != 0)
-                    paletteValue += 2;
-                if((pixelData & 0x04) != 0)
-                    paletteValue += 1;
-                break;
-            case 2 or 6:
-                if((pixelData & 0x20) != 0)
-                    paletteValue += 2;
-                if((pixelData & 0x02) != 0)
-                    paletteValue += 1;
-                break;
-            case 3 or 7:
-                if((pixelData & 0x10) != 0)
-                    paletteValue += 2;
-                if((pixelData & 0x01) != 0)
-                    paletteValue += 1;
-                break;
-        }
-
-        return paletteValue;
-    }
-
     void DrawTile(int tileIndex, int paletteIndex, int xPos, int yPos)
     {
         for(int i = 0; i < 8; i++)
@@ -441,10 +398,10 @@ public class Game1 : Game
             for(int j = 0; j < 8; j++)
             {
                 int y = j;
-                int colorIndex = tiles[tileIndex][i, j];
+                int colorIndex = pacmanMachine.tiles[tileIndex][i, j];
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x + xPos, y + yPos, 1, 1),
-                    palettes[paletteIndex][colorIndex]);
+                    pacmanMachine.palettes[paletteIndex][colorIndex]);
             }
         }
     }
@@ -466,165 +423,13 @@ public class Game1 : Game
                 else
                     y = j;
                 
-                int colorIndex = sprites[spriteIndex][i, j];
+                int colorIndex = pacmanMachine.sprites[spriteIndex][i, j];
                 if (colorIndex == 0) continue; // transparency
                 
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x+xPos, y+yPos, 1, 1),
-                    palettes[paletteIndex][colorIndex]);
+                    pacmanMachine.palettes[paletteIndex][colorIndex]);
             }
-        }
-    }
-
-    void ReadSprites()
-    {
-        for(int spIndex = 0; spIndex < 64; spIndex++)
-        {
-            int[,] sprite = new int[16,16];
-            for(int i = 0; i < 8; i++) // bottom right
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x00 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x08 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 2
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x10 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 3
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x18 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // bottom right
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x20 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x28 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 2
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x30 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 3
-            {
-                byte spriteQuad = pacmanMachine.spriteMemory[(0x38 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-            sprites.Add(sprite);
-        }
-    }
-
-    void ReadTiles()
-    {
-        for(int tileIndex = 0; tileIndex < 256; tileIndex++)
-        {
-            int[,] tile = new int[8,8];
-            for(int i = 0; i < 8; i++) // first 8 bytes of tile
-            {
-                byte pixelQuad = pacmanMachine.charMemory[i + (tileIndex * 16)];
-                for(int r = 4; r < 8; r++)
-                {
-                    tile[7-i,r] = GetPixelValue(pixelQuad,r);
-                }
-            }
-            for(int i = 8; i < 16; i++) // second 8 bytes of tile
-            {
-                byte pixelQuad = pacmanMachine.charMemory[i + (tileIndex * 16)];
-                for(int r = 0; r < 4; r++)
-                {
-                    tile[15-i,r] = GetPixelValue(pixelQuad, r);
-                }
-            }
-            
-            tiles.Add(tile);
-        }
-    }
-
-    void ReadColors()
-    {
-        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
-        colors =
-        [
-            new Color(0, 0, 0, 0), // 0 alpha to produce transparency
-            new Color(255, 0, 0, 255),
-            new Color(222, 151, 81, 255),
-            new Color(255, 184, 255, 255),
-            new Color(0, 0, 0, 255),
-            new Color(0, 255, 255, 255),
-            new Color(71, 184, 255, 255),
-            new Color(255, 184, 81, 255),
-            new Color(0, 0, 0, 255),
-            new Color(255, 255, 0, 255),
-            new Color(0, 0, 0, 255),
-            new Color(33, 33, 255, 255),
-            new Color(0, 255, 0, 255),
-            new Color(71, 184, 174, 255),
-            new Color(255, 184, 174, 255),
-            new Color(222, 222, 255, 255)
-        ];
-    }
-
-    void ReadPalettes()
-    {
-        for (int i = 0; i < 32; i++)
-        {
-            palettes.Add([
-                colors[pacmanMachine.paletteMemory[4*i + 0]],
-                colors[pacmanMachine.paletteMemory[4*i + 1]],
-                colors[pacmanMachine.paletteMemory[4*i + 2]],
-                colors[pacmanMachine.paletteMemory[4*i + 3]]
-            ]);
-        }
-        // second 32 palettes are just black
-        for (int i = 0; i < 32; i++)
-        {
-            palettes.Add([
-            new Color(0,0,0,255),
-            new Color(0,0,0,255),
-            new Color(0,0,0,255),
-            new Color(0,0,0,255)]);
         }
     }
 
