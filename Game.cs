@@ -23,9 +23,9 @@ public class Game : Microsoft.Xna.Framework.Game
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
     const int resScale = 3;
-    int internalWidth = 224;
-    int internalHeight = 288;
-    int sidePadding = 20;
+    const int internalWidth = 224;
+    const int internalHeight = 288;
+    const int sidePadding = 20;
     private KeyboardState _previousKeyboardState;
     ConsoleKeyInfo menuChoice;
     int mode = 0;
@@ -37,8 +37,8 @@ public class Game : Microsoft.Xna.Framework.Game
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
     PacManPCB _pacManPcb;
-    ZEXDOC zexdocMachine;
-    SingleStateTests _singleStateTests;
+    ZEXDOC _zexdocTests;
+    SSTests _singleStateTests;
 
     int interruptCycleCounter;
     const int tileWidth = 8;
@@ -50,8 +50,8 @@ public class Game : Microsoft.Xna.Framework.Game
     public Game(string[] args)
     {
         Args = args;
-        zexdocMachine = new ZEXDOC();
-        _singleStateTests = new SingleStateTests();
+        _zexdocTests = new ZEXDOC();
+        _singleStateTests = new SSTests();
         graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
@@ -116,7 +116,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     break;
                 case ConsoleKey.D6:
                     Console.WriteLine("Running single-step tests...");
-                    _singleStateTests.RunSingleStepTests();
+                    _singleStateTests.Run();
                     break;
                 case ConsoleKey.D7:
                     mode = 1;
@@ -131,7 +131,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (mode == 4)
         {
-            zexdocMachine.RunZexdocTests();
+            _zexdocTests.Run();
             Environment.Exit(0);
         }
         else

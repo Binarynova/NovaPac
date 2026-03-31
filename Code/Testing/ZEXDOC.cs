@@ -30,7 +30,7 @@ public class ZEXDOC : IMemoryProvider
         Array.Clear(Memory, 0, Memory.Length);
     }
     
-    public void RunZexdocTests()
+    public void Run()
     {
         // ... Initialization code ...
         Reg.SP = 0xF000;

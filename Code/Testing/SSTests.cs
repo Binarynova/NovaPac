@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-public class SingleStateTests : IMemoryProvider
+public class SSTests : IMemoryProvider
 {
     Z80Cpu cpu;
     private byte[] Memory = new byte[0x10000];
@@ -21,16 +21,16 @@ public class SingleStateTests : IMemoryProvider
         Array.Clear(Memory, 0, Memory.Length);
     }
 
-    public SingleStateTests()
+    public SSTests()
     {
         cpu = new Z80Cpu(this);
     }
     
 
-    public void RunSingleStepTests()
+    public void Run()
     {
         // Load
-        IMemoryProvider sstMachine = new SingleStateTests();
+        IMemoryProvider sstMachine = new SSTests();
         cpu = new Z80Cpu(sstMachine);
         int hexCode = 0;
         int passedCount;
