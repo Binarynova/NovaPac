@@ -29,6 +29,7 @@ public class Game : Microsoft.Xna.Framework.Game
     private KeyboardState _previousKeyboardState;
     ConsoleKeyInfo menuChoice;
     int mode = 0;
+    int graphicsViewMode = 0;
     bool SteppingThrough;
     StreamWriter trace;
     const float _speedMultiplier = 1f;
@@ -207,7 +208,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 if (cycles <= 0) break; 
             }
         }
-        else if(mode is 2 or 3)
+        else if(mode == 2)
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -215,13 +216,13 @@ public class Game : Microsoft.Xna.Framework.Game
                      keyboardState.IsKeyDown(Keys.Right) && _previousKeyboardState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
-                switch(mode)
+                switch(graphicsViewMode)
                 {
-                    case 2:
-                        mode = 3;
+                    case 0:
+                        graphicsViewMode = 1;
                         break;
-                    case 3:
-                        mode = 2;
+                    case 1:
+                        graphicsViewMode = 0;
                         break;
                 }
             }
@@ -343,35 +344,32 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 435, 435), Color.Black); // tile grid
-            int offset = 1;
-            for(int i = 0; i < 16; i++)
+            
+            int padding = 1;
+            if (graphicsViewMode == 0) // view tiles
             {
-                for(int j = 0; j < 16; j++)
+                for(int i = 0; i < 16; i++)
                 {
-                    int tileIndex = j * 16 + i;
-                    int tileXPos = i * (tileWidth + offset) + offset;
-                    int tileYPos = j * (tileWidth + offset) + offset;
-                    DrawTile(tileIndex, tileViewerPalettes[tileViewerPaletteIndex], tileXPos, tileYPos);
+                    for(int j = 0; j < 16; j++)
+                    {
+                        int tileIndex = j * 16 + i;
+                        int tileXPos = i * (tileWidth + padding) + padding;
+                        int tileYPos = j * (tileWidth + padding) + padding;
+                        DrawTile(tileIndex, tileViewerPalettes[tileViewerPaletteIndex], tileXPos, tileYPos);
+                    }
                 }
             }
-
-            _spriteBatch.End();
-        }
-        else if(mode == 3)
-        {
-            GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            _spriteBatch.Draw(pixelTexture,new Rectangle(0, 0, 411, 411), Color.Black); // tile grid
-            int offset = 1;
-            for(int i = 0; i < 8; i++)
+            else if (graphicsViewMode == 1) // view sprites
             {
-                for(int j = 0; j < 8; j++)
+                for(int i = 0; i < 8; i++)
                 {
-                    int spriteIndex = j * 8 + i;
-                    int spriteXPos = i * (spriteWidth + offset) + offset;
-                    int spriteYPos = j * (spriteWidth + offset) + offset;
-                    DrawSprite(spriteIndex, tileViewerPalettes[tileViewerPaletteIndex], spriteXPos, spriteYPos, false, false);
+                    for(int j = 0; j < 8; j++)
+                    {
+                        int spriteIndex = j * 8 + i;
+                        int spriteXPos = i * (spriteWidth + padding) + padding;
+                        int spriteYPos = j * (spriteWidth + padding) + padding;
+                        DrawSprite(spriteIndex, tileViewerPalettes[tileViewerPaletteIndex], spriteXPos, spriteYPos, false, false);
+                    }
                 }
             }
 
