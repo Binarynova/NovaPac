@@ -16,12 +16,27 @@ public class Pacman : IMemoryProvider
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
     private WSG soundGenerator;
+    Z80 cpu;
     
     public Pacman(string romFileName)
     {
-        ClearRAM();
+        cpu = new Z80(this);
         soundGenerator = new WSG(romFileName);
+        
+        ClearRAM();
         LoadRom(romFileName);
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        int cycles = cpu.Step(steppingThrough);
+
+        return cycles;
+    }
+
+    public void TriggerVBlankInterrupt()
+    {
+        cpu.RequestInterrupt();
     }
     
     public byte GetSpriteRam(int index)

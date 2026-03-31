@@ -141,7 +141,6 @@ public class Game1 : Game
         else
         {
             pacmanMachine = new Pacman(romFileName);
-            cpu = new Z80(pacmanMachine);
             base.Initialize();
         }
     }
@@ -164,7 +163,6 @@ public class Game1 : Game
         desktop = new Desktop();
         desktop.Root = grid;
         
-        
         trace = new StreamWriter("trace.txt");
         trace.AutoFlush = false;
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -173,7 +171,6 @@ public class Game1 : Game
         pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData([Color.White]);
 
-        cpu.Reset();
         if (mode != 4)
         {
             ReadTiles();
@@ -208,13 +205,13 @@ public class Game1 : Game
 
             while (_cycleAccumulator > 0)
             {
-                int cycles = cpu.Step(SteppingThrough);
+                int cycles = pacmanMachine.Step(SteppingThrough);
                 _cycleAccumulator -= cycles;
 
                 interruptCycleCounter += cycles;
                 if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
                 {
-                    cpu.RequestInterrupt();
+                    pacmanMachine.TriggerVBlankInterrupt();
                     interruptCycleCounter -= CYCLES_PER_INTERRUPT;
                 }
             

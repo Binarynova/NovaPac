@@ -34,6 +34,7 @@ public partial class Z80
     public Z80(IMemoryProvider machine)
     {
         _machine = machine;
+        Reset();
 
         BuildOpcodeTable();
         InitParity();
