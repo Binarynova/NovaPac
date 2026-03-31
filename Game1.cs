@@ -399,6 +399,7 @@ public class Game1 : Game
             {
                 int y = j;
                 int colorIndex = pacmanMachine.tiles[tileIndex][i, j];
+                if (paletteIndex > 31) paletteIndex = 0;
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x + xPos, y + yPos, 1, 1),
                     pacmanMachine.palettes[paletteIndex][colorIndex]);
@@ -425,7 +426,7 @@ public class Game1 : Game
                 
                 int colorIndex = pacmanMachine.sprites[spriteIndex][i, j];
                 if (colorIndex == 0) continue; // transparency
-                
+                if (paletteIndex > 31) paletteIndex = 0;
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x+xPos, y+yPos, 1, 1),
                     pacmanMachine.palettes[paletteIndex][colorIndex]);

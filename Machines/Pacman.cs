@@ -296,14 +296,6 @@ public class Pacman : IMemoryProvider
             ]);
         }
         // second 32 palettes are just black
-        for (int i = 0; i < 32; i++)
-        {
-            palettes.Add([
-                new Color(0,0,0,255),
-                new Color(0,0,0,255),
-                new Color(0,0,0,255),
-                new Color(0,0,0,255)]);
-        }
     }
 
     private void PrepareTiles()
