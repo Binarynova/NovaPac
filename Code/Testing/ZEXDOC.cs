@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using Reg = Registers;
 
-public class Zexdoc : IMemoryProvider
+public class ZEXDOC : IMemoryProvider
 {
     public byte[] Memory = new byte[0x10000];
     Z80Cpu _cpu;
 
-    public Zexdoc()
+    public ZEXDOC()
     {
         _cpu = new Z80Cpu(this);
         LoadRom();
