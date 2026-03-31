@@ -12,7 +12,7 @@ using Myra.Graphics2D.UI;
 
 namespace pacman;
 
-public class Game1 : Game
+public class Game : Microsoft.Xna.Framework.Game
 {
     private Desktop desktop;
     private double _cycleAccumulator = 0;
@@ -37,9 +37,9 @@ public class Game1 : Game
 
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
-    Pacman pacmanMachine;
+    PacManPCB _pacManPcb;
     Zexdoc zexdocMachine;
-    Z80 cpu;
+    Z80Cpu cpu;
 
     int interruptCycleCounter;
     const int tileWidth = 8;
@@ -53,7 +53,7 @@ public class Game1 : Game
     string romFileName;
     RenderTarget2D _nativeRenderTarget;
 
-    public Game1(string[] args)
+    public Game(string[] args)
     {
         Args = args;
         graphics = new GraphicsDeviceManager(this);
@@ -140,8 +140,8 @@ public class Game1 : Game
         }
         else
         {
-            pacmanMachine = new Pacman(romFileName);
-            pacmanMachine.InitializeGraphics(GraphicsDevice);
+            _pacManPcb = new PacManPCB(romFileName);
+            _pacManPcb.InitializeGraphics(GraphicsDevice);
             base.Initialize();
         }
     }
@@ -198,13 +198,13 @@ public class Game1 : Game
 
             while (_cycleAccumulator > 0)
             {
-                int cycles = pacmanMachine.Step(SteppingThrough);
+                int cycles = _pacManPcb.Step(SteppingThrough);
                 _cycleAccumulator -= cycles;
 
                 interruptCycleCounter += cycles;
                 if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
                 {
-                    pacmanMachine.TriggerVBlankInterrupt();
+                    _pacManPcb.TriggerVBlankInterrupt();
                     interruptCycleCounter -= CYCLES_PER_INTERRUPT;
                 }
             
@@ -271,8 +271,8 @@ public class Game1 : Game
                 int tileAddress = 0x4000 + i;
                 int paletteAddress = 0x4400 + i;
 
-                byte tileIndex = pacmanMachine.ReadByte((ushort)tileAddress);
-                byte paletteIndex = pacmanMachine.ReadByte((ushort)paletteAddress);
+                byte tileIndex = _pacManPcb.ReadByte((ushort)tileAddress);
+                byte paletteIndex = _pacManPcb.ReadByte((ushort)paletteAddress);
 
                 const int yPos = 0;
                 int xPos = 232 - (i - 0x3C0) * 8;
@@ -285,8 +285,8 @@ public class Game1 : Game
                 int tileAddress = 0x4000 + i;
                 int paletteAddress = 0x4400 + i;
 
-                byte tileIndex = pacmanMachine.ReadByte((ushort)tileAddress);
-                byte paletteIndex = pacmanMachine.ReadByte((ushort)paletteAddress);
+                byte tileIndex = _pacManPcb.ReadByte((ushort)tileAddress);
+                byte paletteIndex = _pacManPcb.ReadByte((ushort)paletteAddress);
 
                 const int yPos = 8;
                 int xPos = 232 - (i - 0x3E0) * 8;
@@ -302,8 +302,8 @@ public class Game1 : Game
                     ushort pram = (ushort)(vram + 0x400);
                     int xPos = 216 - (tileCol * 8);
                     int yPos = 16 + (tileRow * 8);
-                    byte tileNumber = pacmanMachine.ReadByte(vram);
-                    byte paletteNumber = pacmanMachine.ReadByte(pram);
+                    byte tileNumber = _pacManPcb.ReadByte(vram);
+                    byte paletteNumber = _pacManPcb.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
@@ -316,8 +316,8 @@ public class Game1 : Game
                     ushort pram = (ushort)(vram + 0x400);
                     int xPos = 232 - (tileCol * 8);
                     int yPos = 272 + (tileRow * 8);
-                    byte tileNumber = pacmanMachine.ReadByte(vram);
-                    byte paletteNumber = pacmanMachine.ReadByte(pram);
+                    byte tileNumber = _pacManPcb.ReadByte(vram);
+                    byte paletteNumber = _pacManPcb.ReadByte(pram);
                     DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
                 }
             }
@@ -326,11 +326,11 @@ public class Game1 : Game
             for (int sprite = 7; sprite >= 0; sprite--)
             {
                 int offset = sprite * 2;
-                int attr = pacmanMachine.GetSpriteRam(offset);
+                int attr = _pacManPcb.GetSpriteRam(offset);
                 
-                int rawX = pacmanMachine.GetSpriteRam2(offset);
-                int rawY = pacmanMachine.GetSpriteRam2(offset + 1);
-                int paletteIndex = pacmanMachine.GetSpriteRam(offset + 1);
+                int rawX = _pacManPcb.GetSpriteRam2(offset);
+                int rawY = _pacManPcb.GetSpriteRam2(offset + 1);
+                int paletteIndex = _pacManPcb.GetSpriteRam(offset + 1);
                 
                 int spriteIndex = (attr & 0xFC) >> 2;
                 bool xFlip = (attr & 0x02) != 0;
@@ -399,11 +399,11 @@ public class Game1 : Game
             for(int j = 0; j < 8; j++)
             {
                 int y = j;
-                int colorIndex = pacmanMachine.tiles[tileIndex][i, j];
+                int colorIndex = _pacManPcb.tiles[tileIndex][i, j];
                 if (paletteIndex > 31) paletteIndex = 0;
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x + xPos, y + yPos, 1, 1),
-                    pacmanMachine.palettes[paletteIndex][colorIndex]);
+                    _pacManPcb.palettes[paletteIndex][colorIndex]);
             }
         }
     }
@@ -425,12 +425,12 @@ public class Game1 : Game
                 else
                     y = j;
                 
-                int colorIndex = pacmanMachine.sprites[spriteIndex][i, j];
+                int colorIndex = _pacManPcb.sprites[spriteIndex][i, j];
                 if (colorIndex == 0) continue; // transparency
                 if (paletteIndex > 31) paletteIndex = 0;
                 _spriteBatch.Draw(pixelTexture,
                     new Rectangle(x+xPos, y+yPos, 1, 1),
-                    pacmanMachine.palettes[paletteIndex][colorIndex]);
+                    _pacManPcb.palettes[paletteIndex][colorIndex]);
             }
         }
     }
@@ -439,7 +439,7 @@ public class Game1 : Game
     {
         // Load
         IMemoryProvider sstMachine = new SSTMachine();
-        cpu = new Z80(sstMachine);
+        cpu = new Z80Cpu(sstMachine);
         int hexCode = 0;
         int passedCount;
         
@@ -702,7 +702,7 @@ public class Game1 : Game
     private void RunZexdocTests()
     {
         zexdocMachine = new Zexdoc();
-        cpu = new Z80(zexdocMachine);
+        cpu = new Z80Cpu(zexdocMachine);
         // ... Initialization code ...
         Reg.SP = 0xF000;
         Reg.PC = 0x0100;

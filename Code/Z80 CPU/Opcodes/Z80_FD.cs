@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private int Op_FD() // Opcode: FD
     {

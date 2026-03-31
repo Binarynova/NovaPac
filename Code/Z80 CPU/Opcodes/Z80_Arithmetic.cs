@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
     {

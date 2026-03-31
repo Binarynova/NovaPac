@@ -2,7 +2,7 @@ using System;
 using System.Xml.Schema;
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private int Op_ED() // Opcode: ED
     {

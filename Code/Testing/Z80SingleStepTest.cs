@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-
 public class Z80SingleStepTest
 {
     [JsonPropertyName("name")]

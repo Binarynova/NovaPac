@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private int Op_AND(byte register) // Opcodes: A0 A1 A2 A3 A4 A5 A7
     {

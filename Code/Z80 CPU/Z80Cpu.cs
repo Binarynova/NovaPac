@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private IMemoryProvider _machine;
     private readonly bool[] _parity = new bool[256];
@@ -31,7 +31,7 @@ public partial class Z80
         C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
     }
     
-    public Z80(IMemoryProvider machine)
+    public Z80Cpu(IMemoryProvider machine)
     {
         _machine = machine;
         Reset();

@@ -26,6 +26,4 @@ public class Zexdoc : IMemoryProvider
     {
         Array.Clear(Memory, 0, Memory.Length);
     }
-    public byte ReadPort(ushort port) => 0xFF; // Zexdoc doesn't use ports
-    public void WritePort(ushort port, byte value) { }
 }

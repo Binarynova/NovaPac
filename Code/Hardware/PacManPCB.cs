@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using pacman;
 
-public class Pacman : IMemoryProvider
+public class PacManPCB : IMemoryProvider
 {
     GraphicsDevice _graphicsDevice;
     private byte[] Memory = new byte[0x10000];
@@ -17,18 +17,18 @@ public class Pacman : IMemoryProvider
     private byte[] u5, u6, u7;
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
-    private WSG soundGenerator;
-    Z80 cpu;
+    private NamcoWSG wsg;
+    private Z80Cpu cpu;
     
     public List<int[,]> tiles = [];
     public List<int[,]> sprites = [];
     public List<Color> colors = [];
     public List<List<Color>> palettes = [];
     
-    public Pacman(string romFileName)
+    public PacManPCB(string romFileName)
     {
-        cpu = new Z80(this);
-        soundGenerator = new WSG(romFileName);
+        cpu = new Z80Cpu(this);
+        wsg = new NamcoWSG(romFileName);
         
         ClearRAM();
         LoadRom(romFileName);
@@ -98,7 +98,7 @@ public class Pacman : IMemoryProvider
         // Intercept sound writes
         if (address >= 0x5040 && address <= 0x505F)
         {
-            soundGenerator.UpdateRegister(address, value);
+            wsg.UpdateRegister(address, value);
             return;
         }
         

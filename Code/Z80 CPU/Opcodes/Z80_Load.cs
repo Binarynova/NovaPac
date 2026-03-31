@@ -1,6 +1,6 @@
 using Reg = Registers;
 
-public partial class Z80
+public partial class Z80Cpu
 {
     private int Op_LD_r_n(ref byte register)
     {

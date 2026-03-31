@@ -5,7 +5,7 @@ using System.IO.Compression;
 
 namespace pacman;
 
-public class WSG
+public class NamcoWSG
 {
     public int cycleCounter;
     
@@ -26,7 +26,7 @@ public class WSG
     public byte Voice3Waveform = 0x00;
     private int Voice3Accumulator = 0;
 
-    public WSG(string romFileName)
+    public NamcoWSG(string romFileName)
     {
         LoadRom(romFileName);
     }
