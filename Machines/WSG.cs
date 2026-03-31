@@ -36,7 +36,7 @@ public class WSG
         
     }
 
-    public byte UpdateRegister(ushort address, byte value)
+    public void UpdateRegister(ushort address, byte value)
     {
         switch (address)
         {
@@ -88,8 +88,6 @@ public class WSG
                 Voice3Accumulator |= (value & 0x0F) << (4 * (address - 0x504B));
                 break;
         }
-
-        return 0;
     }
     
     private void LoadRom(string romFileName)
