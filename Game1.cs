@@ -141,6 +141,7 @@ public class Game1 : Game
         else
         {
             pacmanMachine = new Pacman(romFileName);
+            pacmanMachine.InitializeGraphics(GraphicsDevice);
             base.Initialize();
         }
     }

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using pacman;
 
 public class Pacman : IMemoryProvider
 {
+    GraphicsDevice _graphicsDevice;
     private byte[] Memory = new byte[0x10000];
     public byte[] paletteMemory;
     public byte[] charMemory;
@@ -30,7 +32,12 @@ public class Pacman : IMemoryProvider
         
         ClearRAM();
         LoadRom(romFileName);
+    }
 
+    public void InitializeGraphics(GraphicsDevice device)
+    {
+        _graphicsDevice = device;
+        
         PrepareColors();
         PreparePalettes();
         PrepareTiles();
