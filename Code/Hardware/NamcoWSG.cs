@@ -8,30 +8,29 @@ namespace pacman;
 
 public class NamcoWSG
 {
-    public double _accumulator = 0;
+    private double _accumulator = 0;
     private long _totalGenerated = 0;
     private const double CyclesPerSample = 3072000.0 / 44100.0;
     
-    private Queue<short> _sampleBuffer = new Queue<short>();
-    bool voice1Enabled = true;
-    bool voice2Enabled = true;
-    bool voice3Enabled = true;
+    public float MasterVolume { get; set; } = 1.0f;
+    private const int MaxGain = 90;
     
+    private Queue<short> _sampleBuffer = new Queue<short>();
     private byte[] waveformROM = new byte[512];
 
     private int Voice1Frequency = 0;
-    public byte Voice1Volume = 0x00;
-    public byte Voice1Waveform = 0x00;
+    private byte Voice1Volume = 0x00;
+    private byte Voice1Waveform = 0x00;
     private double Voice1Accumulator = 0;
     
-    public int Voice2Frequency = 0;
-    public byte Voice2Volume = 0x00;
-    public byte Voice2Waveform = 0x00;
+    private int Voice2Frequency = 0;
+    private byte Voice2Volume = 0x00;
+    private byte Voice2Waveform = 0x00;
     private double Voice2Accumulator = 0;
     
-    public int Voice3Frequency = 0;
-    public byte Voice3Volume = 0x00;
-    public byte Voice3Waveform = 0x00;
+    private int Voice3Frequency = 0;
+    private byte Voice3Volume = 0x00;
+    private byte Voice3Waveform = 0x00;
     private double Voice3Accumulator = 0;
 
     public NamcoWSG(string romFileName)
@@ -67,7 +66,7 @@ public class NamcoWSG
 
         // --- VOICE 1 (20-bit logic) ---
         Voice1Accumulator += Voice1Frequency * soundTicksPerSample;
-        Voice1Accumulator %= 0x100000; // Roll over at 2^20
+        Voice1Accumulator %= 0x100000;
         int idx1 = ((int)Voice1Accumulator >> 15) & 0x1F;
         combinedOutput += (waveformROM[(Voice1Waveform * 32) + idx1] - 8) * Voice1Volume;
 
@@ -83,7 +82,8 @@ public class NamcoWSG
         int idx3 = ((int)Voice3Accumulator >> 11) & 0x1F;
         combinedOutput += (waveformROM[(Voice3Waveform * 32) + idx3] - 8) * Voice3Volume;
 
-        return (short)(combinedOutput * 90);
+        float finalGain = MasterVolume * MaxGain;
+        return (short)(combinedOutput * finalGain);
     }
 
     public void UpdateRegister(ushort address, byte value)
@@ -118,7 +118,6 @@ public class NamcoWSG
                 case 0x505E: Voice3Frequency = (Voice3Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
                 case 0x505F: Voice3Volume = (byte)(value & 0x0F); break;
         }
-            if (address >= 0x5050) Console.WriteLine($"V1:{Voice1Volume} V2:{Voice2Volume} V3:{Voice3Volume}");
     }
     
     private void LoadRom(string romFileName)
