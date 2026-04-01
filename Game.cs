@@ -175,9 +175,9 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             short[] samples = _pacManPcb.GetAudioSamples();
     
-            // If the PCB is empty, we MUST still submit silence to keep the thread alive
+            // If the audio buffer is empty, still submit silence to keep the thread alive
             if (samples == null || samples.Length == 0) {
-                samples = new short[441]; // submit 10ms of silence
+                samples = new short[441];
             }
 
             byte[] byteArray = new byte[samples.Length * 2];
