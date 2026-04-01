@@ -399,29 +399,14 @@ public class Game : Microsoft.Xna.Framework.Game
 
     void DrawSprite(int spriteIndex, int paletteIndex, int xPos, int yPos, bool flipX, bool flipY)
     {
-        for(int i = 0; i < 16; i++)
-        {
-            int x;
-            if (flipX)
-                x = 15-i;
-            else
-                x = i;
-            for(int j = 0; j < 16; j++)
-            {
-                int y;
-                if (flipY)
-                    y = 15 - j;
-                else
-                    y = j;
-                
-                int colorIndex = _pacManPcb.sprites[spriteIndex][i, j];
-                if (colorIndex == 0) continue; // transparency
-                if (paletteIndex > 31) paletteIndex = 0;
-                _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x+xPos, y+yPos, 1, 1),
-                    _pacManPcb.palettes[paletteIndex][colorIndex]);
-            }
-        }
+        if (paletteIndex > 31) paletteIndex = 0;
+        
+        SpriteEffects effects = SpriteEffects.None;
+        if (flipX) effects |= SpriteEffects.FlipHorizontally;
+        if (flipY) effects |= SpriteEffects.FlipVertically;
+        
+        Texture2D spriteTexture = _pacManPcb.SpriteTextures[spriteIndex, paletteIndex];
+        _spriteBatch.Draw(spriteTexture, new Vector2(xPos, yPos), null, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);
     }
 
     private void PlayTestBeep()

@@ -23,6 +23,7 @@ public class PacManPCB : IMemoryProvider
     public List<int[,]> tiles = [];
     public Texture2D[,] TileTextures = new Texture2D[256, 32];
     public List<int[,]> sprites = [];
+    public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
     public List<Color> colors = [];
     public List<List<Color>> palettes = [];
     
@@ -42,7 +43,7 @@ public class PacManPCB : IMemoryProvider
         PrepareColors();
         PreparePalettes();
         PrepareTileTextures(_graphicsDevice);
-        PrepareSprites();
+        PrepareSpriteTextures(_graphicsDevice);
     }
 
     public int Step(bool steppingThrough)
@@ -354,6 +355,112 @@ public class PacManPCB : IMemoryProvider
         return tile;
     }
 
+    public void PrepareSpriteTextures(GraphicsDevice graphicsDevice)
+    {
+        for (int spriteIndex = 0; spriteIndex < 64; spriteIndex++)
+        {
+            int[,] rawSprite = ExtractRawSpriteData(spriteIndex);
+            for (int paletteIndex = 0; paletteIndex < 32; paletteIndex++)
+            {
+                Texture2D spriteTexture = new Texture2D(graphicsDevice, 16, 16);
+                Color[] colorData = new Color[16 * 16];
+
+                for (int y = 0; y < 16; y++)
+                {
+                    for (int x = 0; x < 16; x++)
+                    {
+                        int colorId = rawSprite[x, y];
+                        colorData[y * 16 + x] = palettes[paletteIndex][colorId];
+                    }
+                }
+                
+                spriteTexture.SetData(colorData);
+                SpriteTextures[spriteIndex, paletteIndex] = spriteTexture;
+            }
+        }
+    }
+    
+    private int[,] ExtractRawSpriteData(int spriteIndex)
+    {
+        //for(int spIndex = 0; spIndex < 64; spIndex++)
+        //{
+            int[,] sprite = new int[16,16];
+            for(int i = 0; i < 8; i++) // bottom right
+            {
+                byte spriteQuad = spriteMemory[(0x00 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right
+            {
+                byte spriteQuad = spriteMemory[(0x08 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 2
+            {
+                byte spriteQuad = spriteMemory[(0x10 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 3
+            {
+                byte spriteQuad = spriteMemory[(0x18 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // bottom right
+            {
+                byte spriteQuad = spriteMemory[(0x20 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right
+            {
+                byte spriteQuad = spriteMemory[(0x28 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 2
+            {
+                byte spriteQuad = spriteMemory[(0x30 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            for(int i = 0; i < 8; i++) // top right 3
+            {
+                byte spriteQuad = spriteMemory[(0x38 + i) + (0x40 * spriteIndex)];
+                for (int r = 0; r < 4; r++)
+                {
+                    sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
+                }
+            }
+
+            return sprite;
+            //}
+    }
+
     void PrepareColors()
     {
         // hard-coded because the ROM stores them as intensities of output on hardware, not as color
@@ -376,86 +483,6 @@ public class PacManPCB : IMemoryProvider
             new Color(255, 184, 174, 255),
             new Color(222, 222, 255, 255)
         ];
-    }
-    
-    void PrepareSprites()
-    {
-        for(int spIndex = 0; spIndex < 64; spIndex++)
-        {
-            int[,] sprite = new int[16,16];
-            for(int i = 0; i < 8; i++) // bottom right
-            {
-                byte spriteQuad = spriteMemory[(0x00 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right
-            {
-                byte spriteQuad = spriteMemory[(0x08 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 2
-            {
-                byte spriteQuad = spriteMemory[(0x10 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 3
-            {
-                byte spriteQuad = spriteMemory[(0x18 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // bottom right
-            {
-                byte spriteQuad = spriteMemory[(0x20 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right
-            {
-                byte spriteQuad = spriteMemory[(0x28 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 2
-            {
-                byte spriteQuad = spriteMemory[(0x30 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-
-            for(int i = 0; i < 8; i++) // top right 3
-            {
-                byte spriteQuad = spriteMemory[(0x38 + i) + (0x40 * spIndex)];
-                for (int r = 0; r < 4; r++)
-                {
-                    sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
-                }
-            }
-            sprites.Add(sprite);
-        }
     }
 
     int GetPixelValue(byte pixelData, int pixelIndex)
