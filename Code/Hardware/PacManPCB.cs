@@ -21,6 +21,7 @@ public class PacManPCB : IMemoryProvider
     private Z80Cpu cpu;
     
     public List<int[,]> tiles = [];
+    public Texture2D[,] TileTextures = new Texture2D[256, 32];
     public List<int[,]> sprites = [];
     public List<Color> colors = [];
     public List<List<Color>> palettes = [];
@@ -41,6 +42,7 @@ public class PacManPCB : IMemoryProvider
         PrepareColors();
         PreparePalettes();
         PrepareTiles();
+        PrepareTileTextures(_graphicsDevice);
         PrepareSprites();
     }
 
@@ -329,6 +331,54 @@ public class PacManPCB : IMemoryProvider
             
             tiles.Add(tile);
         }
+    }
+
+    public void PrepareTileTextures(GraphicsDevice graphicsDevice)
+    {
+        for (int tileIndex = 0; tileIndex < 256; tileIndex++)
+        {
+            int[,] rawTile = ExtractRawTileData(tileIndex);
+            for (int paletteIndex = 0; paletteIndex < 32; paletteIndex++)
+            {
+                Texture2D tileTexture = new Texture2D(graphicsDevice, 8, 8);
+                Color[] colorData = new Color[8 * 8];
+
+                for (int y = 0; y < 8; y++)
+                {
+                    for (int x = 0; x < 8; x++)
+                    {
+                        int colorId = rawTile[x, y];
+                        colorData[y * 8 + x] = palettes[paletteIndex][colorId];
+                    }
+                }
+                
+                tileTexture.SetData(colorData);
+                TileTextures[tileIndex, paletteIndex] = tileTexture;
+            }
+        }
+    }
+    
+    private int[,] ExtractRawTileData(int tileIndex)
+    {
+        int[,] tile = new int[8,8];
+        for(int i = 0; i < 8; i++) // first 8 bytes of tile
+        {
+            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            for(int r = 4; r < 8; r++)
+            {
+                tile[7-i,r] = GetPixelValue(pixelQuad,r);
+            }
+        }
+        for(int i = 8; i < 16; i++) // second 8 bytes of tile
+        {
+            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            for(int r = 0; r < 4; r++)
+            {
+                tile[15-i,r] = GetPixelValue(pixelQuad, r);
+            }
+        }
+        
+        return tile;
     }
 
     void PrepareColors()

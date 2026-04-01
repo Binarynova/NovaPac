@@ -392,19 +392,9 @@ public class Game : Microsoft.Xna.Framework.Game
     
     void DrawTile(int tileIndex, int paletteIndex, int xPos, int yPos)
     {
-        for(int i = 0; i < 8; i++)
-        {
-            int x = i;
-            for(int j = 0; j < 8; j++)
-            {
-                int y = j;
-                int colorIndex = _pacManPcb.tiles[tileIndex][i, j];
-                if (paletteIndex > 31) paletteIndex = 0;
-                _spriteBatch.Draw(pixelTexture,
-                    new Rectangle(x + xPos, y + yPos, 1, 1),
-                    _pacManPcb.palettes[paletteIndex][colorIndex]);
-            }
-        }
+        if (paletteIndex > 31) paletteIndex = 0;
+        Texture2D tileTexture = _pacManPcb.TileTextures[tileIndex, paletteIndex];
+        _spriteBatch.Draw(tileTexture, new Vector2(xPos, yPos), Color.White);
     }
 
     void DrawSprite(int spriteIndex, int paletteIndex, int xPos, int yPos, bool flipX, bool flipY)
