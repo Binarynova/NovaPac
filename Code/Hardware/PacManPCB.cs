@@ -49,8 +49,14 @@ public class PacManPCB : IMemoryProvider
     public int Step(bool steppingThrough)
     {
         int cycles = cpu.Step(steppingThrough);
+        wsg.Update(cycles);
 
         return cycles;
+    }
+
+    public short[] GetAudioSamples()
+    {
+        return wsg.DumpSamples();
     }
 
     public void TriggerVBlankInterrupt()

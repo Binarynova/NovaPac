@@ -12,6 +12,7 @@ namespace pacman;
 
 public class Game : Microsoft.Xna.Framework.Game
 {
+    DynamicSoundEffectInstance _soundOut;
     private Desktop desktop;
     RenderTarget2D _nativeRenderTarget;
     GraphicsDeviceManager graphics;
@@ -137,6 +138,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
+            _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
+            _soundOut.Play();
             _pacManPcb = new PacManPCB(romFileName);
             _pacManPcb.InitializeGraphics(GraphicsDevice);
             base.Initialize();
@@ -146,7 +149,6 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
-        PlayTestBeep();
         MyraEnvironment.Game = this;
 
         var grid = new Grid
@@ -168,6 +170,20 @@ public class Game : Microsoft.Xna.Framework.Game
         // Create a 1x1 white texture
         pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
         pixelTexture.SetData([Color.White]);
+
+        _soundOut.BufferNeeded += (s, e) =>
+        {
+            short[] samples = _pacManPcb.GetAudioSamples();
+    
+            // If the PCB is empty, we MUST still submit silence to keep the thread alive
+            if (samples == null || samples.Length == 0) {
+                samples = new short[441]; // submit 10ms of silence
+            }
+
+            byte[] byteArray = new byte[samples.Length * 2];
+            Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
+            _soundOut.SubmitBuffer(byteArray);
+        };
     }
 
     protected override void Update(GameTime gameTime)
@@ -407,32 +423,6 @@ public class Game : Microsoft.Xna.Framework.Game
         
         Texture2D spriteTexture = _pacManPcb.SpriteTextures[spriteIndex, paletteIndex];
         _spriteBatch.Draw(spriteTexture, new Vector2(xPos, yPos), null, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);
-    }
-
-    private void PlayTestBeep()
-    {
-        int sampleRate = 44_000;
-        var dynamicSound = new DynamicSoundEffectInstance(sampleRate, AudioChannels.Mono);
-        short volume = short.MaxValue / 2;
-        
-        float frequency = 440f; // A4 note
-        TimeSpan duration = TimeSpan.FromMilliseconds(100);
-        int sampleCount = dynamicSound.GetSampleSizeInBytes(duration) / 2; // 2 bytes per 16-bit sample
-        byte[] buffer = new byte[sampleCount * 2];
-        
-        for (int i = 0; i < sampleCount; i++)
-        {
-            // Calculate the sine value (-1.0 to 1.0)
-            float time = (float)i / sampleRate;
-            short sample = (short)(Math.Sin(2 * Math.PI * frequency * time) * volume);
-    
-            // Convert short to 2 bytes (Little Endian)
-            buffer[i * 2] = (byte)(sample & 0xFF);
-            buffer[i * 2 + 1] = (byte)((sample >> 8) & 0xFF);
-        }
-
-        dynamicSound.SubmitBuffer(buffer);
-        dynamicSound.Play();
     }
     
     private void ToggleFullscreen()
