@@ -8,7 +8,6 @@ namespace pacman;
 public class NamcoWSG
 {
     private double _accumulator = 0;
-    private long _totalGenerated = 0;
     private const double CyclesPerSample = 3072000.0 / 44100.0;
     
     public float MasterVolume { get; set; } = 1.0f;
@@ -44,7 +43,6 @@ public class NamcoWSG
         while(_accumulator >= CyclesPerSample)
         {
             short sample = GenerateCurrentSample();
-            _totalGenerated++;
             _sampleBuffer.Enqueue(sample);
             _accumulator -= CyclesPerSample;
         }

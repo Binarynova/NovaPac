@@ -76,13 +76,12 @@ public class PacManPCB : IMemoryProvider
     
     private ushort NormalizeAddress(ushort address)
     {
-        // 1. ROM (0x0000-0x3FFF) and I/O (0x5000-0x50FF) are NOT mirrored RAM.
         if (address < 0x4000 || (address >= 0x5000 && address <= 0x50FF))
         {
             return address;
         }
 
-        // 2. Everything else (0x4000-0x4FFF, 0x8000-0x8FFF, 0xC000-0xCFFF, etc.)
+        // Everything else (0x4000-0x4FFF, 0x8000-0x8FFF, 0xC000-0xCFFF, etc.)
         // maps down to the primary 4KB RAM block at 0x4000.
         // (address & 0x0FFF) gets the offset within any 4KB bank.
         return (ushort)(0x4000 | (address & 0x0FFF));
@@ -90,12 +89,10 @@ public class PacManPCB : IMemoryProvider
 
     public byte ReadByte(ushort address)
     {
-        // Check hardware ports first (using the original address)
         if (address >= 0x5000 && address <= 0x503F) return GetPort0();
         if (address >= 0x5040 && address <= 0x507F) return GetPort1();
         if (address >= 0x5080 && address <= 0x50BF) return 0xC9; // DIPs
 
-        // For all other memory (ROM or RAM), use the normalized address
         return Memory[NormalizeAddress(address)];
     }
 

@@ -429,25 +429,20 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         graphics.IsFullScreen = !graphics.IsFullScreen;
 
-        // Use "Borderless" mode for a smoother experience
         graphics.HardwareModeSwitch = false; 
 
         if (graphics.IsFullScreen)
         {
-            // Set to monitor's native resolution
             graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         }
         else
         {
-            // Back to your 3x windowed mode with padding
             graphics.PreferredBackBufferWidth = (224 * 3) + (sidePadding * 2);
             graphics.PreferredBackBufferHeight = (288 * 3) + (sidePadding * 2);
         }
 
         graphics.ApplyChanges();
-    
-        // After applying changes, recalculate where the game renders
         UpdateRenderDestination(); 
     }
 
@@ -456,22 +451,16 @@ public class Game : Microsoft.Xna.Framework.Game
         int screenWidth = GraphicsDevice.Viewport.Width;
         int screenHeight = GraphicsDevice.Viewport.Height;
 
-        // 1. Calculate the raw float scales
         float scaleX = screenWidth / 224f;
         float scaleY = screenHeight / 288f;
 
-        // 2. Find the smallest one and "Floor" it to the nearest whole number
-        // This is the "Integer Scale"
         int integerScale = (int)Math.Floor(Math.Min(scaleX, scaleY));
 
-        // 3. Safety check: Ensure scale is at least 1
         if (integerScale < 1) integerScale = 1;
 
-        // 4. Calculate the resulting dimensions
         int finalWidth = 224 * integerScale;
         int finalHeight = 288 * integerScale;
 
-        // 5. Center it
         int x = (screenWidth - finalWidth) / 2;
         int y = (screenHeight - finalHeight) / 2;
 
