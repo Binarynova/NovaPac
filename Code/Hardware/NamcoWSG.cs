@@ -22,17 +22,17 @@ public class NamcoWSG
     private int Voice1Frequency = 0;
     public byte Voice1Volume = 0x00;
     public byte Voice1Waveform = 0x00;
-    private int Voice1Accumulator = 0;
+    private double Voice1Accumulator = 0;
     
     public int Voice2Frequency = 0;
     public byte Voice2Volume = 0x00;
     public byte Voice2Waveform = 0x00;
-    private int Voice2Accumulator = 0;
+    private double Voice2Accumulator = 0;
     
     public int Voice3Frequency = 0;
     public byte Voice3Volume = 0x00;
     public byte Voice3Waveform = 0x00;
-    private int Voice3Accumulator = 0;
+    private double Voice3Accumulator = 0;
 
     public NamcoWSG(string romFileName)
     {
@@ -63,25 +63,27 @@ public class NamcoWSG
     {
         int combinedOutput = 0;
 
-        Voice1Accumulator = (Voice1Accumulator + Voice1Frequency) & 0xFFFFF;
-        int waveformIndex = (int)((Voice1Accumulator >> 15) & 0x1F);
-        int romAddress = (Voice1Waveform * 32) + waveformIndex;
-        int rawSample = waveformROM[romAddress];
-        if(voice1Enabled) combinedOutput += (rawSample - 8) * Voice1Volume;
+        double soundTicksPerSample = (3072000.0 / 32.0) / 44100.0;
 
-        Voice2Accumulator = (Voice2Accumulator + Voice2Frequency) & 0xFFFF;
-        waveformIndex = (int)((Voice2Accumulator >> 11) & 0x1F);
-        romAddress = (Voice2Waveform * 32) + waveformIndex;
-        rawSample = waveformROM[romAddress];
-        if(voice2Enabled) combinedOutput += (rawSample - 8) * Voice2Volume;
-        
-        Voice3Accumulator = (Voice3Accumulator + Voice3Frequency) & 0xFFFF;
-        waveformIndex = (int)((Voice3Accumulator >> 11) & 0x1F);
-        romAddress = (Voice3Waveform * 32) + waveformIndex;
-        rawSample = waveformROM[romAddress];
-        if(voice3Enabled) combinedOutput += (rawSample - 8) * Voice3Volume;
+        // --- VOICE 1 (20-bit logic) ---
+        Voice1Accumulator += Voice1Frequency * soundTicksPerSample;
+        Voice1Accumulator %= 0x100000; // Roll over at 2^20
+        int idx1 = ((int)Voice1Accumulator >> 15) & 0x1F;
+        combinedOutput += (waveformROM[(Voice1Waveform * 32) + idx1] - 8) * Voice1Volume;
 
-        return (short)(combinedOutput * 45);
+        // --- VOICE 2 (20-bit logic, 16-bit input) ---
+        Voice2Accumulator += Voice2Frequency * soundTicksPerSample;
+        Voice2Accumulator %= 0x100000;
+        int idx2 = ((int)Voice2Accumulator >> 11) & 0x1F;
+        combinedOutput += (waveformROM[(Voice2Waveform * 32) + idx2] - 8) * Voice2Volume;
+
+        // --- VOICE 3 (20-bit logic, 16-bit input) ---
+        Voice3Accumulator += Voice3Frequency * soundTicksPerSample;
+        Voice3Accumulator %= 0x100000;
+        int idx3 = ((int)Voice3Accumulator >> 11) & 0x1F;
+        combinedOutput += (waveformROM[(Voice3Waveform * 32) + idx3] - 8) * Voice3Volume;
+
+        return (short)(combinedOutput * 90);
     }
 
     public void UpdateRegister(ushort address, byte value)
