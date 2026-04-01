@@ -41,7 +41,6 @@ public class PacManPCB : IMemoryProvider
         
         PrepareColors();
         PreparePalettes();
-        PrepareTiles();
         PrepareTileTextures(_graphicsDevice);
         PrepareSprites();
     }
@@ -305,32 +304,6 @@ public class PacManPCB : IMemoryProvider
             ]);
         }
         // second 32 palettes are just black
-    }
-
-    private void PrepareTiles()
-    {
-        for(int tileIndex = 0; tileIndex < 256; tileIndex++)
-        {
-            int[,] tile = new int[8,8];
-            for(int i = 0; i < 8; i++) // first 8 bytes of tile
-            {
-                byte pixelQuad = charMemory[i + (tileIndex * 16)];
-                for(int r = 4; r < 8; r++)
-                {
-                    tile[7-i,r] = GetPixelValue(pixelQuad,r);
-                }
-            }
-            for(int i = 8; i < 16; i++) // second 8 bytes of tile
-            {
-                byte pixelQuad = charMemory[i + (tileIndex * 16)];
-                for(int r = 0; r < 4; r++)
-                {
-                    tile[15-i,r] = GetPixelValue(pixelQuad, r);
-                }
-            }
-            
-            tiles.Add(tile);
-        }
     }
 
     public void PrepareTileTextures(GraphicsDevice graphicsDevice)
