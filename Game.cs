@@ -19,7 +19,6 @@ public class Game : Microsoft.Xna.Framework.Game
     Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
-    private KeyboardState _previousKeyboardState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
     const int resScale = 3;
@@ -216,8 +215,8 @@ public class Game : Microsoft.Xna.Framework.Game
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            else if (keyboardState.IsKeyDown(Keys.Left) && _previousKeyboardState.IsKeyUp(Keys.Left) ||
-                     keyboardState.IsKeyDown(Keys.Right) && _previousKeyboardState.IsKeyUp(Keys.Right))
+            else if (keyboardState.IsKeyDown(Keys.Left) && _lastState.IsKeyUp(Keys.Left) ||
+                     keyboardState.IsKeyDown(Keys.Right) && _lastState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
                 switch(_pacManPcb.graphicsViewerMode)
@@ -231,7 +230,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 }
             }
             
-            else if (keyboardState.IsKeyDown(Keys.Up) && _previousKeyboardState.IsKeyUp(Keys.Up))
+            else if (keyboardState.IsKeyDown(Keys.Up) && _lastState.IsKeyUp(Keys.Up))
             {
                 if (_pacManPcb.tileViewerPaletteIndex == 20)
                     _pacManPcb.tileViewerPaletteIndex = 0;
@@ -239,7 +238,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     _pacManPcb.tileViewerPaletteIndex++;
             }
             
-            else if (keyboardState.IsKeyDown(Keys.Down) && _previousKeyboardState.IsKeyUp(Keys.Down))
+            else if (keyboardState.IsKeyDown(Keys.Down) && _lastState.IsKeyUp(Keys.Down))
             {
                 if (_pacManPcb.tileViewerPaletteIndex == 0)
                     _pacManPcb.tileViewerPaletteIndex = 20;
@@ -248,7 +247,7 @@ public class Game : Microsoft.Xna.Framework.Game
             }
         }
         
-        _previousKeyboardState = keyboardState;
+        _lastState = keyboardState;
         base.Update(gameTime);
     }
 
