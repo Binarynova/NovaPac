@@ -262,89 +262,24 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
-
-            // draw in three sections
-            // 1: vram 4000 to 403F is the bottom two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
-            // 2: vram 43c0 to 43ff is the top two rows of tiles, right-to-left, top-to-bottom, starting off-screen two tiles to the right.
-            // 3: vram 4040 to 43bf is the main grid of the game, top-to-bottom, right-to-left, starting on screen at the top-right below section 2
-
-            // top row (this is an arguably easier to read way to do this compared to my original code
-            // I want to use this format for the rest of the grid eventually
-            for (int i = 0x3DF; i >= 0x3C0; i--)
-            {
-                int tileAddress = 0x4000 + i;
-                int paletteAddress = 0x4400 + i;
-
-                byte tileIndex = _pacManPcb.ReadByte((ushort)tileAddress);
-                byte paletteIndex = _pacManPcb.ReadByte((ushort)paletteAddress);
-
-                const int yPos = 0;
-                int xPos = 232 - (i - 0x3C0) * 8;
-                
-                DrawTile(tileIndex, paletteIndex & 0x3F, xPos, yPos);
-            }
-            // second row
-            for (int i = 0x3FF; i >= 0x3E0; i--)
-            {
-                int tileAddress = 0x4000 + i;
-                int paletteAddress = 0x4400 + i;
-
-                byte tileIndex = _pacManPcb.ReadByte((ushort)tileAddress);
-                byte paletteIndex = _pacManPcb.ReadByte((ushort)paletteAddress);
-
-                const int yPos = 8;
-                int xPos = 232 - (i - 0x3E0) * 8;
-                
-                DrawTile(tileIndex, paletteIndex & 0x3F, xPos, yPos);
-            }
             
-            for(int tileRow = 0; tileRow < 32; tileRow++) // main grid
+            var frame = _pacManPcb.GetDrawRequests();
+    
+            foreach (var item in frame)
             {
-                for(int tileCol = 0; tileCol < 28; tileCol++)
-                {
-                    ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
-                    ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 216 - (tileCol * 8);
-                    int yPos = 16 + (tileRow * 8);
-                    byte tileNumber = _pacManPcb.ReadByte(vram);
-                    byte paletteNumber = _pacManPcb.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
-                }
+                // Ensure we are using the XNA Color and the correct Vector2 overload
+                _spriteBatch.Draw(
+                    item.Texture, 
+                    item.Position, 
+                    null,           // Source Rectangle (null = draw whole texture)
+                    Color.White,    // Use White to show original colors
+                    0f,             // Rotation
+                    Vector2.Zero,   // Origin
+                    1f,             // Scale
+                    item.Effects,   // SpriteEffects (for flipping)
+                    0f              // Layer Depth
+                );
             }
-
-            for(int tileRow = 0; tileRow < 2; tileRow++) // bottom rows
-            {
-                for(int tileCol = 0; tileCol < 32; tileCol++)
-                {
-                    ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
-                    ushort pram = (ushort)(vram + 0x400);
-                    int xPos = 232 - (tileCol * 8);
-                    int yPos = 272 + (tileRow * 8);
-                    byte tileNumber = _pacManPcb.ReadByte(vram);
-                    byte paletteNumber = _pacManPcb.ReadByte(pram);
-                    DrawTile(tileNumber, paletteNumber & 0x3F, xPos, yPos);
-                }
-            }
-            
-            /////// Draw Sprites
-            for (int sprite = 7; sprite >= 0; sprite--)
-            {
-                int offset = sprite * 2;
-                int attr = _pacManPcb.GetSpriteRam(offset);
-                
-                int rawX = _pacManPcb.GetSpriteRam2(offset);
-                int rawY = _pacManPcb.GetSpriteRam2(offset + 1);
-                int paletteIndex = _pacManPcb.GetSpriteRam(offset + 1);
-                
-                int spriteIndex = (attr & 0xFC) >> 2;
-                bool xFlip = (attr & 0x02) != 0;
-                bool yFlip = (attr & 0x01) != 0;
-
-                int screenX = 224 - rawX + 15;
-                int screenY = 288 - 16 - rawY;
-                DrawSprite(spriteIndex, paletteIndex & 0x3F, screenX, screenY, xFlip, yFlip);
-            }
-
             _spriteBatch.End();
         }
         else if(mode == 2)

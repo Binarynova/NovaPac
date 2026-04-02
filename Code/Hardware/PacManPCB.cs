@@ -9,6 +9,125 @@ using pacman;
 
 public class PacManPCB : IMemoryProvider
 {
+    private List<DrawRequest> requests = new List<DrawRequest>();
+    public struct DrawRequest
+    {
+        public Texture2D Texture;
+        public Vector2 Position;
+        public SpriteEffects Effects;
+    }
+
+    public List<DrawRequest> GetDrawRequests()
+    {
+        requests.Clear();
+    
+        // Row 1
+        for (int i = 0x3DF; i >= 0x3C0; i--)
+        {
+            int tileAddress = 0x4000 + i;
+            int paletteAddress = 0x4400 + i;
+            
+            byte tileIndex = ReadByte((ushort)tileAddress);
+            int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+
+            // Use your original coordinate math
+            int yPos = 0;
+            int xPos = 232 - (i - 0x3C0) * 8;
+            
+            requests.Add(new DrawRequest {
+                Texture = TileTextures[tileIndex, paletteIndex],
+                Position = new Vector2(xPos, yPos)
+            });
+        }
+        
+        // Row 2
+        for (int i = 0x3FF; i >= 0x3E0; i--)
+        {
+            int tileAddress = 0x4000 + i;
+            int paletteAddress = 0x4400 + i;
+            
+            byte tileIndex = ReadByte((ushort)tileAddress);
+            int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+
+            int yPos = 8;
+            int xPos = 232 - (i - 0x3E0) * 8;
+            
+            requests.Add(new DrawRequest {
+                Texture = TileTextures[tileIndex, paletteIndex],
+                Position = new Vector2(xPos, yPos)
+            });
+        }
+        
+        // Main Grid
+        for(int tileRow = 0; tileRow < 32; tileRow++)
+        {
+            for(int tileCol = 0; tileCol < 28; tileCol++)
+            {
+                ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
+                ushort pram = (ushort)(vram + 0x400);
+                
+                byte tileNumber = ReadByte(vram);
+                int paletteNumber = ReadByte(pram) & 0x1F;
+
+                int xPos = 216 - (tileCol * 8);
+                int yPos = 16 + (tileRow * 8);
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileNumber, paletteNumber],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+
+        // Bottom Rows
+        for(int tileRow = 0; tileRow < 2; tileRow++)
+        {
+            for(int tileCol = 0; tileCol < 32; tileCol++)
+            {
+                ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
+                ushort pram = (ushort)(vram + 0x400);
+                
+                byte tileIndex = ReadByte(vram);
+                int paletteIndex = ReadByte(pram) & 0x1F;
+
+                int xPos = 232 - (tileCol * 8);
+                int yPos = 272 + (tileRow * 8);
+                
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+        
+        // Draw Sprites
+        for (int sprite = 7; sprite >= 0; sprite--)
+        {
+            int offset = sprite * 2;
+            int attr = GetSpriteRam(offset);
+            int paletteIndex = GetSpriteRam(offset + 1) & 0x1F;
+                
+            int spriteIndex = (attr & 0xFC) >> 2;
+            bool xFlip = (attr & 0x02) != 0;
+            bool yFlip = (attr & 0x01) != 0;
+
+            int screenX = 224 - GetSpriteRam2(offset) + 15;
+            int screenY = 288 - 16 - GetSpriteRam2(offset + 1);
+
+            SpriteEffects effects = SpriteEffects.None;
+            if (xFlip) effects |= SpriteEffects.FlipHorizontally;
+            if (yFlip) effects |= SpriteEffects.FlipVertically;
+        
+            requests.Add(new DrawRequest {
+                Texture = SpriteTextures[spriteIndex, paletteIndex],
+                Position = new Vector2(screenX, screenY),
+                Effects = effects
+            });
+        }
+
+        return requests;
+    }
+    
     GraphicsDevice _graphicsDevice;
     private byte[] Memory = new byte[0x10000];
     public byte[] paletteMemory;
