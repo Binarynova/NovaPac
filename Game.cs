@@ -11,24 +11,24 @@ namespace pacman;
 
 public class Game : Microsoft.Xna.Framework.Game
 {
+    int mode = 0;
+    private Desktop _desktop;
     DynamicSoundEffectInstance _soundOut;
-    private Desktop desktop;
     RenderTarget2D _nativeRenderTarget;
-    GraphicsDeviceManager graphics;
+    GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
+    private KeyboardState _previousKeyboardState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     private string[] Args;
     const int resScale = 3;
     const int internalWidth = 224;
     const int internalHeight = 288;
     const int sidePadding = 20;
-    private KeyboardState _previousKeyboardState;
     ConsoleKeyInfo menuChoice;
-    int mode = 0;
-    int graphicsViewMode = 0;
+    int graphicsViewerMode = 0;
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
     int tileViewerPaletteIndex = 0;
@@ -51,14 +51,14 @@ public class Game : Microsoft.Xna.Framework.Game
         Args = args;
         _zexdocTests = new ZEXDOC();
         _singleStateTests = new SSTests();
-        graphics = new GraphicsDeviceManager(this);
-        graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
-        graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
+        _graphics = new GraphicsDeviceManager(this);
+        _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
+        _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         IsFixedTimeStep = true;
         TargetElapsedTime = TimeSpan.FromTicks(166667); // Exactly 1/60th of a second
-        graphics.SynchronizeWithVerticalRetrace = true; // VSync
+        _graphics.SynchronizeWithVerticalRetrace = true; // VSync
     }
 
     protected override void Initialize()
@@ -148,7 +148,7 @@ public class Game : Microsoft.Xna.Framework.Game
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
         MyraEnvironment.Game = this;
 
-        var grid = new Grid
+        Grid grid = new Grid
         {
             RowSpacing = 8,
             ColumnSpacing = 8
@@ -157,8 +157,8 @@ public class Game : Microsoft.Xna.Framework.Game
         grid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
         grid.RowsProportions.Add(new Proportion(ProportionType.Auto));
 
-        desktop = new Desktop();
-        desktop.Root = grid;
+        _desktop = new Desktop();
+        _desktop.Root = grid;
         
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -223,13 +223,13 @@ public class Game : Microsoft.Xna.Framework.Game
                      keyboardState.IsKeyDown(Keys.Right) && _previousKeyboardState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
-                switch(graphicsViewMode)
+                switch(graphicsViewerMode)
                 {
                     case 0:
-                        graphicsViewMode = 1;
+                        graphicsViewerMode = 1;
                         break;
                     case 1:
-                        graphicsViewMode = 0;
+                        graphicsViewerMode = 0;
                         break;
                 }
             }
@@ -352,7 +352,7 @@ public class Game : Microsoft.Xna.Framework.Game
             DrawGraphicsViewer();
         }
 
-        desktop.Render();
+        _desktop.Render();
         GraphicsDevice.SetRenderTarget(null);
         
         GraphicsDevice.Clear(Color.Black);
@@ -367,7 +367,7 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             
         const int padding = 1;
-        if (graphicsViewMode == 0) // view tiles
+        if (graphicsViewerMode == 0) // view tiles
         {
             for(int i = 0; i < 16; i++)
             {
@@ -380,7 +380,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 }
             }
         }
-        else if (graphicsViewMode == 1) // view sprites
+        else if (graphicsViewerMode == 1) // view sprites
         {
             for(int i = 0; i < 8; i++)
             {
@@ -418,22 +418,22 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private void ToggleFullscreen()
     {
-        graphics.IsFullScreen = !graphics.IsFullScreen;
+        _graphics.IsFullScreen = !_graphics.IsFullScreen;
 
-        graphics.HardwareModeSwitch = false; 
+        _graphics.HardwareModeSwitch = false; 
 
-        if (graphics.IsFullScreen)
+        if (_graphics.IsFullScreen)
         {
-            graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            _graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            _graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         }
         else
         {
-            graphics.PreferredBackBufferWidth = (224 * 3) + (sidePadding * 2);
-            graphics.PreferredBackBufferHeight = (288 * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferWidth = (224 * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferHeight = (288 * 3) + (sidePadding * 2);
         }
 
-        graphics.ApplyChanges();
+        _graphics.ApplyChanges();
         UpdateRenderDestination(); 
     }
 
