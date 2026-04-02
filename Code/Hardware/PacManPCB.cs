@@ -14,6 +14,24 @@ public class PacManPCB : IMemoryProvider
         GameMode,
         TileSpriteTestMode
     }
+    
+    GraphicsDevice _graphicsDevice;
+    private byte[] Memory = new byte[0x10000];
+    public byte[] paletteMemory;
+    public byte[] charMemory;
+    public byte[] spriteMemory;
+    private byte[] u5, u6, u7;
+    private byte[] spriteram = new byte[0x10];
+    private byte[] spriteram2 = new byte[0x10];
+    private NamcoWSG wsg;
+    private Z80Cpu cpu;
+    
+    public List<int[,]> tiles = [];
+    public Texture2D[,] TileTextures = new Texture2D[256, 32];
+    public List<int[,]> sprites = [];
+    public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
+    public List<Color> colors = [];
+    public List<List<Color>> palettes = [];
 
     public int mode = 0;
     public int graphicsViewerMode = 0;
@@ -193,24 +211,6 @@ public class PacManPCB : IMemoryProvider
 
         return requests;
     }
-    
-    GraphicsDevice _graphicsDevice;
-    private byte[] Memory = new byte[0x10000];
-    public byte[] paletteMemory;
-    public byte[] charMemory;
-    public byte[] spriteMemory;
-    private byte[] u5, u6, u7;
-    private byte[] spriteram = new byte[0x10];
-    private byte[] spriteram2 = new byte[0x10];
-    private NamcoWSG wsg;
-    private Z80Cpu cpu;
-    
-    public List<int[,]> tiles = [];
-    public Texture2D[,] TileTextures = new Texture2D[256, 32];
-    public List<int[,]> sprites = [];
-    public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
-    public List<Color> colors = [];
-    public List<List<Color>> palettes = [];
     
     public PacManPCB(string romFileName)
     {
