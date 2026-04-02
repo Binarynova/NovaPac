@@ -27,7 +27,6 @@ public class PacManPCB : IMemoryProvider
     private NamcoWSG wsg;
     private Z80Cpu cpu;
 
-    private Texture2DAtlas _atlas;
     public Texture2D[,] TileTextures = new Texture2D[256, 32];
     public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
     public List<Color> colors = [];
