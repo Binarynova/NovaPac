@@ -30,8 +30,6 @@ public class Game : Microsoft.Xna.Framework.Game
     ConsoleKeyInfo menuChoice;
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
-    int tileViewerPaletteIndex = 0;
-    private int graphicsViewerMode = 0;
 
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
@@ -287,61 +285,6 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
         _spriteBatch.End();
-    }
-
-    void DrawGraphicsViewer()
-    {
-        GraphicsDevice.Clear(Color.Black);
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            
-        const int padding = 1;
-        if (graphicsViewerMode == 0) // view tiles
-        {
-            for(int i = 0; i < 16; i++)
-            {
-                for(int j = 0; j < 16; j++)
-                {
-                    int tileIndex = j * 16 + i;
-                    int tileXPos = i * (tileWidth + padding) + padding;
-                    int tileYPos = j * (tileWidth + padding) + padding;
-                    DrawTile(tileIndex, tileViewerPalettes[tileViewerPaletteIndex], tileXPos, tileYPos);
-                }
-            }
-        }
-        else if (graphicsViewerMode == 1) // view sprites
-        {
-            for(int i = 0; i < 8; i++)
-            {
-                for(int j = 0; j < 8; j++)
-                {
-                    int spriteIndex = j * 8 + i;
-                    int spriteXPos = i * (spriteWidth + padding) + padding;
-                    int spriteYPos = j * (spriteWidth + padding) + padding;
-                    DrawSprite(spriteIndex, tileViewerPalettes[tileViewerPaletteIndex], spriteXPos, spriteYPos, false, false);
-                }
-            }
-        }
-
-        _spriteBatch.End();
-    }
-    
-    void DrawTile(int tileIndex, int paletteIndex, int xPos, int yPos)
-    {
-        if (paletteIndex > 31) paletteIndex = 0;
-        Texture2D tileTexture = _pacManPcb.TileTextures[tileIndex, paletteIndex];
-        _spriteBatch.Draw(tileTexture, new Vector2(xPos, yPos), Color.White);
-    }
-
-    void DrawSprite(int spriteIndex, int paletteIndex, int xPos, int yPos, bool flipX, bool flipY)
-    {
-        if (paletteIndex > 31) paletteIndex = 0;
-        
-        SpriteEffects effects = SpriteEffects.None;
-        if (flipX) effects |= SpriteEffects.FlipHorizontally;
-        if (flipY) effects |= SpriteEffects.FlipVertically;
-        
-        Texture2D spriteTexture = _pacManPcb.SpriteTextures[spriteIndex, paletteIndex];
-        _spriteBatch.Draw(spriteTexture, new Vector2(xPos, yPos), null, Color.White, 0f, Vector2.Zero, 1f, effects, 0f);
     }
     
     private void ToggleFullscreen()
