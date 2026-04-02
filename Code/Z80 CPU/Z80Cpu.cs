@@ -40,7 +40,7 @@ public partial class Z80Cpu
         InitParity();
     }
     
-    private void IncrementRegisterR()
+    private static void IncrementRegisterR()
     {
         Reg.R = (byte)((Reg.R & 0x80) | (((Reg.R & 0x7f) + 1) & 0x7f));
     }

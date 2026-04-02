@@ -48,6 +48,11 @@ public class NamcoWSG
         }
     }
 
+    public void ChangeVolume(float volumeMultiplier)
+    {
+        MasterVolume = volumeMultiplier;
+    }
+
     public short[] DumpSamples()
     {
         short[] samples = _sampleBuffer.ToArray();
@@ -59,21 +64,21 @@ public class NamcoWSG
     {
         int combinedOutput = 0;
 
-        double soundTicksPerSample = (3072000.0 / 32.0) / 44100.0;
+        const double soundTicksPerSample = (3072000.0 / 32.0) / 44100.0;
 
-        // --- VOICE 1 (20-bit logic) ---
+        // Voice 1 (20-bit)
         Voice1Accumulator += Voice1Frequency * soundTicksPerSample;
         Voice1Accumulator %= 0x100000;
         int idx1 = ((int)Voice1Accumulator >> 15) & 0x1F;
         combinedOutput += (waveformROM[(Voice1Waveform * 32) + idx1] - 8) * Voice1Volume;
 
-        // --- VOICE 2 (20-bit logic, 16-bit input) ---
+        // Voice 2 (16-bit)
         Voice2Accumulator += Voice2Frequency * soundTicksPerSample;
         Voice2Accumulator %= 0x100000;
         int idx2 = ((int)Voice2Accumulator >> 11) & 0x1F;
         combinedOutput += (waveformROM[(Voice2Waveform * 32) + idx2] - 8) * Voice2Volume;
 
-        // --- VOICE 3 (20-bit logic, 16-bit input) ---
+        // Voice 3 (16-bit)
         Voice3Accumulator += Voice3Frequency * soundTicksPerSample;
         Voice3Accumulator %= 0x100000;
         int idx3 = ((int)Voice3Accumulator >> 11) & 0x1F;
@@ -87,12 +92,8 @@ public class NamcoWSG
     {
             switch (address)
             {
-                // --- WAVEFORM SELECT (Group A) ---
+                // Voice 1
                 case 0x5045: Voice1Waveform = (byte)(value & 0x07); break;
-                case 0x504A: Voice2Waveform = (byte)(value & 0x07); break;
-                case 0x504F: Voice3Waveform = (byte)(value & 0x07); break;
-
-                // --- VOICE 1 (Group B) ---
                 case 0x5050: Voice1Frequency = (Voice1Frequency & ~0x0000F) | (value & 0x0F); break;
                 case 0x5051: Voice1Frequency = (Voice1Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
                 case 0x5052: Voice1Frequency = (Voice1Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
@@ -100,15 +101,16 @@ public class NamcoWSG
                 case 0x5054: Voice1Frequency = (Voice1Frequency & ~0xF0000) | ((value & 0x0F) << 16); break;
                 case 0x5055: Voice1Volume = (byte)(value & 0x0F); break;
 
-                // --- VOICE 2 (Group B) ---
+                // Voice 2
+                case 0x504A: Voice2Waveform = (byte)(value & 0x07); break;
                 case 0x5056: Voice2Frequency = (Voice2Frequency & ~0x0000F) | (value & 0x0F); break;
                 case 0x5057: Voice2Frequency = (Voice2Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
                 case 0x5058: Voice2Frequency = (Voice2Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
                 case 0x5059: Voice2Frequency = (Voice2Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
-                // In Pac-Man, V2 Frequency is only 16-bit + 1 nibble volume!
                 case 0x505A: Voice2Volume = (byte)(value & 0x0F); break;
 
-                // --- VOICE 3 (Group B) ---
+                // Voice 3
+                case 0x504F: Voice3Waveform = (byte)(value & 0x07); break;
                 case 0x505B: Voice3Frequency = (Voice3Frequency & ~0x0000F) | (value & 0x0F); break;
                 case 0x505C: Voice3Frequency = (Voice3Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
                 case 0x505D: Voice3Frequency = (Voice3Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
@@ -119,12 +121,12 @@ public class NamcoWSG
     
     private void LoadRom(string romFileName)
     {
-        if (romFileName == "roms/pacman.zip" || romFileName == "roms/matrix.zip" || romFileName == "roms/newpuckx.zip")
+        if (romFileName is "roms/pacman.zip" or "roms/matrix.zip" or "roms/newpuckx.zip")
         {
             using ZipArchive archive = ZipFile.OpenRead(romFileName);
             
-            var soundRom1 = ExtractRom(archive, "82s126.1m");
-            var soundRom2 = ExtractRom(archive, "82s126.3m");
+            byte[] soundRom1 = ExtractRom(archive, "82s126.1m");
+            byte[] soundRom2 = ExtractRom(archive, "82s126.3m");
             Array.Copy(soundRom1, 0, waveformROM, 0, 256);
             Array.Copy(soundRom2, 0, waveformROM, 256, 256);
         }
