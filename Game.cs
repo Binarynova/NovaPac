@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -140,6 +139,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void LoadContent()
     {
+        // Myra UI Begin
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
         MyraEnvironment.Game = this;
 
@@ -154,9 +154,11 @@ public class Game : Microsoft.Xna.Framework.Game
 
         _desktop = new Desktop();
         _desktop.Root = grid;
+        // Myra UI End
         
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        // Sound Buffer Handling
         _soundOut.BufferNeeded += (_, _) =>
         {
             short[] samples = _pacManPcb.GetAudioSamples();
@@ -252,31 +254,25 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Draw(GameTime gameTime)
     {
+        // Render game screen
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
         
         var frame = _pacManPcb.GetDrawRequests();
 
-        foreach (var item in frame)
+        foreach (var drawRequest in frame)
         {
-            _spriteBatch.Draw(
-                item.Texture,
-                item.Position,
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                1f,
-                item.Effects,
-                0f
-            );
+            _spriteBatch.Draw(drawRequest.Texture, drawRequest.Position, null,
+                              Color.White, 0f, Vector2.Zero, 1f, drawRequest.Effects, 0f);
         }
         _spriteBatch.End();
 
+        // Render Myra UI
         _desktop.Render();
         GraphicsDevice.SetRenderTarget(null);
         
+        // Center game in screen
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
@@ -286,7 +282,6 @@ public class Game : Microsoft.Xna.Framework.Game
     private void ToggleFullscreen()
     {
         _graphics.IsFullScreen = !_graphics.IsFullScreen;
-
         _graphics.HardwareModeSwitch = false; 
 
         if (_graphics.IsFullScreen)
