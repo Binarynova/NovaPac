@@ -5,7 +5,6 @@ using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Graphics;
 using pacman;
 
 public class PacManPCB : IMemoryProvider
