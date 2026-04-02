@@ -9,6 +9,7 @@
       "pacman/1.0.0": {
         "dependencies": {
           "Json.Net": "1.0.33",
+          "MonoGame.Extended": "5.5.0",
           "MonoGame.Framework.DesktopGL": "3.8.4.1",
           "Myra": "1.5.11"
         },
@@ -79,6 +80,14 @@
           "lib/netstandard2.0/Json.Net.dll": {
             "assemblyVersion": "1.0.33.1",
             "fileVersion": "1.0.33.1"
+          }
+        }
+      },
+      "MonoGame.Extended/5.5.0": {
+        "runtime": {
+          "lib/net8.0/MonoGame.Extended.dll": {
+            "assemblyVersion": "5.5.0.0",
+            "fileVersion": "5.5.0.0"
           }
         }
       },
@@ -291,6 +300,13 @@
       "sha512": "sha512-5tE+db6BqhRAvITIVBeRsQorLGshPExfm4FmMRvWWAfs4RxeTbFFj2PIEybwmMW0qR30HKkXDYhq0YkDK2Jtxw==",
       "path": "json.net/1.0.33",
       "hashPath": "json.net.1.0.33.nupkg.sha512"
+    },
+    "MonoGame.Extended/5.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-u6ajpnO2w7j1Ii3wAMqnhPT79voPBccLIEaxtz3xZKpQWCE+LncUByzrn4eQzoDJpQ5A9fTvhFCi6uDzWBOdwA==",
+      "path": "monogame.extended/5.5.0",
+      "hashPath": "monogame.extended.5.5.0.nupkg.sha512"
     },
     "MonoGame.Framework.DesktopGL/3.8.4.1": {
       "type": "package",

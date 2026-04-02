@@ -5,6 +5,7 @@ using System.IO.Compression;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Graphics;
 using pacman;
 
 public class PacManPCB : IMemoryProvider
@@ -25,10 +26,9 @@ public class PacManPCB : IMemoryProvider
     private byte[] spriteram2 = new byte[0x10];
     private NamcoWSG wsg;
     private Z80Cpu cpu;
-    
-    public List<int[,]> tiles = [];
+
+    private Texture2DAtlas _atlas;
     public Texture2D[,] TileTextures = new Texture2D[256, 32];
-    public List<int[,]> sprites = [];
     public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
     public List<Color> colors = [];
     public List<List<Color>> palettes = [];
@@ -40,7 +40,7 @@ public class PacManPCB : IMemoryProvider
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex = 0;
     
-    private List<DrawRequest> requests = new List<DrawRequest>();
+    private List<DrawRequest> requests = new ();
     public struct DrawRequest
     {
         public Texture2D Texture;

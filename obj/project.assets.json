@@ -86,6 +86,19 @@
           "build/MonoGame.Content.Builder.Task.targets": {}
         }
       },
+      "MonoGame.Extended/5.5.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/MonoGame.Extended.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/MonoGame.Extended.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "MonoGame.Framework.DesktopGL/3.8.4.1": {
         "type": "package",
         "dependencies": {
@@ -397,6 +410,21 @@
         "monogame.content.builder.task.nuspec"
       ]
     },
+    "MonoGame.Extended/5.5.0": {
+      "sha512": "u6ajpnO2w7j1Ii3wAMqnhPT79voPBccLIEaxtz3xZKpQWCE+LncUByzrn4eQzoDJpQ5A9fTvhFCi6uDzWBOdwA==",
+      "type": "package",
+      "path": "monogame.extended/5.5.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net8.0/MonoGame.Extended.dll",
+        "lib/net8.0/MonoGame.Extended.xml",
+        "logo-nuget-128.png",
+        "monogame.extended.5.5.0.nupkg.sha512",
+        "monogame.extended.nuspec"
+      ]
+    },
     "MonoGame.Framework.DesktopGL/3.8.4.1": {
       "sha512": "YybxIIT5+Ky78E/XdkS0glyluMr2EeDZwx2LqXULAOCqiKt1+aDrjPZaqLL5qpNgBcMEHUeZJ4YjWe4TAZlWLw==",
       "type": "package",
@@ -603,6 +631,7 @@
     "net9.0": [
       "Json.Net >= 1.0.33",
       "MonoGame.Content.Builder.Task >= 3.8.*",
+      "MonoGame.Extended >= 5.5.0",
       "MonoGame.Framework.DesktopGL >= 3.8.*",
       "Myra >= 1.5.11"
     ]
@@ -657,6 +686,10 @@
           "MonoGame.Content.Builder.Task": {
             "target": "Package",
             "version": "[3.8.*, )"
+          },
+          "MonoGame.Extended": {
+            "target": "Package",
+            "version": "[5.5.0, )"
           },
           "MonoGame.Framework.DesktopGL": {
             "target": "Package",
