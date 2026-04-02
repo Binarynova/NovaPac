@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -17,7 +16,6 @@ public class Game : Microsoft.Xna.Framework.Game
     RenderTarget2D _nativeRenderTarget;
     GraphicsDeviceManager graphics;
     private SpriteBatch _spriteBatch;
-    Texture2D pixelTexture;
     Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
@@ -32,7 +30,6 @@ public class Game : Microsoft.Xna.Framework.Game
     int mode = 0;
     int graphicsViewMode = 0;
     bool SteppingThrough;
-    StreamWriter trace;
     const float _speedMultiplier = 1f;
     int tileViewerPaletteIndex = 0;
 
@@ -163,19 +160,13 @@ public class Game : Microsoft.Xna.Framework.Game
         desktop = new Desktop();
         desktop.Root = grid;
         
-        trace = new StreamWriter("trace.txt");
-        trace.AutoFlush = false;
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        
-        // Create a 1x1 white texture
-        pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
-        pixelTexture.SetData([Color.White]);
 
-        _soundOut.BufferNeeded += (s, e) =>
+        _soundOut.BufferNeeded += (_, _) =>
         {
             short[] samples = _pacManPcb.GetAudioSamples();
     
-            // If the audio buffer is empty, still submit silence to keep the thread alive
+            // If the audio buffer is empty, submit silence to keep the thread alive
             if (samples == null || samples.Length == 0) {
                 samples = new short[441];
             }
@@ -375,7 +366,7 @@ public class Game : Microsoft.Xna.Framework.Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             
-        int padding = 1;
+        const int padding = 1;
         if (graphicsViewMode == 0) // view tiles
         {
             for(int i = 0; i < 16; i++)

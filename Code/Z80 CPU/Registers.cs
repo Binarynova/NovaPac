@@ -1,7 +1,7 @@
 public static class Registers
 {
     public static byte A, F, B, C, D, E, H, L, P, Q;
-    public static byte A2, F2, B2, C2, D2, E2, H2, L2;
+    private static byte A2, F2, B2, C2, D2, E2, H2, L2;
     public static byte I, R;
     public static ushort PC, SP, WZ;
     public static byte IXL, IXH, IYL, IYH;
@@ -15,7 +15,7 @@ public static class Registers
         return (byte)(word & 0xFF);
     }
 
-    // reminder that the z80 is little-endian
+    // reminder to self that the z80 is little-endian
     public static ushort AF
     {
         get => (ushort)((A << 8) | F);
