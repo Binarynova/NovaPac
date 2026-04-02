@@ -48,41 +48,25 @@ public class PacManPCB : IMemoryProvider
     
     private void DrawGameScreen()
     {
-        // Row 1
+        // Row 1 and 2
         for (int i = 0x3DF; i >= 0x3C0; i--)
         {
-            int tileAddress = 0x4000 + i;
-            int paletteAddress = 0x4400 + i;
+            for (int row = 0; row < 2; row++)
+            {
+                int tileAddress = 0x4000 + i + 0x20 * row;
+                int paletteAddress = 0x4400 + i + 0x20 * row;
             
-            byte tileIndex = ReadByte((ushort)tileAddress);
-            int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+                byte tileIndex = ReadByte((ushort)tileAddress);
+                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
 
-            // Use your original coordinate math
-            int yPos = 0;
-            int xPos = 232 - (i - 0x3C0) * 8;
+                int yPos = 0 + 8 * row;
+                int xPos = 232 - (i - 0x3C0) * 8;
             
-            requests.Add(new DrawRequest {
-                Texture = TileTextures[tileIndex, paletteIndex],
-                Position = new Vector2(xPos, yPos)
-            });
-        }
-        
-        // Row 2
-        for (int i = 0x3FF; i >= 0x3E0; i--)
-        {
-            int tileAddress = 0x4000 + i;
-            int paletteAddress = 0x4400 + i;
-            
-            byte tileIndex = ReadByte((ushort)tileAddress);
-            int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
-
-            int yPos = 8;
-            int xPos = 232 - (i - 0x3E0) * 8;
-            
-            requests.Add(new DrawRequest {
-                Texture = TileTextures[tileIndex, paletteIndex],
-                Position = new Vector2(xPos, yPos)
-            });
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
         }
         
         // Main Grid
@@ -105,6 +89,27 @@ public class PacManPCB : IMemoryProvider
                 });
             }
         }
+        
+        // Row 1 and 2
+        //for (int i = 0x01F; i >= 0x000; i--)
+        //{
+        //    for (int row = 0; row < 2; row++)
+        //    {
+        //        int tileAddress = 0x4000 + i + 0x20 * row;
+        //        int paletteAddress = 0x4400 + i + 0x20 * row;
+        //    
+        //        byte tileIndex = ReadByte((ushort)tileAddress);
+        //        int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+        //
+        //        int yPos = 272 + 8 * row;
+        //        int xPos = 232 - (i - 0x3C0) * 8;
+        //    
+        //        requests.Add(new DrawRequest {
+        //            Texture = TileTextures[tileIndex, paletteIndex],
+        //            Position = new Vector2(xPos, yPos)
+        //        });
+        //    }
+        //}
 
         // Bottom Rows
         for(int tileRow = 0; tileRow < 2; tileRow++)
@@ -116,7 +121,7 @@ public class PacManPCB : IMemoryProvider
                 
                 byte tileIndex = ReadByte(vram);
                 int paletteIndex = ReadByte(pram) & 0x1F;
-
+        
                 int xPos = 232 - (tileCol * 8);
                 int yPos = 272 + (tileRow * 8);
                 
