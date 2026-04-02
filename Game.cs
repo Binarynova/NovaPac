@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -64,60 +65,63 @@ public class Game : Microsoft.Xna.Framework.Game
         
         if(mode == 0)
         {
-            Console.WriteLine("Official ROMs:");
-            Console.WriteLine(" 1) Pac-Man");
-            
-            Console.WriteLine("\nUnofficial or Homebrew ROMs");
-            Console.WriteLine(" 2) Matrix Homebrew");
-            Console.WriteLine(" 3) New Puck-X");
-            
-            Console.WriteLine("\nDebug:");
-            Console.WriteLine(" 4) View Tile/Sprite ROM");
-            
-            Console.WriteLine("\nTests:");
-            Console.WriteLine(" 5) ZEXDOC");
-            Console.WriteLine(" 6) SSTs");
-            
-            Console.WriteLine("\nAnything else) Quit");
-            Console.Write(" > "); menuChoice = Console.ReadKey();
-            Console.WriteLine("");
-            switch (menuChoice.Key)
-            {
-                case ConsoleKey.D1:
-                    mode = 1;
-					Window.Title = $"Pac-Man";
-                    romFileName = "roms/pacman.zip";
-                    break;
-                case ConsoleKey.D2:
-                    mode = 1;
-                    Window.Title = "Matrix Homebrew by Scott Lawrence";
-                    romFileName = "roms/matrix.zip";
-                    break;
-                case ConsoleKey.D3:
-                    mode = 1;
-                    Window.Title = $"New Puck-X (Unofficial)";
-                    romFileName = "roms/newpuckx.zip";
-                    break;
-                case ConsoleKey.D4:
-                    mode = 2;
-                    romFileName = "roms/pacman.zip";
-                    break;
-                case ConsoleKey.D5:
-                    mode = 4;
-                    break;
-                case ConsoleKey.D6:
-                    Console.WriteLine("Running single-step tests...");
-                    _singleStateTests.Run();
-                    break;
-                case ConsoleKey.D7:
-                    mode = 1;
-                    Window.Title = $"Ms. Pac-Man";
-                    romFileName = "roms/mspacman.zip";
-                    break;
-                default:
-                    Environment.Exit(0);
-                    break;
-            }
+            mode = 1;
+            Window.Title = $"Pac-Man";
+            romFileName = "roms/pacman.zip";
+            //Console.WriteLine("Official ROMs:");
+            //Console.WriteLine(" 1) Pac-Man");
+            //
+            //Console.WriteLine("\nUnofficial or Homebrew ROMs");
+            //Console.WriteLine(" 2) Matrix Homebrew");
+            //Console.WriteLine(" 3) New Puck-X");
+            //
+            //Console.WriteLine("\nDebug:");
+            //Console.WriteLine(" 4) View Tile/Sprite ROM");
+            //
+            //Console.WriteLine("\nTests:");
+            //Console.WriteLine(" 5) ZEXDOC");
+            //Console.WriteLine(" 6) SSTs");
+            //
+            //Console.WriteLine("\nAnything else) Quit");
+            //Console.Write(" > "); menuChoice = Console.ReadKey();
+            //Console.WriteLine("");
+            //switch (menuChoice.Key)
+            //{
+            //    case ConsoleKey.D1:
+            //        mode = 1;
+			//		Window.Title = $"Pac-Man";
+            //        romFileName = "roms/pacman.zip";
+            //        break;
+            //    case ConsoleKey.D2:
+            //        mode = 1;
+            //        Window.Title = "Matrix Homebrew by Scott Lawrence";
+            //        romFileName = "roms/matrix.zip";
+            //        break;
+            //    case ConsoleKey.D3:
+            //        mode = 1;
+            //        Window.Title = $"New Puck-X (Unofficial)";
+            //        romFileName = "roms/newpuckx.zip";
+            //        break;
+            //    case ConsoleKey.D4:
+            //        mode = 2;
+            //        romFileName = "roms/pacman.zip";
+            //        break;
+            //    case ConsoleKey.D5:
+            //        mode = 4;
+            //        break;
+            //    case ConsoleKey.D6:
+            //        Console.WriteLine("Running single-step tests...");
+            //        _singleStateTests.Run();
+            //        break;
+            //    case ConsoleKey.D7:
+            //        mode = 1;
+            //        Window.Title = $"Ms. Pac-Man";
+            //        romFileName = "roms/mspacman.zip";
+            //        break;
+            //    default:
+            //        Environment.Exit(0);
+            //        break;
+            //}
         }
 
         if (mode == 4)
@@ -130,8 +134,8 @@ public class Game : Microsoft.Xna.Framework.Game
             _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
             _soundOut.Play();
             _pacManPcb = new PacManPCB(romFileName);
-            _pacManPcb.mode = mode;
             _pacManPcb.InitializeGraphics(GraphicsDevice);
+            _pacManPcb.mode = mode;
             base.Initialize();
         }
     }
@@ -161,7 +165,7 @@ public class Game : Microsoft.Xna.Framework.Game
         _soundOut.BufferNeeded += (_, _) =>
         {
             short[] samples = _pacManPcb.GetAudioSamples();
-    
+            
             // If the audio buffer is empty, submit silence to keep the thread alive
             if (samples == null || samples.Length == 0) {
                 samples = new short[441];

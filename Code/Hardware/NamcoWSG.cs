@@ -38,6 +38,9 @@ public class NamcoWSG
 
     public void Update(int cycles)
     {
+        if (_sampleBuffer.Count > 1500)
+            return;
+        
         _accumulator += cycles;
         
         while(_accumulator >= CyclesPerSample)
