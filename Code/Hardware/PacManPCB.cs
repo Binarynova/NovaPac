@@ -9,6 +9,19 @@ using pacman;
 
 public class PacManPCB : IMemoryProvider
 {
+    public enum DisplayMode
+    {
+        GameMode,
+        TileSpriteTestMode
+    }
+
+    public int mode = 0;
+    public int graphicsViewerMode = 0;
+    const int tileWidth = 8;
+    const int spriteWidth = 16;
+    List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
+    public int tileViewerPaletteIndex = 0;
+    
     private List<DrawRequest> requests = new List<DrawRequest>();
     public struct DrawRequest
     {
@@ -16,11 +29,9 @@ public class PacManPCB : IMemoryProvider
         public Vector2 Position;
         public SpriteEffects Effects;
     }
-
-    public List<DrawRequest> GetDrawRequests()
-    {
-        requests.Clear();
     
+    private void DrawGameScreen()
+    {
         // Row 1
         for (int i = 0x3DF; i >= 0x3C0; i--)
         {
@@ -124,6 +135,61 @@ public class PacManPCB : IMemoryProvider
                 Effects = effects
             });
         }
+    }
+    
+    void DrawTileAndSpriteViewer()
+    {
+        const int padding = 1;
+        if (graphicsViewerMode == 0) // view tiles
+        {
+            for(int i = 0; i < 16; i++)
+            {
+                for(int j = 0; j < 16; j++)
+                {
+                    int tileIndex = j * 16 + i;
+                    int tileXPos = i * (tileWidth + padding) + padding;
+                    int tileYPos = j * (tileWidth + padding) + padding;
+                
+                    requests.Add(new DrawRequest {
+                        Texture = TileTextures[tileIndex, tileViewerPalettes[tileViewerPaletteIndex]],
+                        Position = new Vector2(tileXPos, tileYPos)
+                    });
+                }
+            }
+        }
+        else if (graphicsViewerMode == 1) // view sprites
+        {
+            for(int i = 0; i < 8; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    int spriteIndex = j * 8 + i;
+                    int spriteXPos = i * (spriteWidth + padding) + padding;
+                    int spriteYPos = j * (spriteWidth + padding) + padding;
+        
+                    requests.Add(new DrawRequest {
+                        Texture = SpriteTextures[spriteIndex, tileViewerPalettes[tileViewerPaletteIndex]],
+                        Position = new Vector2(spriteXPos, spriteYPos),
+                        Effects = SpriteEffects.None
+                    });
+                }
+            }
+        }
+    }
+    
+    public List<DrawRequest> GetDrawRequests()
+    {
+        requests.Clear();
+
+        switch (mode)
+        {
+            case 1:
+                DrawGameScreen();
+                break;
+            case 2:
+                DrawTileAndSpriteViewer();
+                break;
+        }
 
         return requests;
     }
@@ -148,6 +214,7 @@ public class PacManPCB : IMemoryProvider
     
     public PacManPCB(string romFileName)
     {
+        mode = 0;
         cpu = new Z80Cpu(this);
         wsg = new NamcoWSG(romFileName);
         

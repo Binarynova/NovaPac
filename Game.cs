@@ -28,10 +28,10 @@ public class Game : Microsoft.Xna.Framework.Game
     const int internalHeight = 288;
     const int sidePadding = 20;
     ConsoleKeyInfo menuChoice;
-    int graphicsViewerMode = 0;
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
     int tileViewerPaletteIndex = 0;
+    private int graphicsViewerMode = 0;
 
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     
@@ -138,6 +138,7 @@ public class Game : Microsoft.Xna.Framework.Game
             _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
             _soundOut.Play();
             _pacManPcb = new PacManPCB(romFileName);
+            _pacManPcb.mode = mode;
             _pacManPcb.InitializeGraphics(GraphicsDevice);
             base.Initialize();
         }
@@ -223,31 +224,31 @@ public class Game : Microsoft.Xna.Framework.Game
                      keyboardState.IsKeyDown(Keys.Right) && _previousKeyboardState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
-                switch(graphicsViewerMode)
+                switch(_pacManPcb.graphicsViewerMode)
                 {
                     case 0:
-                        graphicsViewerMode = 1;
+                        _pacManPcb.graphicsViewerMode = 1;
                         break;
                     case 1:
-                        graphicsViewerMode = 0;
+                        _pacManPcb.graphicsViewerMode = 0;
                         break;
                 }
             }
             
             else if (keyboardState.IsKeyDown(Keys.Up) && _previousKeyboardState.IsKeyUp(Keys.Up))
             {
-                if (tileViewerPaletteIndex == 20)
-                    tileViewerPaletteIndex = 0;
+                if (_pacManPcb.tileViewerPaletteIndex == 20)
+                    _pacManPcb.tileViewerPaletteIndex = 0;
                 else
-                    tileViewerPaletteIndex++;
+                    _pacManPcb.tileViewerPaletteIndex++;
             }
             
             else if (keyboardState.IsKeyDown(Keys.Down) && _previousKeyboardState.IsKeyUp(Keys.Down))
             {
-                if (tileViewerPaletteIndex == 0)
-                    tileViewerPaletteIndex = 20;
+                if (_pacManPcb.tileViewerPaletteIndex == 0)
+                    _pacManPcb.tileViewerPaletteIndex = 20;
                 else
-                    tileViewerPaletteIndex--;
+                    _pacManPcb.tileViewerPaletteIndex--;
             }
         }
         
@@ -258,33 +259,26 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
-        if(mode == 1)
+        GraphicsDevice.Clear(Color.Black);
+        _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
+        
+        var frame = _pacManPcb.GetDrawRequests();
+
+        foreach (var item in frame)
         {
-            GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
-            
-            var frame = _pacManPcb.GetDrawRequests();
-    
-            foreach (var item in frame)
-            {
-                _spriteBatch.Draw(
-                    item.Texture,
-                    item.Position,
-                    null,
-                    Color.White,
-                    0f,
-                    Vector2.Zero,
-                    1f,
-                    item.Effects,
-                    0f
-                );
-            }
-            _spriteBatch.End();
+            _spriteBatch.Draw(
+                item.Texture,
+                item.Position,
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                1f,
+                item.Effects,
+                0f
+            );
         }
-        else if(mode == 2)
-        {
-            DrawGraphicsViewer();
-        }
+        _spriteBatch.End();
 
         _desktop.Render();
         GraphicsDevice.SetRenderTarget(null);
