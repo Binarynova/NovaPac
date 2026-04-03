@@ -70,61 +70,40 @@ public class PacManPCB : IMemoryProvider
         }
         
         // Main Grid
-        for(int tileRow = 0; tileRow < 32; tileRow++)
+        for (int i = 0x05F; i >= 0x040; i--)
         {
-            for(int tileCol = 0; tileCol < 28; tileCol++)
+            for (int col = 0; col < 28; col++)
             {
-                ushort vram = (ushort)(0x4040 + (0x20 * tileCol) + tileRow);
-                ushort pram = (ushort)(vram + 0x400);
-                
-                byte tileNumber = ReadByte(vram);
-                int paletteNumber = ReadByte(pram) & 0x1F;
-
-                int xPos = 216 - (tileCol * 8);
-                int yPos = 16 + (tileRow * 8);
+                int tileAddress = 0x4000 + i + 0x20 * col;
+                int paletteAddress = 0x4400 + i + 0x20 * col;
+            
+                byte tileIndex = ReadByte((ushort)tileAddress);
+                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+        
+                int yPos = 8 * (i - 0x040) + 16;
+                int xPos = 216 - (col) * 8;
             
                 requests.Add(new DrawRequest {
-                    Texture = TileTextures[tileNumber, paletteNumber],
+                    Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)
                 });
             }
         }
         
-        // Row 1 and 2
-        //for (int i = 0x01F; i >= 0x000; i--)
-        //{
-        //    for (int row = 0; row < 2; row++)
-        //    {
-        //        int tileAddress = 0x4000 + i + 0x20 * row;
-        //        int paletteAddress = 0x4400 + i + 0x20 * row;
-        //    
-        //        byte tileIndex = ReadByte((ushort)tileAddress);
-        //        int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
-        //
-        //        int yPos = 272 + 8 * row;
-        //        int xPos = 232 - (i - 0x3C0) * 8;
-        //    
-        //        requests.Add(new DrawRequest {
-        //            Texture = TileTextures[tileIndex, paletteIndex],
-        //            Position = new Vector2(xPos, yPos)
-        //        });
-        //    }
-        //}
-
-        // Bottom Rows
-        for(int tileRow = 0; tileRow < 2; tileRow++)
+        // Bottom 2 Rows
+        for (int i = 0x01F; i >= 0x000; i--)
         {
-            for(int tileCol = 0; tileCol < 32; tileCol++)
+            for (int row = 0; row < 2; row++)
             {
-                ushort vram = (ushort)(0x4000 + tileCol + (0x20 * tileRow));
-                ushort pram = (ushort)(vram + 0x400);
-                
-                byte tileIndex = ReadByte(vram);
-                int paletteIndex = ReadByte(pram) & 0x1F;
+                int tileAddress = 0x4000 + i + 0x20 * row;
+                int paletteAddress = 0x4400 + i + 0x20 * row;
+            
+                byte tileIndex = ReadByte((ushort)tileAddress);
+                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
         
-                int xPos = 232 - (tileCol * 8);
-                int yPos = 272 + (tileRow * 8);
-                
+                int yPos = 272 + 8 * row;
+                int xPos = 232 - (i - 0x000) * 8;
+            
                 requests.Add(new DrawRequest {
                     Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)

@@ -13,7 +13,7 @@ public class NamcoWSG
     public float MasterVolume { get; set; } = 1.0f;
     private const int MaxGain = 90;
     
-    private Queue<short> _sampleBuffer = new Queue<short>();
+    private Queue<short> _sampleBuffer = new ();
     private byte[] waveformROM = new byte[512];
 
     private int Voice1Frequency = 0;
@@ -38,6 +38,7 @@ public class NamcoWSG
 
     public void Update(int cycles)
     {
+        // limit size of buffers to reduce audio lag (especially on Steam Deck)
         if (_sampleBuffer.Count > 1500)
             return;
         
