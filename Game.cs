@@ -29,6 +29,8 @@ public class Game : Microsoft.Xna.Framework.Game
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
     bool verticalScreenMode = false;
+    int _currentScale = 1;
+    float _floatScale = 1.0f;
     
     PacManPCB _pacManPcb;
     ZEXDOC _zexdocTests;
@@ -47,9 +49,10 @@ public class Game : Microsoft.Xna.Framework.Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
-        if (Args[0] == "-f")
+        if (Args.Length > 0)
         {
-            ToggleFullscreen();
+            if(Args[0] == "-f")
+                ToggleFullscreen();
         }
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
@@ -280,7 +283,6 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (_pacManPcb != null)
         {
-        
             var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
 
             foreach (var drawRequest in frame)
@@ -291,26 +293,24 @@ public class Game : Microsoft.Xna.Framework.Game
             _spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
-            Vector2 screenCenter = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
-            Vector2 textureCenter = new Vector2(internalWidth / 2f, internalHeight / 2f);
+            Vector2 screenCenter = new (GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
+            Vector2 textureCenter = new (internalWidth / 2f, internalHeight / 2f);
 
-            float rotation = 0f;
-        
             GraphicsDevice.Clear(Color.Black);
-            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            _spriteBatch.Begin(samplerState: SamplerState.LinearClamp);
             if (verticalScreenMode)
             {
-                rotation = MathHelper.PiOver2;
+                float rotation = MathHelper.PiOver2;
                 if (_pacManPcb.secondPlayerFlip)
                 {
-                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
                 }
                 else
-                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.None, 0f);
+                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.None, 0f);
             }
             else
             {
-                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, 0f, textureCenter, 3.0f, SpriteEffects.None, 0f);
+                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, 0f, textureCenter, _floatScale, SpriteEffects.None, 0f);
             }
         }
         GraphicsDevice.SetRenderTarget(null);
@@ -342,30 +342,28 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private void UpdateRenderDestination(bool isRotated)
     {
-        int screenWidth = GraphicsDevice.Viewport.Width;
-        int screenHeight = GraphicsDevice.Viewport.Height;
+        int screenWidth = GraphicsDevice.Viewport.Width - (sidePadding * 2);
+        int screenHeight = GraphicsDevice.Viewport.Height - (sidePadding * 2);
 
-        int effectiveWidth = screenWidth;
-        int effectiveHeight = screenHeight;
+        int contentWidth = internalWidth;
+        int contentHeight = internalHeight;
 
         if (isRotated)
         {
-            effectiveWidth = screenHeight;
-            effectiveHeight = screenWidth;
+            contentWidth = internalHeight;
+            contentHeight = internalWidth;
         }
         
-        float scaleX = screenWidth / (float)effectiveWidth;
-        float scaleY = screenHeight / (float)effectiveHeight;
+        float scaleX = screenWidth / (float)contentWidth;
+        float scaleY = screenHeight / (float)contentHeight;
 
-        int integerScale = (int)Math.Floor(Math.Min(scaleX, scaleY));
+        _floatScale = Math.Min(scaleX, scaleY);
+        
+        int finalWidth = (int)(contentWidth * _floatScale);
+        int finalHeight = (int)(contentHeight * _floatScale);
 
-        if (integerScale < 1) integerScale = 1;
-
-        int finalWidth = effectiveWidth * integerScale;
-        int finalHeight = effectiveHeight * integerScale;
-
-        int x = (screenWidth - finalWidth) / 2;
-        int y = (screenHeight - finalHeight) / 2;
+        int x = (GraphicsDevice.Viewport.Width - finalWidth) / 2;
+        int y = (GraphicsDevice.Viewport.Height - finalHeight) / 2;
 
         _renderDestination = new Rectangle(x, y, finalWidth, finalHeight);
     }
