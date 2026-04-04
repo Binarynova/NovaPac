@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Http;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -21,7 +20,6 @@ public class Game : Microsoft.Xna.Framework.Game
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
-    private string[] Args;
     const int resScale = 3;
     const int internalWidth = 224;
     const int internalHeight = 288;
@@ -29,7 +27,6 @@ public class Game : Microsoft.Xna.Framework.Game
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
     bool verticalScreenMode = false;
-    int _currentScale = 1;
     float _floatScale = 1.0f;
     
     PacManPCB _pacManPcb;
@@ -43,7 +40,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
     public Game(string[] args)
     {
-        Args = args;
+        string[] Args = args;
         _zexdocTests = new ZEXDOC();
         _singleStateTests = new SSTests();
         _graphics = new GraphicsDeviceManager(this);
