@@ -93,7 +93,7 @@ public class Game : Microsoft.Xna.Framework.Game
             {
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Text = "Test"
+                Text = "Pac-Man"
             }
         };
         Grid.SetColumn(button, 1);
@@ -101,22 +101,45 @@ public class Game : Microsoft.Xna.Framework.Game
         
         button.Click += (_, _) =>
         {
-            StartGame();
+            StartGame("roms/pacman.zip", "Pac-Man");
+            grid.Visible = false;
+            Console.WriteLine("Button clicked.");
+        };
+        
+        
+        Button button2 = new()
+        {
+            Width = 100,
+            Height = 30,
+            Content = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = "Matrix Demo"
+            }
+        };
+        Grid.SetColumn(button2, 2);
+        Grid.SetRow(button2, 1);
+        
+        button2.Click += (_, _) =>
+        {
+            StartGame("roms/matrix.zip", "Matrix Demo");
             grid.Visible = false;
             Console.WriteLine("Button clicked.");
         };
         
         grid.Widgets.Add(button);
+        grid.Widgets.Add(button2);
         
         _desktop = new Desktop();
         _desktop.Root = grid;
         grid.Visible = true;
     }
 
-    private void StartGame()
+    private void StartGame(string romFilePath, string windowTitle)
     {
-        Window.Title = $"Pac-Man";
-        romFileName = "roms/pacman.zip";
+        Window.Title = windowTitle;
+        romFileName = romFilePath;
         
         _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
         // Sound Buffer Handling
