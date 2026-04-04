@@ -126,6 +126,11 @@ public class Game : Microsoft.Xna.Framework.Game
         Grid.SetColumn(button, 1);
         Grid.SetRow(button, 1);
         
+        button.Click += (_, _) =>
+        {
+            Console.WriteLine("Button clicked.");
+        };
+        
         grid.Widgets.Add(button);
         
         _desktop = new Desktop();
