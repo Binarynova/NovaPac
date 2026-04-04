@@ -140,24 +140,49 @@ public class Game : Microsoft.Xna.Framework.Game
         }
     }
 
-    protected override void LoadContent()
+    private void BuildMyraMenu()
     {
-        // Myra UI Begin
-        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
-        MyraEnvironment.Game = this;
-
         Grid grid = new Grid
         {
+            ShowGridLines = true,
             RowSpacing = 8,
             ColumnSpacing = 8
         };
 
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Auto));
-
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        
+        Button button = new Button
+        {
+            Width = 100,
+            Height = 30,
+            Content = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = "Test"
+            }
+        };
+        Grid.SetColumn(button, 1);
+        Grid.SetRow(button, 1);
+        
+        grid.Widgets.Add(button);
+        
         _desktop = new Desktop();
         _desktop.Root = grid;
-        // Myra UI End
+        grid.Visible = true;
+    }
+
+    protected override void LoadContent()
+    {
+        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
+        
+        MyraEnvironment.Game = this;
+        BuildMyraMenu();
         
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -271,8 +296,6 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         _spriteBatch.End();
 
-        // Render Myra UI
-        _desktop.Render();
         GraphicsDevice.SetRenderTarget(null);
         
         // Center game in screen
@@ -287,6 +310,9 @@ public class Game : Microsoft.Xna.Framework.Game
         else
             _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
         _spriteBatch.End();
+        
+        // Render Myra UI
+        _desktop.Render();
     }
     
     private void ToggleFullscreen()
