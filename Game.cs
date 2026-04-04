@@ -295,8 +295,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            _graphics.PreferredBackBufferWidth = (224 * 3) + (sidePadding * 2);
-            _graphics.PreferredBackBufferHeight = (288 * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferWidth = (internalWidth * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferHeight = (internalHeight * 3) + (sidePadding * 2);
         }
 
         _graphics.ApplyChanges();
@@ -308,15 +308,15 @@ public class Game : Microsoft.Xna.Framework.Game
         int screenWidth = GraphicsDevice.Viewport.Width;
         int screenHeight = GraphicsDevice.Viewport.Height;
 
-        float scaleX = screenWidth / 224f;
-        float scaleY = screenHeight / 288f;
+        float scaleX = screenWidth / (float)internalWidth;
+        float scaleY = screenHeight / (float)internalHeight;
 
         int integerScale = (int)Math.Floor(Math.Min(scaleX, scaleY));
 
         if (integerScale < 1) integerScale = 1;
 
-        int finalWidth = 224 * integerScale;
-        int finalHeight = 288 * integerScale;
+        int finalWidth = internalWidth * integerScale;
+        int finalHeight = internalHeight * integerScale;
 
         int x = (screenWidth - finalWidth) / 2;
         int y = (screenHeight - finalHeight) / 2;
