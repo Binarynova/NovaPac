@@ -61,6 +61,11 @@ public class PacManPCB : IMemoryProvider
             bool xFlip = (attr & 0x02) != 0;
             bool yFlip = (attr & 0x01) != 0;
 
+            // So, it seems that Pac-Man is written some way that automatically flips the sprites
+            // but not the tiles, for the second player in cocktail mode.
+            // How do the tiles flip then? I don't know.
+            // But either way, this is to compensate for that, since I'm flipping everything,
+            // the sprites have to be un-flipped.
             if (secondPlayFlip)
             {
                 screenX = GetSpriteRam2(offset) - 31;
@@ -76,6 +81,8 @@ public class PacManPCB : IMemoryProvider
 
             if (xFlip) effects |= SpriteEffects.FlipHorizontally;
             if (yFlip) effects |= SpriteEffects.FlipVertically;
+            
+            // See above.
             if (secondPlayFlip)
             {
                 effects = ~effects;
