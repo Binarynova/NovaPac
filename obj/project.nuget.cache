@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "31ctUdkMEFg=",
+  "dgSpecHash": "l0YU1bgIbAI=",
   "success": true,
-  "projectFilePath": "/home/thomas/Projects/pacman/pacman.csproj",
+  "projectFilePath": "/var/home/thomas/Projects/pacman/pacman.csproj",
   "expectedPackageFiles": [
     "/home/thomas/.nuget/packages/imgui.net/1.72.0/imgui.net.1.72.0.nupkg.sha512",
     "/home/thomas/.nuget/packages/json.net/1.0.33/json.net.1.0.33.nupkg.sha512",
@@ -18,7 +18,9 @@
     "/home/thomas/.nuget/packages/system.runtime.compilerservices.unsafe/4.6.0/system.runtime.compilerservices.unsafe.4.6.0.nupkg.sha512",
     "/home/thomas/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.netcore.app.ref/9.0.13/microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
+    "/home/thomas/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/9.0.13/microsoft.netcore.app.runtime.linux-x64.9.0.13.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.13/microsoft.aspnetcore.app.ref.9.0.13.nupkg.sha512",
+    "/home/thomas/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/9.0.13/microsoft.aspnetcore.app.runtime.linux-x64.9.0.13.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.netcore.app.host.linux-x64/9.0.13/microsoft.netcore.app.host.linux-x64.9.0.13.nupkg.sha512"
   ],
   "logs": [
