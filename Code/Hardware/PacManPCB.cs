@@ -38,6 +38,7 @@ public class PacManPCB : IMemoryProvider
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex = 0;
     public bool secondPlayerFlip = false;
+    private static bool steamDeckTwoPlayerMode = false;
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
@@ -46,7 +47,18 @@ public class PacManPCB : IMemoryProvider
         public Vector2 Position;
         public SpriteEffects Effects;
     }
-
+    
+    public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
+    {
+        mode = 0;
+        cpu = new Z80Cpu(this);
+        wsg = new NamcoWSG(romFileName);
+        steamDeckTwoPlayerMode = twoPlayerScreenFlip;
+        
+        ClearRAM();
+        LoadRom(romFileName);
+    }
+    
     private void DrawGameSprites(bool secondPlayFlip)
     {
         int screenX, screenY;
@@ -218,16 +230,6 @@ public class PacManPCB : IMemoryProvider
         }
 
         return requests;
-    }
-    
-    public PacManPCB(string romFileName)
-    {
-        mode = 0;
-        cpu = new Z80Cpu(this);
-        wsg = new NamcoWSG(romFileName);
-        
-        ClearRAM();
-        LoadRom(romFileName);
     }
 
     public void InitializeGraphics(GraphicsDevice device)
@@ -422,35 +424,67 @@ public class PacManPCB : IMemoryProvider
         KeyboardState state = Keyboard.GetState();
         GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
 
-        return (byte)
-        (
-            ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 0)
-            | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 1)
-            | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
-            | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
-            | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
-            | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
-            | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
-        );
+        if (steamDeckTwoPlayerMode)
+        {return (byte)
+            (
+                ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 1)
+                | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 3)
+                | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 0)
+                | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 2)
+                | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
+                | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
+                | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
+            );
+        }
+        else
+        {
+            return (byte)
+            (
+                ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 0)
+                | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 1)
+                | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
+                | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
+                | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
+                | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
+                | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
+            );
+        }
     }
     
     private static byte GetPort1()
     {
         KeyboardState state = Keyboard.GetState();
         GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
-        
-        return (byte)
-        (
-            ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
-            | ((state.IsKeyDown(Keys.NumPad4) ? 0 : 1) << 1)
-            | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
-            | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
-            | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
-            | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-            | (0x0 << 7) // 1 for upright, 0 for cocktail
-        );
+
+        if (steamDeckTwoPlayerMode)
+        {return (byte)
+            (
+                ((state.IsKeyDown(Keys.NumPad8) || gamePadState.ThumbSticks.Right.Y >= 0.5f ? 0 : 1) << 2)
+                | ((state.IsKeyDown(Keys.NumPad4) || gamePadState.ThumbSticks.Right.X <= -0.5f ? 0 : 1) << 0)
+                | ((state.IsKeyDown(Keys.NumPad6) || gamePadState.ThumbSticks.Right.X >= 0.5f ? 0 : 1) << 3)
+                | ((state.IsKeyDown(Keys.NumPad2) || gamePadState.ThumbSticks.Right.Y <= -0.5f ? 0 : 1) << 1)
+                | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
+                | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+                | (0x0 << 7) // 1 for upright, 0 for cocktail
+            );
+        }
+        else
+        {
+            return (byte)
+            (
+                ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
+                | ((state.IsKeyDown(Keys.NumPad4) ? 0 : 1) << 1)
+                | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
+                | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
+                | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
+                | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+                | (0x1 << 7) // 1 for upright, 0 for cocktail
+            );
+        }
     }
 
     // methods for decrypting Ms. Pac-Man data and applying the data to Pac-Man

@@ -47,6 +47,10 @@ public class Game : Microsoft.Xna.Framework.Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
+        if (Args[0] == "-f")
+        {
+            ToggleFullscreen();
+        }
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         IsFixedTimeStep = true;
@@ -181,7 +185,7 @@ public class Game : Microsoft.Xna.Framework.Game
         };
         _soundOut.Play();
         
-        _pacManPcb = new PacManPCB(romFileName);
+        _pacManPcb = new PacManPCB(romFileName, verticalScreenMode);
         _pacManPcb.InitializeGraphics(GraphicsDevice);
         _pacManPcb.mode = mode;
     }
