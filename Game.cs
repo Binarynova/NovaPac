@@ -292,21 +292,26 @@ public class Game : Microsoft.Xna.Framework.Game
 
             GraphicsDevice.SetRenderTarget(null);
             Vector2 screenCenter = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
-            Vector2 textureCenter = new Vector2(internalWidth / 2f, internalHeight / 2f); // swap these?
+            Vector2 textureCenter = new Vector2(internalWidth / 2f, internalHeight / 2f);
 
             float rotation = 0f;
-            if(verticalScreenMode)
-                rotation = MathHelper.PiOver2;
         
-            // Center game in screen
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            if (_pacManPcb.secondPlayerFlip)
+            if (verticalScreenMode)
             {
-                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                rotation = MathHelper.PiOver2;
+                if (_pacManPcb.secondPlayerFlip)
+                {
+                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                }
+                else
+                    _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.None, 0f);
             }
             else
-                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.None, 0f);
+            {
+                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, 0f, textureCenter, 3.0f, SpriteEffects.None, 0f);
+            }
         }
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
