@@ -28,6 +28,7 @@ public class Game : Microsoft.Xna.Framework.Game
     const int sidePadding = 20;
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
+    bool verticalScreenMode = false;
     
     PacManPCB _pacManPcb;
     ZEXDOC _zexdocTests;
@@ -55,7 +56,6 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
-        UpdateRenderDestination();
         base.Initialize();
     }
 
@@ -83,6 +83,28 @@ public class Game : Microsoft.Xna.Framework.Game
         grid.RowsProportions.Add(new Proportion(ProportionType.Part));
         grid.RowsProportions.Add(new Proportion(ProportionType.Part));
         grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        
+        Button button0 = new()
+        {
+            Width = 100,
+            Height = 30,
+            Content = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = "Pac-Man Rotated"
+            }
+        };
+        Grid.SetColumn(button0, 0);
+        Grid.SetRow(button0, 1);
+        
+        button0.Click += (_, _) =>
+        {
+            verticalScreenMode = true;
+            StartGame("roms/pacman.zip", "Pac-Man");
+            grid.Visible = false;
+            Console.WriteLine("Button clicked.");
+        };
         
         Button button = new()
         {
@@ -127,6 +149,7 @@ public class Game : Microsoft.Xna.Framework.Game
             Console.WriteLine("Button clicked.");
         };
         
+        grid.Widgets.Add(button0);
         grid.Widgets.Add(button);
         grid.Widgets.Add(button2);
         
@@ -139,6 +162,7 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         Window.Title = windowTitle;
         romFileName = romFilePath;
+        UpdateRenderDestination(verticalScreenMode);
         
         _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
         // Sound Buffer Handling
@@ -300,23 +324,32 @@ public class Game : Microsoft.Xna.Framework.Game
         }
 
         _graphics.ApplyChanges();
-        UpdateRenderDestination(); 
+        UpdateRenderDestination(verticalScreenMode); 
     }
 
-    private void UpdateRenderDestination()
+    private void UpdateRenderDestination(bool isRotated)
     {
         int screenWidth = GraphicsDevice.Viewport.Width;
         int screenHeight = GraphicsDevice.Viewport.Height;
 
-        float scaleX = screenWidth / (float)internalWidth;
-        float scaleY = screenHeight / (float)internalHeight;
+        int effectiveWidth = screenWidth;
+        int effectiveHeight = screenHeight;
+
+        if (isRotated)
+        {
+            effectiveWidth = screenHeight;
+            effectiveHeight = screenWidth;
+        }
+        
+        float scaleX = screenWidth / (float)effectiveWidth;
+        float scaleY = screenHeight / (float)effectiveHeight;
 
         int integerScale = (int)Math.Floor(Math.Min(scaleX, scaleY));
 
         if (integerScale < 1) integerScale = 1;
 
-        int finalWidth = internalWidth * integerScale;
-        int finalHeight = internalHeight * integerScale;
+        int finalWidth = effectiveWidth * integerScale;
+        int finalHeight = effectiveHeight * integerScale;
 
         int x = (screenWidth - finalWidth) / 2;
         int y = (screenHeight - finalHeight) / 2;
