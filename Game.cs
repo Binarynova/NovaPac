@@ -26,7 +26,6 @@ public class Game : Microsoft.Xna.Framework.Game
     const int internalWidth = 224;
     const int internalHeight = 288;
     const int sidePadding = 20;
-    ConsoleKeyInfo menuChoice;
     bool SteppingThrough;
     const float _speedMultiplier = 1f;
     
@@ -73,7 +72,7 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         Grid grid = new()
         {
-            ShowGridLines = true,
+            ShowGridLines = false,
             RowSpacing = 8,
             ColumnSpacing = 8
         };
