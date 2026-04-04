@@ -262,7 +262,7 @@ public class Game : Microsoft.Xna.Framework.Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
         
-        var frame = _pacManPcb.GetDrawRequests();
+        var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
 
         foreach (var drawRequest in frame)
         {
@@ -278,7 +278,14 @@ public class Game : Microsoft.Xna.Framework.Game
         // Center game in screen
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
+        if (_pacManPcb.secondPlayerFlip)
+        {
+            float rotation = 0f;
+            Vector2 origin = Vector2.Zero;
+            _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, null, Color.White, rotation, origin, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+        }
+        else
+            _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
         _spriteBatch.End();
     }
     

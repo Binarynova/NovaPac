@@ -37,6 +37,7 @@ public class PacManPCB : IMemoryProvider
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex = 0;
+    public bool secondPlayerFlip = false;
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
@@ -45,8 +46,50 @@ public class PacManPCB : IMemoryProvider
         public Vector2 Position;
         public SpriteEffects Effects;
     }
+
+    private void DrawGameSprites(bool secondPlayFlip)
+    {
+        int screenX, screenY;
+        
+        for (int sprite = 7; sprite >= 0; sprite--)
+        {
+            int offset = sprite * 2;
+            int attr = GetSpriteRam(offset);
+            int paletteIndex = GetSpriteRam(offset + 1) & 0x1F;
+                
+            int spriteIndex = (attr & 0xFC) >> 2;
+            bool xFlip = (attr & 0x02) != 0;
+            bool yFlip = (attr & 0x01) != 0;
+
+            if (secondPlayFlip)
+            {
+                screenX = GetSpriteRam2(offset) - 31;
+                screenY = GetSpriteRam2(offset + 1);
+            }
+            else
+            {
+                screenX = 224 - GetSpriteRam2(offset) + 15;
+                screenY = 288 - 16 - GetSpriteRam2(offset + 1);
+            }
+
+            SpriteEffects effects = SpriteEffects.None;
+
+            if (xFlip) effects |= SpriteEffects.FlipHorizontally;
+            if (yFlip) effects |= SpriteEffects.FlipVertically;
+            if (secondPlayFlip)
+            {
+                effects = ~effects;
+            }
+        
+            requests.Add(new DrawRequest {
+                Texture = SpriteTextures[spriteIndex, paletteIndex],
+                Position = new Vector2(screenX, screenY),
+                Effects = effects
+            });
+        }
+    }
     
-    private void DrawGameScreen()
+    private void DrawGameTiles()
     {
         // Row 1 and 2
         for (int i = 0x3DF; i >= 0x3C0; i--)
@@ -110,31 +153,6 @@ public class PacManPCB : IMemoryProvider
                 });
             }
         }
-        
-        // Draw Sprites
-        for (int sprite = 7; sprite >= 0; sprite--)
-        {
-            int offset = sprite * 2;
-            int attr = GetSpriteRam(offset);
-            int paletteIndex = GetSpriteRam(offset + 1) & 0x1F;
-                
-            int spriteIndex = (attr & 0xFC) >> 2;
-            bool xFlip = (attr & 0x02) != 0;
-            bool yFlip = (attr & 0x01) != 0;
-
-            int screenX = 224 - GetSpriteRam2(offset) + 15;
-            int screenY = 288 - 16 - GetSpriteRam2(offset + 1);
-
-            SpriteEffects effects = SpriteEffects.None;
-            if (xFlip) effects |= SpriteEffects.FlipHorizontally;
-            if (yFlip) effects |= SpriteEffects.FlipVertically;
-        
-            requests.Add(new DrawRequest {
-                Texture = SpriteTextures[spriteIndex, paletteIndex],
-                Position = new Vector2(screenX, screenY),
-                Effects = effects
-            });
-        }
     }
     
     void DrawTileAndSpriteViewer()
@@ -177,14 +195,15 @@ public class PacManPCB : IMemoryProvider
         }
     }
     
-    public List<DrawRequest> GetDrawRequests()
+    public List<DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
         requests.Clear();
 
         switch (mode)
         {
             case 1:
-                DrawGameScreen();
+                DrawGameTiles();
+                DrawGameSprites(secondPlayFlip);
                 break;
             case 2:
                 DrawTileAndSpriteViewer();
@@ -274,6 +293,10 @@ public class PacManPCB : IMemoryProvider
             wsg.UpdateRegister(address, value);
             return;
         }
+        
+        // intercept flip
+        if (address == 0x5003)
+            secondPlayerFlip = value == 1;
         
         // Handle special non-mirrored I/O writes (Sync bus)
         if (address is >= 0x5060 and <= 0x506F)
@@ -419,7 +442,7 @@ public class PacManPCB : IMemoryProvider
             | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
             | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-            | (0x1 << 7) // 1 for upright, 0 for cocktail
+            | (0x0 << 7) // 1 for upright, 0 for cocktail
         );
     }
 
