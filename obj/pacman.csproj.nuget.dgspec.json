@@ -44,6 +44,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "ImGui.NET": {
+              "target": "Package",
+              "version": "[1.72.0, )"
+            },
             "Json.Net": {
               "target": "Package",
               "version": "[1.0.33, )"
@@ -56,9 +60,9 @@
               "target": "Package",
               "version": "[3.8.*, )"
             },
-            "Myra": {
+            "Monogame.ImGui": {
               "target": "Package",
-              "version": "[1.5.11, )"
+              "version": "[1.0.0, )"
             }
           },
           "imports": [

@@ -1,17 +1,19 @@
 ﻿using System;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
-using Myra;
-using Myra.Graphics2D.UI;
+using MonoGame.ImGui;
 
 namespace pacman;
 
 public class Game : Microsoft.Xna.Framework.Game
 {
     int mode = 1;
-    private Desktop _desktop;
+    private bool _isMenuOpen = true;
+    private string _activeRom = null;
+    ImGUIRenderer _imGuiRenderer;
     DynamicSoundEffectInstance _soundOut;
     RenderTarget2D _nativeRenderTarget;
     GraphicsDeviceManager _graphics;
@@ -60,6 +62,17 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
+        ImGui.CreateContext();
+        ImGui.SetCurrentContext(ImGui.GetCurrentContext());
+        _imGuiRenderer = new ImGUIRenderer(this);
+        _imGuiRenderer.RebuildFontAtlas();
+        var style = ImGui.GetStyle();
+        style.FramePadding = new System.Numerics.Vector2(80, 40);
+        style.ItemSpacing = new System.Numerics.Vector2(15, 15);
+
+        var io = ImGui.GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
+        
         base.Initialize();
     }
 
@@ -68,98 +81,6 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
         
-        MyraEnvironment.Game = this;
-        BuildMyraMenu();
-    }
-
-    private void BuildMyraMenu()
-    {
-        Grid grid = new()
-        {
-            ShowGridLines = false,
-            RowSpacing = 8,
-            ColumnSpacing = 8
-        };
-
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
-        
-        Button button0 = new()
-        {
-            Width = 100,
-            Height = 30,
-            Content = new Label
-            {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = "Pac-Man Rotated"
-            }
-        };
-        Grid.SetColumn(button0, 0);
-        Grid.SetRow(button0, 1);
-        
-        button0.Click += (_, _) =>
-        {
-            verticalScreenMode = true;
-            StartGame("roms/pacman.zip", "Pac-Man");
-            grid.Visible = false;
-            Console.WriteLine("Button clicked.");
-        };
-        
-        Button button = new()
-        {
-            Width = 100,
-            Height = 30,
-            Content = new Label
-            {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = "Pac-Man"
-            }
-        };
-        Grid.SetColumn(button, 1);
-        Grid.SetRow(button, 1);
-        
-        button.Click += (_, _) =>
-        {
-            StartGame("roms/pacman.zip", "Pac-Man");
-            grid.Visible = false;
-            Console.WriteLine("Button clicked.");
-        };
-        
-        
-        Button button2 = new()
-        {
-            Width = 100,
-            Height = 30,
-            Content = new Label
-            {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = "Matrix Demo"
-            }
-        };
-        Grid.SetColumn(button2, 2);
-        Grid.SetRow(button2, 1);
-        
-        button2.Click += (_, _) =>
-        {
-            StartGame("roms/matrix.zip", "Matrix Demo");
-            grid.Visible = false;
-            Console.WriteLine("Button clicked.");
-        };
-        
-        grid.Widgets.Add(button0);
-        grid.Widgets.Add(button);
-        grid.Widgets.Add(button2);
-        
-        _desktop = new Desktop();
-        _desktop.Root = grid;
-        grid.Visible = true;
     }
 
     private void StartGame(string romFilePath, string windowTitle)
@@ -312,9 +233,53 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
-        
-        // Render Myra UI
-        _desktop.Render();
+
+        if (_isMenuOpen)
+        {
+            _imGuiRenderer.BeginLayout(gameTime);
+            DrawLauncherUI();
+            _imGuiRenderer.EndLayout();
+        }
+    }
+    
+    private void DrawLauncherUI()
+    {
+        ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
+
+        var windowFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+
+        if (ImGui.Begin("MainLauncher", windowFlags))
+        {
+            if (ImGui.BeginTabBar("GameCategories"))
+            {
+                if (ImGui.BeginTabItem("Official"))
+                {
+                    if (ImGui.Button("Pac-Man")) { StartGame("roms/pacman.zip", "Pac-Man"); _isMenuOpen = false; }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Pac-Man Rotated"))
+                    {
+                        verticalScreenMode = true;
+                        StartGame("roms/pacman.zip", "Pac-Man");
+                        _isMenuOpen = false; }
+                    ImGui.EndTabItem();
+                }
+            
+                if (ImGui.BeginTabItem("Hacks"))
+                {
+                    if (ImGui.Button("New Puck X")) { StartGame("roms/newpuckx.zip", "New Puck X"); _isMenuOpen = false; }
+                    ImGui.EndTabItem();
+                }
+                
+                if (ImGui.BeginTabItem("Demos"))
+                {
+                    if (ImGui.Button("Matrix Code")) { StartGame("roms/matrix.zip", "Matrix Demo"); _isMenuOpen = false; }
+                    ImGui.EndTabItem();
+                }
+                ImGui.EndTabBar();
+            }
+            ImGui.End();
+        }
     }
     
     private void ToggleFullscreen()
