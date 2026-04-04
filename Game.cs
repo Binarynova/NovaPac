@@ -11,7 +11,7 @@ namespace pacman;
 
 public class Game : Microsoft.Xna.Framework.Game
 {
-    int mode = 0;
+    int mode = 1;
     private Desktop _desktop;
     DynamicSoundEffectInstance _soundOut;
     RenderTarget2D _nativeRenderTarget;
@@ -57,124 +57,18 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void Initialize()
     {
         UpdateRenderDestination();
-        if (Args.Length != 0)
-        {
-            if (Args[0] == "-debug")
-                SteppingThrough = true;
-        }
         
-        if(mode == 0)
-        {
-            mode = 1;
-            Window.Title = $"Pac-Man";
-            romFileName = "roms/pacman.zip";
-            //Console.WriteLine("Official ROMs:");
-            //Console.WriteLine(" 1) Pac-Man");
-            //
-            //Console.WriteLine("\nUnofficial or Homebrew ROMs");
-            //Console.WriteLine(" 2) Matrix Homebrew");
-            //Console.WriteLine(" 3) New Puck-X");
-            //
-            //Console.WriteLine("\nDebug:");
-            //Console.WriteLine(" 4) View Tile/Sprite ROM");
-            //
-            //Console.WriteLine("\nTests:");
-            //Console.WriteLine(" 5) ZEXDOC");
-            //Console.WriteLine(" 6) SSTs");
-            //
-            //Console.WriteLine("\nAnything else) Quit");
-            //Console.Write(" > "); menuChoice = Console.ReadKey();
-            //Console.WriteLine("");
-            //switch (menuChoice.Key)
-            //{
-            //    case ConsoleKey.D1:
-            //        mode = 1;
-			//		Window.Title = $"Pac-Man";
-            //        romFileName = "roms/pacman.zip";
-            //        break;
-            //    case ConsoleKey.D2:
-            //        mode = 1;
-            //        Window.Title = "Matrix Homebrew by Scott Lawrence";
-            //        romFileName = "roms/matrix.zip";
-            //        break;
-            //    case ConsoleKey.D3:
-            //        mode = 1;
-            //        Window.Title = $"New Puck-X (Unofficial)";
-            //        romFileName = "roms/newpuckx.zip";
-            //        break;
-            //    case ConsoleKey.D4:
-            //        mode = 2;
-            //        romFileName = "roms/pacman.zip";
-            //        break;
-            //    case ConsoleKey.D5:
-            //        mode = 4;
-            //        break;
-            //    case ConsoleKey.D6:
-            //        Console.WriteLine("Running single-step tests...");
-            //        _singleStateTests.Run();
-            //        break;
-            //    case ConsoleKey.D7:
-            //        mode = 1;
-            //        Window.Title = $"Ms. Pac-Man";
-            //        romFileName = "roms/mspacman.zip";
-            //        break;
-            //    default:
-            //        Environment.Exit(0);
-            //        break;
-            //}
-        }
-
-        if (mode == 4)
-        {
-            _zexdocTests.Run();
-            Environment.Exit(0);
-        }
-        else
-        {
-            _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
-            _soundOut.Play();
-            _pacManPcb = new PacManPCB(romFileName);
-            _pacManPcb.InitializeGraphics(GraphicsDevice);
-            _pacManPcb.mode = mode;
-            base.Initialize();
-        }
-    }
-
-    private void BuildMyraMenu()
-    {
-        Grid grid = new Grid
-        {
-            ShowGridLines = true,
-            RowSpacing = 8,
-            ColumnSpacing = 8
-        };
-
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
-        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        Window.Title = $"Pac-Man";
+        romFileName = "roms/pacman.zip";
         
-        Button button = new Button
-        {
-            Width = 100,
-            Height = 30,
-            Content = new Label
-            {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = "Test"
-            }
-        };
-        Grid.SetColumn(button, 1);
-        Grid.SetRow(button, 1);
+        _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
+        _soundOut.Play();
         
-        grid.Widgets.Add(button);
+        _pacManPcb = new PacManPCB(romFileName);
+        _pacManPcb.InitializeGraphics(GraphicsDevice);
+        _pacManPcb.mode = mode;
         
-        _desktop = new Desktop();
-        _desktop.Root = grid;
-        grid.Visible = true;
+        base.Initialize();
     }
 
     protected override void LoadContent()
@@ -200,6 +94,43 @@ public class Game : Microsoft.Xna.Framework.Game
             Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
             _soundOut.SubmitBuffer(byteArray);
         };
+    }
+
+    private void BuildMyraMenu()
+    {
+        Grid grid = new()
+        {
+            ShowGridLines = true,
+            RowSpacing = 8,
+            ColumnSpacing = 8
+        };
+
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.ColumnsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        grid.RowsProportions.Add(new Proportion(ProportionType.Part));
+        
+        Button button = new()
+        {
+            Width = 100,
+            Height = 30,
+            Content = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = "Test"
+            }
+        };
+        Grid.SetColumn(button, 1);
+        Grid.SetRow(button, 1);
+        
+        grid.Widgets.Add(button);
+        
+        _desktop = new Desktop();
+        _desktop.Root = grid;
+        grid.Visible = true;
     }
 
     protected override void Update(GameTime gameTime)
