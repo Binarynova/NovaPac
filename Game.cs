@@ -287,18 +287,22 @@ public class Game : Microsoft.Xna.Framework.Game
             _spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
+            Vector2 screenCenter = new Vector2(GraphicsDevice.Viewport.Width / 2f, GraphicsDevice.Viewport.Height / 2f);
+            Vector2 textureCenter = new Vector2(internalWidth / 2f, internalHeight / 2f); // swap these?
+
+            float rotation = 0f;
+            if(verticalScreenMode)
+                rotation = MathHelper.PiOver2;
         
             // Center game in screen
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
             if (_pacManPcb.secondPlayerFlip)
             {
-                float rotation = 0f;
-                Vector2 origin = Vector2.Zero;
-                _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, null, Color.White, rotation, origin, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
             }
             else
-                _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
+                _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, 3.0f, SpriteEffects.None, 0f);
         }
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
