@@ -57,43 +57,16 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void Initialize()
     {
         UpdateRenderDestination();
-        
-        Window.Title = $"Pac-Man";
-        romFileName = "roms/pacman.zip";
-        
-        _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
-        _soundOut.Play();
-        
-        _pacManPcb = new PacManPCB(romFileName);
-        _pacManPcb.InitializeGraphics(GraphicsDevice);
-        _pacManPcb.mode = mode;
-        
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, 224, 288);
+        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
         
         MyraEnvironment.Game = this;
         BuildMyraMenu();
-        
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        // Sound Buffer Handling
-        _soundOut.BufferNeeded += (_, _) =>
-        {
-            short[] samples = _pacManPcb.GetAudioSamples();
-            
-            // If the audio buffer is empty, submit silence to keep the thread alive
-            if (samples == null || samples.Length == 0) {
-                samples = new short[441];
-            }
-
-            byte[] byteArray = new byte[samples.Length * 2];
-            Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
-            _soundOut.SubmitBuffer(byteArray);
-        };
     }
 
     private void BuildMyraMenu()
@@ -128,6 +101,8 @@ public class Game : Microsoft.Xna.Framework.Game
         
         button.Click += (_, _) =>
         {
+            StartGame();
+            grid.Visible = false;
             Console.WriteLine("Button clicked.");
         };
         
@@ -136,6 +111,33 @@ public class Game : Microsoft.Xna.Framework.Game
         _desktop = new Desktop();
         _desktop.Root = grid;
         grid.Visible = true;
+    }
+
+    private void StartGame()
+    {
+        Window.Title = $"Pac-Man";
+        romFileName = "roms/pacman.zip";
+        
+        _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
+        // Sound Buffer Handling
+        _soundOut.BufferNeeded += (_, _) =>
+        {
+            short[] samples = _pacManPcb.GetAudioSamples();
+            
+            // If the audio buffer is empty, submit silence to keep the thread alive
+            if (samples == null || samples.Length == 0) {
+                samples = new short[441];
+            }
+
+            byte[] byteArray = new byte[samples.Length * 2];
+            Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
+            _soundOut.SubmitBuffer(byteArray);
+        };
+        _soundOut.Play();
+        
+        _pacManPcb = new PacManPCB(romFileName);
+        _pacManPcb.InitializeGraphics(GraphicsDevice);
+        _pacManPcb.mode = mode;
     }
 
     protected override void Update(GameTime gameTime)
@@ -158,22 +160,25 @@ public class Game : Microsoft.Xna.Framework.Game
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 SteppingThrough = true;
-            
-            _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
 
-            while (_cycleAccumulator > 0)
+            if (_pacManPcb != null)
             {
-                int cycles = _pacManPcb.Step(SteppingThrough);
-                _cycleAccumulator -= cycles;
+                _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
 
-                interruptCycleCounter += cycles;
-                if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
+                while (_cycleAccumulator > 0)
                 {
-                    _pacManPcb.TriggerVBlankInterrupt();
-                    interruptCycleCounter -= CYCLES_PER_INTERRUPT;
-                }
+                    int cycles = _pacManPcb.Step(SteppingThrough);
+                    _cycleAccumulator -= cycles;
+
+                    interruptCycleCounter += cycles;
+                    if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
+                    {
+                        _pacManPcb.TriggerVBlankInterrupt();
+                        interruptCycleCounter -= CYCLES_PER_INTERRUPT;
+                    }
             
-                if (cycles <= 0) break; 
+                    if (cycles <= 0) break; 
+                }
             }
         }
         else if(mode == 2)
@@ -222,29 +227,34 @@ public class Game : Microsoft.Xna.Framework.Game
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
-        
-        var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
 
-        foreach (var drawRequest in frame)
+        if (_pacManPcb != null)
         {
-            _spriteBatch.Draw(drawRequest.Texture, drawRequest.Position, null,
-                              Color.White, 0f, Vector2.Zero, 1f, drawRequest.Effects, 0f);
-        }
-        _spriteBatch.End();
+        
+            var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
 
+            foreach (var drawRequest in frame)
+            {
+                _spriteBatch.Draw(drawRequest.Texture, drawRequest.Position, null,
+                    Color.White, 0f, Vector2.Zero, 1f, drawRequest.Effects, 0f);
+            }
+            _spriteBatch.End();
+
+            GraphicsDevice.SetRenderTarget(null);
+        
+            // Center game in screen
+            GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            if (_pacManPcb.secondPlayerFlip)
+            {
+                float rotation = 0f;
+                Vector2 origin = Vector2.Zero;
+                _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, null, Color.White, rotation, origin, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+            }
+            else
+                _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
+        }
         GraphicsDevice.SetRenderTarget(null);
-        
-        // Center game in screen
-        GraphicsDevice.Clear(Color.Black);
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        if (_pacManPcb.secondPlayerFlip)
-        {
-            float rotation = 0f;
-            Vector2 origin = Vector2.Zero;
-            _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, null, Color.White, rotation, origin, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
-        }
-        else
-            _spriteBatch.Draw(_nativeRenderTarget, _renderDestination, Color.White);
         _spriteBatch.End();
         
         // Render Myra UI
