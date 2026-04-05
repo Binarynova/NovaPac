@@ -418,6 +418,49 @@ public class PacManPCB : IMemoryProvider
             spriteMemory = ExtractRom(archive, "pacman.5f");
             paletteMemory = ExtractRom(archive, "82s126.4a");
         }
+        else if (romFileName is "roms/pacplus.zip")
+        {
+            _auxBoardEnabled = false;
+            using ZipArchive archive = ZipFile.OpenRead(romFileName);
+            var romMap = new Dictionary<string, int>
+            {
+                { "pacplus.6e", 0x0000 },
+                { "pacplus.6f", 0x1000 },
+                { "pacplus.6h", 0x2000 },
+                { "pacplus.6j", 0x3000 }
+            };
+
+            foreach (var entry in romMap)
+            {
+                ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                if (romEntry != null)
+                {
+                    using Stream s = romEntry.Open();
+                    byte[] buffer = new byte[romEntry.Length];
+                    s.ReadExactly(buffer, 0, buffer.Length);
+                
+                    Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                }
+            
+                else
+                {
+                    throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                }
+            }
+
+            charMemory = ExtractRom(archive, "pacplus.5e");
+            spriteMemory = ExtractRom(archive, "pacplus.5f");
+            paletteMemory = ExtractRom(archive, "pacplus.4a");
+
+            for (int i = 0; i < charMemory.Length; i++) charMemory[i] = PacPlusDecryptGraphics(charMemory[i]);
+            for (int i = 0; i < spriteMemory.Length; i++) spriteMemory[i] = PacPlusDecryptGraphics(spriteMemory[i]);
+            
+            for (int i = 0; i < 0x4000; i++)
+            {
+                Memory[i] = (byte)pacPlusDecrypt(i, Memory[i]);
+            }
+        }
         else if (romFileName is "roms/newpuckx.zip")
         {
             _auxBoardEnabled = false;
@@ -682,6 +725,67 @@ public class PacManPCB : IMemoryProvider
         decryptedData |= (data & 0x010) >> 1;
         
         return decryptedData;
+    }
+    
+    // Method for decrypting Pac-Man Plus
+    private static uint pacPlusDecrypt(int addr, byte e)
+    {
+        byte[][] swapXorTable = new byte[6][]
+        {
+            [ 7,6,5,4,3,2,1,0, 0x00],
+            [ 7,6,5,4,3,2,1,0, 0x28],
+            [ 6,1,3,2,5,7,0,4, 0x96],
+            [ 6,1,5,2,3,7,0,4, 0xBE],
+            [ 0,3,7,6,4,2,1,5, 0xD5],
+            [ 0,3,4,6,7,2,1,5, 0xDD]
+        };
+        int[] pickTable = new int[32]
+        {
+            0,2,4,2,4,0,4,2,2,0,2,2,4,0,4,2,
+            2,2,4,0,4,2,4,0,0,4,0,4,4,2,4,2
+        };
+        
+        byte[] tbl;
+
+        uint method = (uint)pickTable[
+            (addr & 0x001) |
+            ((addr & 0x004) >> 1) |
+            ((addr & 0x020) >> 3) |
+            ((addr & 0x080) >> 4) |
+            ((addr & 0x200) >> 5)];
+
+        if ((addr & 0x800) == 0x800)
+            method ^= 1;
+
+        tbl = swapXorTable[method];
+        int res = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            // If the bit at the position defined by the table is set...
+            if ((e & (1 << tbl[i])) != 0)
+            {
+                // ...set the current bit in our result
+                res |= (1 << i);
+            }
+        }
+
+        // Final XOR step
+        return (byte)(res ^ tbl[8]);
+    }
+    
+    private static byte PacPlusDecryptGraphics(byte data)
+    {
+        // Pac-Man Plus graphics use a constant bit-swap encryption
+        int res = 0;
+        if ((data & 0x01) != 0) res |= 0x01;
+        if ((data & 0x02) != 0) res |= 0x10;
+        if ((data & 0x04) != 0) res |= 0x02;
+        if ((data & 0x08) != 0) res |= 0x20;
+        if ((data & 0x10) != 0) res |= 0x04;
+        if ((data & 0x20) != 0) res |= 0x40;
+        if ((data & 0x40) != 0) res |= 0x08;
+        if ((data & 0x80) != 0) res |= 0x80;
+        return (byte)res;
     }
 
     private void PreparePalettes()
