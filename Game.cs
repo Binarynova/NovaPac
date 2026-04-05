@@ -16,7 +16,6 @@ public class Game : Microsoft.Xna.Framework.Game
     SpriteFont _font;
     GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
     KeyboardState _currentState;
@@ -91,7 +90,7 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         Window.Title = windowTitle;
         romFileName = romFilePath;
-        UpdateRenderDestination(verticalScreenMode);
+        CalculateFloatScale(verticalScreenMode);
         
         _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
         // Sound Buffer Handling
@@ -133,8 +132,8 @@ public class Game : Microsoft.Xna.Framework.Game
         if (_isMenuOpen)
         {
             // up / down
-            if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown)) _selectedIndex = (_selectedIndex + 1) % _games.Count;
-            if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))     _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
+            if (KeyPressed(Keys.Down)  || ButtonPressed(Buttons.DPadDown)) _selectedIndex = (_selectedIndex + 1) % _games.Count;
+            if (KeyPressed(Keys.Up)    || ButtonPressed(Buttons.DPadUp))   _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
             {
                 verticalScreenMode = _selectedIndex is 1 or 3;
@@ -321,10 +320,10 @@ public class Game : Microsoft.Xna.Framework.Game
         }
 
         _graphics.ApplyChanges();
-        UpdateRenderDestination(verticalScreenMode); 
+        CalculateFloatScale(verticalScreenMode); 
     }
 
-    private void UpdateRenderDestination(bool isRotated)
+    private void CalculateFloatScale(bool isRotated)
     {
         int screenWidth = GraphicsDevice.Viewport.Width - (sidePadding * 2);
         int screenHeight = GraphicsDevice.Viewport.Height - (sidePadding * 2);
@@ -342,13 +341,5 @@ public class Game : Microsoft.Xna.Framework.Game
         float scaleY = screenHeight / (float)contentHeight;
 
         _floatScale = Math.Min(scaleX, scaleY);
-        
-        int finalWidth = (int)(contentWidth * _floatScale);
-        int finalHeight = (int)(contentHeight * _floatScale);
-
-        int x = (GraphicsDevice.Viewport.Width - finalWidth) / 2;
-        int y = (GraphicsDevice.Viewport.Height - finalHeight) / 2;
-
-        _renderDestination = new Rectangle(x, y, finalWidth, finalHeight);
     }
 }
