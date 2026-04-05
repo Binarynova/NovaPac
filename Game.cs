@@ -19,6 +19,9 @@ public class Game : Microsoft.Xna.Framework.Game
     Rectangle _renderDestination;
     private double _cycleAccumulator = 0;
     KeyboardState _lastState;
+    KeyboardState _currentState;
+    GamePadState _currentGamePadState;
+    GamePadState _lastGamePadState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
     const int resScale = 3;
     const int internalWidth = 224;
@@ -48,7 +51,6 @@ public class Game : Microsoft.Xna.Framework.Game
     };
     private int _selectedIndex = 0;
     private bool _isMenuOpen = true;
-    private GamePadState _oldState;
     
     string romFileName;
 
@@ -113,29 +115,34 @@ public class Game : Microsoft.Xna.Framework.Game
         _pacManPcb.mode = mode;
     }
 
+    private bool KeyPressed(Keys key)
+    {
+        return _currentState.IsKeyDown(key) && _lastState.IsKeyUp(key);
+    }
+
+    private bool ButtonPressed(Buttons button)
+    {
+        return _currentGamePadState.IsButtonDown(button) && _lastGamePadState.IsButtonUp(button);
+    }
+    
     protected override void Update(GameTime gameTime)
     {
-        KeyboardState keyboardState = Keyboard.GetState();
-        GamePadState newState =  GamePad.GetState(PlayerIndex.One);
+        _currentState = Keyboard.GetState();
+        _currentGamePadState =  GamePad.GetState(PlayerIndex.One);
 
         if (_isMenuOpen)
         {
             // up / down
-            if (newState.DPad.Down == ButtonState.Pressed && _oldState.DPad.Down == ButtonState.Released)
-                _selectedIndex = (_selectedIndex + 1) % _games.Count;
-            if (newState.DPad.Up == ButtonState.Pressed && _oldState.DPad.Up == ButtonState.Released)
-                _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
-            if (newState.Buttons.A == ButtonState.Pressed && _oldState.Buttons.A == ButtonState.Released)
+            if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown)) _selectedIndex = (_selectedIndex + 1) % _games.Count;
+            if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))     _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
+            if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
             {
-                if (_selectedIndex == 1 || _selectedIndex == 3)
-                    verticalScreenMode = true;
-                else
-                    verticalScreenMode = false;
+                verticalScreenMode = _selectedIndex is 1 or 3;
                 StartGame(_games[_selectedIndex][0], _games[_selectedIndex][1]);
                 _isMenuOpen = false;
                 paused = false;
             }
-            if (newState.Buttons.Y == ButtonState.Pressed && _oldState.Buttons.Y == ButtonState.Released)
+            if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
             {
                 _isMenuOpen = false;
                 paused = false;
@@ -143,8 +150,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            // start to open menu
-            if (newState.Buttons.Y == ButtonState.Pressed && _oldState.Buttons.Y == ButtonState.Released)
+            // Y to open menu
+            if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
             {
                 _isMenuOpen = true;
                 paused = true;
@@ -152,14 +159,14 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         if(mode == 1)
         {
-            if (keyboardState.IsKeyDown(Keys.Enter) && 
-                (keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt)) &&
+            if (_currentState.IsKeyDown(Keys.Enter) && 
+                (_currentState.IsKeyDown(Keys.LeftAlt) || _currentState.IsKeyDown(Keys.RightAlt)) &&
                 _lastState.IsKeyUp(Keys.Enter))
             {
                 ToggleFullscreen();
             }
 
-            _lastState = keyboardState;
+            _lastState = _currentState;
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
@@ -192,8 +199,8 @@ public class Game : Microsoft.Xna.Framework.Game
         {            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            else if (keyboardState.IsKeyDown(Keys.Left) && _lastState.IsKeyUp(Keys.Left) ||
-                     keyboardState.IsKeyDown(Keys.Right) && _lastState.IsKeyUp(Keys.Right))
+            else if (_currentState.IsKeyDown(Keys.Left) && _lastState.IsKeyUp(Keys.Left) ||
+                     _currentState.IsKeyDown(Keys.Right) && _lastState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
                 switch(_pacManPcb.graphicsViewerMode)
@@ -207,7 +214,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 }
             }
             
-            else if (keyboardState.IsKeyDown(Keys.Up) && _lastState.IsKeyUp(Keys.Up))
+            else if (_currentState.IsKeyDown(Keys.Up) && _lastState.IsKeyUp(Keys.Up))
             {
                 if (_pacManPcb.tileViewerPaletteIndex == 20)
                     _pacManPcb.tileViewerPaletteIndex = 0;
@@ -215,7 +222,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     _pacManPcb.tileViewerPaletteIndex++;
             }
             
-            else if (keyboardState.IsKeyDown(Keys.Down) && _lastState.IsKeyUp(Keys.Down))
+            else if (_currentState.IsKeyDown(Keys.Down) && _lastState.IsKeyUp(Keys.Down))
             {
                 if (_pacManPcb.tileViewerPaletteIndex == 0)
                     _pacManPcb.tileViewerPaletteIndex = 20;
@@ -224,8 +231,8 @@ public class Game : Microsoft.Xna.Framework.Game
             }
         }
         
-        _oldState = newState;
-        _lastState = keyboardState;
+        _lastGamePadState = _currentGamePadState;
+        _lastState = _currentState;
         base.Update(gameTime);
     }
 

@@ -312,7 +312,7 @@ public class PacManPCB : IMemoryProvider
                 // Otherwise, read from the standard original Pac-Man ROMs
                 return _decryptEnabled ? AuxROMs[address] : Memory[address];
             }
-            else if (address >= 0x8000 && address <= 0x8800)
+            else if (address >= 0x8000 && address < 0x8800)
                 return AuxROMs[address - 0x8000 + 0x6000];
             else if (address >= 0x8800 && address < 0xA000)
                 return AuxROMs[(address & 0xFFF) + 0x5000];
