@@ -25,6 +25,9 @@ public class PacManPCB : IMemoryProvider
     private byte[] spriteram2 = new byte[0x10];
     private NamcoWSG wsg;
     private Z80Cpu cpu;
+    bool _auxBoardEnabled = false;
+    bool _decryptEnabled = false;
+    public byte[] AuxROMs = null;
 
     public Texture2D[,] TileTextures = new Texture2D[256, 32];
     public Texture2D[,] SpriteTextures = new Texture2D[64, 32];
@@ -285,6 +288,35 @@ public class PacManPCB : IMemoryProvider
 
     public byte ReadByte(ushort address)
     {
+        if (_auxBoardEnabled)
+        {
+            if (address >= 0x3FF8 && address <= 0x3FFF)
+            {
+                _decryptEnabled = true;   
+            }
+            else if ((address >= 0x0038 && address <= 0x003F) ||
+                     (address >= 0x03B0 && address <= 0x03B7) ||
+                     (address >= 0x1600 && address <= 0x1607) ||
+                     (address >= 0x2120 && address <= 0x2127) ||
+                     (address >= 0x3FF0 && address <= 0x3FF7) ||
+                     (address >= 0x8000 && address <= 0x8007) ||
+                     (address >= 0x97F0 && address <= 0x97F7))
+            {
+                _decryptEnabled = false;
+            }
+
+            // 2. Return data based on the current Hardware State
+            if (address < 0x4000)
+            {
+                // If enabled, read from the Decrypted Aux Board ROMs
+                // Otherwise, read from the standard original Pac-Man ROMs
+                return _decryptEnabled ? AuxROMs[address] : Memory[address];
+            }
+            else if (address >= 0x8000 && address <= 0x8800)
+                return AuxROMs[address - 0x8000 + 0x6000];
+            else if (address >= 0x8800 && address < 0xA000)
+                return AuxROMs[(address & 0xFFF) + 0x5000];
+        }
         if (address is >= 0x5000 and <= 0x503F) return GetPort0();
         if (address is >= 0x5040 and <= 0x507F) return GetPort1();
         if (address is >= 0x5080 and <= 0x50BF) return 0xC9; // DIPs
@@ -294,6 +326,28 @@ public class PacManPCB : IMemoryProvider
 
     public void WriteByte(ushort address, byte value)
     {
+        if (_auxBoardEnabled)
+        {
+            if (address >= 0x3FF8 && address <= 0x3FFF) 
+                _decryptEnabled = true;
+            else if ((address >= 0x0038 && address <= 0x003F) ||
+                     (address >= 0x03B0 && address <= 0x03B7) ||
+                     (address >= 0x1600 && address <= 0x1607) ||
+                     (address >= 0x2120 && address <= 0x2127) ||
+                     (address >= 0x3FF0 && address <= 0x3FF7) ||
+                     (address >= 0x8000 && address <= 0x8007) ||
+                     (address >= 0x97F0 && address <= 0x97F7))
+            {
+                _decryptEnabled = false;
+            }
+
+            // 2. PROTECT EXTENDED ROM (0x8000-0x9FFF)
+            // If we don't return here, NormalizeAddress will map these writes 
+            // to 0x4000 and corrupt your Video RAM/Work RAM.
+            if (address >= 0x8000 && address < 0xA000)
+                return;
+        }
+        
         if (address < 0x4000) return; // Protect ROM
 
         // Intercept sound writes
@@ -329,8 +383,9 @@ public class PacManPCB : IMemoryProvider
     
     private void LoadRom(string romFileName)
     {
-        if (romFileName is "roms/pacman.zip" or "roms/matrix.zip" or "roms/newpuckx.zip")
+        if (romFileName is "roms/pacman.zip" or "roms/matrix.zip")
         {
+            _auxBoardEnabled = false;
             using ZipArchive archive = ZipFile.OpenRead(romFileName);
             var romMap = new Dictionary<string, int>
             {
@@ -363,8 +418,45 @@ public class PacManPCB : IMemoryProvider
             spriteMemory = ExtractRom(archive, "pacman.5f");
             paletteMemory = ExtractRom(archive, "82s126.4a");
         }
+        else if (romFileName is "roms/newpuckx.zip")
+        {
+            _auxBoardEnabled = false;
+            using ZipArchive archive = ZipFile.OpenRead(romFileName);
+            var romMap = new Dictionary<string, int>
+            {
+                { "puckman.6e", 0x0000 },
+                { "pacman.6f", 0x1000 },
+                { "puckman.6h", 0x2000 },
+                { "puckman.6j", 0x3000 }
+            };
+
+            foreach (var entry in romMap)
+            {
+                ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                if (romEntry != null)
+                {
+                    using Stream s = romEntry.Open();
+                    byte[] buffer = new byte[romEntry.Length];
+                    s.ReadExactly(buffer, 0, buffer.Length);
+                
+                    Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                }
+            
+                else
+                {
+                    throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                }
+            }
+
+            charMemory = ExtractRom(archive, "pacman.5e");
+            spriteMemory = ExtractRom(archive, "pacman.5f");
+            paletteMemory = ExtractRom(archive, "82s126.4a");
+        }
         else if (romFileName == "roms/mspacman.zip")
         {
+            _auxBoardEnabled = true;
+            _decryptEnabled = true;
             using ZipArchive archive = ZipFile.OpenRead(romFileName);
             var romMap = new Dictionary<string, int>
             {
@@ -400,6 +492,73 @@ public class PacManPCB : IMemoryProvider
             u5 = ExtractRom(archive, "u5");
             u6 = ExtractRom(archive, "u6");
             u7 = ExtractRom(archive, "u7");
+            var codeRom1 = ExtractRom(archive, "pacman.6e");
+            var codeRom2 = ExtractRom(archive, "pacman.6f");
+            var codeRom3 = ExtractRom(archive, "pacman.6h");
+
+            AuxROMs = new byte[(16 + 10) * 1024];
+
+            for (var i = 0; i < 0x1000; i++)
+            {
+                AuxROMs[decryptAddr1((uint)i) + 0x4000] = (byte)decryptData(u7[i]);
+                AuxROMs[decryptAddr1((uint)i) + 0x5000] = (byte)decryptData(u6[i]);
+            }
+
+            for (int i = 0; i < 0x0800; i++)
+            {
+                AuxROMs[decryptAddr2((uint)i) + 0x6000] = (byte)decryptData(u5[i]);
+            }
+            
+            Array.Copy(codeRom1, 0, AuxROMs, 0x0000, 0x1000);
+            Array.Copy(codeRom2, 0, AuxROMs, 0x1000, 0x1000);
+            Array.Copy(codeRom3, 0, AuxROMs, 0x2000, 0x1000);
+            Array.Copy(AuxROMs, 0x4000, AuxROMs, 0x3000, 0x1000);
+
+            for (var i = 0; i < 8; i++)
+            {
+                AuxROMs[0x0410 + i] = AuxROMs[0x6008 + i];
+                AuxROMs[0x08E0 + i] = AuxROMs[0x61D8 + i];
+                AuxROMs[0x0A30 + i] = AuxROMs[0x6118 + i];
+                AuxROMs[0x0BD0 + i] = AuxROMs[0x60D8 + i];
+                AuxROMs[0x0C20 + i] = AuxROMs[0x6120 + i];
+                AuxROMs[0x0E58 + i] = AuxROMs[0x6168 + i];
+                AuxROMs[0x0EA8 + i] = AuxROMs[0x6198 + i];
+
+                AuxROMs[0x1000 + i] = AuxROMs[0x6020 + i];
+                AuxROMs[0x1008 + i] = AuxROMs[0x6010 + i];
+                AuxROMs[0x1288 + i] = AuxROMs[0x6098 + i];
+                AuxROMs[0x1348 + i] = AuxROMs[0x6048 + i];
+                AuxROMs[0x1688 + i] = AuxROMs[0x6088 + i];
+                AuxROMs[0x16B0 + i] = AuxROMs[0x6188 + i];
+                AuxROMs[0x16D8 + i] = AuxROMs[0x60C8 + i];
+                AuxROMs[0x16F8 + i] = AuxROMs[0x61C8 + i];
+                AuxROMs[0x19A8 + i] = AuxROMs[0x60A8 + i];
+                AuxROMs[0x19B8 + i] = AuxROMs[0x61A8 + i];
+
+                AuxROMs[0x2060 + i] = AuxROMs[0x6148 + i];
+                AuxROMs[0x2108 + i] = AuxROMs[0x6018 + i];
+                AuxROMs[0x21A0 + i] = AuxROMs[0x61A0 + i];
+                AuxROMs[0x2298 + i] = AuxROMs[0x60A0 + i];
+                AuxROMs[0x23E0 + i] = AuxROMs[0x60E8 + i];
+                AuxROMs[0x2418 + i] = AuxROMs[0x6000 + i];
+                AuxROMs[0x2448 + i] = AuxROMs[0x6058 + i];
+                AuxROMs[0x2470 + i] = AuxROMs[0x6140 + i];
+                AuxROMs[0x2488 + i] = AuxROMs[0x6080 + i];
+                AuxROMs[0x24B0 + i] = AuxROMs[0x6180 + i];
+                AuxROMs[0x24D8 + i] = AuxROMs[0x60C0 + i];
+                AuxROMs[0x24F8 + i] = AuxROMs[0x61C0 + i];
+                AuxROMs[0x2748 + i] = AuxROMs[0x6050 + i];
+                AuxROMs[0x2780 + i] = AuxROMs[0x6090 + i];
+                AuxROMs[0x27B8 + i] = AuxROMs[0x6190 + i];
+                AuxROMs[0x2800 + i] = AuxROMs[0x6028 + i];
+                AuxROMs[0x2B20 + i] = AuxROMs[0x6100 + i];
+                AuxROMs[0x2B30 + i] = AuxROMs[0x6110 + i];
+                AuxROMs[0x2BF0 + i] = AuxROMs[0x61D0 + i];
+                AuxROMs[0x2CC0 + i] = AuxROMs[0x60D0 + i];
+                AuxROMs[0x2CD8 + i] = AuxROMs[0x60E0 + i];
+                AuxROMs[0x2CF0 + i] = AuxROMs[0x61E0 + i];
+                AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
+            }
         }
     }
 
@@ -491,14 +650,11 @@ public class PacManPCB : IMemoryProvider
     // referenced from JustinCredible and MAME
     private static uint decryptData(uint data)
     {
-        uint decryptedData = (data & 0x80) >> 3;
-        decryptedData |= (data & 0x40) >> 3;
-        decryptedData |= data & 0x20;
+        uint decryptedData = (data & 0xC0) >> 3;
         decryptedData |= (data & 0x10) << 2;
-        decryptedData |= (data & 0x08) >> 1;
-        decryptedData |= (data & 0x04) >> 1;
-        decryptedData |= (data & 0x02) >> 1;
+        decryptedData |= (data & 0x0E) >> 1;
         decryptedData |= (data & 0x01) << 7;
+        decryptedData |= data & 0x20;
         
         return decryptedData;
     }

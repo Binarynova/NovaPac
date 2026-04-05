@@ -10,7 +10,6 @@ namespace pacman;
 public class Game : Microsoft.Xna.Framework.Game
 {
     int mode = 1;
-    private string _activeRom = null;
     DynamicSoundEffectInstance _soundOut;
     RenderTarget2D _nativeRenderTarget;
     Texture2D _pixelTexture;
@@ -42,6 +41,8 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         new List<string>{"roms/pacman.zip", "Pac-Man"},
         new List<string>{"roms/pacman.zip", "Pac-Man (Cocktail)"},
+        new List<string>{"roms/mspacman.zip", "Ms. Pac-Man"},
+        new List<string>{"roms/mspacman.zip", "Ms. Pac-Man (Cocktail)"},
         new List<string>{"roms/newpuckx.zip", "New Puck X"},
         new List<string>{"roms/matrix.zip", "Matrix Demo"}
     };
@@ -126,7 +127,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
             if (newState.Buttons.A == ButtonState.Pressed && _oldState.Buttons.A == ButtonState.Released)
             {
-                if (_selectedIndex == 1)
+                if (_selectedIndex == 1 || _selectedIndex == 3)
                     verticalScreenMode = true;
                 else
                     verticalScreenMode = false;
