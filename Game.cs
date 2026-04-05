@@ -1,21 +1,20 @@
 ﻿using System;
-using ImGuiNET;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
-using MonoGame.ImGui;
 
 namespace pacman;
 
 public class Game : Microsoft.Xna.Framework.Game
 {
     int mode = 1;
-    private bool _isMenuOpen = true;
     private string _activeRom = null;
-    ImGUIRenderer _imGuiRenderer;
     DynamicSoundEffectInstance _soundOut;
     RenderTarget2D _nativeRenderTarget;
+    Texture2D _pixelTexture;
+    SpriteFont _font;
     GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     Rectangle _renderDestination;
@@ -30,6 +29,7 @@ public class Game : Microsoft.Xna.Framework.Game
     const float _speedMultiplier = 1f;
     bool verticalScreenMode = false;
     float _floatScale = 1.0f;
+    bool paused = false;
     
     PacManPCB _pacManPcb;
     ZEXDOC _zexdocTests;
@@ -37,6 +37,17 @@ public class Game : Microsoft.Xna.Framework.Game
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
+
+    private List<List<string>> _games = new()
+    {
+        new List<string>{"roms/pacman.zip", "Pac-Man"},
+        new List<string>{"roms/pacman.zip", "Pac-Man (Rotated)"},
+        new List<string>{"roms/newpuckx.zip", "New Puck X"},
+        new List<string>{"roms/matrix.zip", "Matrix Demo"}
+    };
+    private int _selectedIndex = 0;
+    private bool _isMenuOpen = true;
+    private GamePadState _oldState;
     
     string romFileName;
 
@@ -62,17 +73,6 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
-        ImGui.CreateContext();
-        ImGui.SetCurrentContext(ImGui.GetCurrentContext());
-        _imGuiRenderer = new ImGUIRenderer(this);
-        _imGuiRenderer.RebuildFontAtlas();
-        var style = ImGui.GetStyle();
-        style.FramePadding = new System.Numerics.Vector2(80, 40);
-        style.ItemSpacing = new System.Numerics.Vector2(15, 15);
-
-        var io = ImGui.GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
-        
         base.Initialize();
     }
 
@@ -80,7 +80,8 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
-        
+        _font = Content.Load<SpriteFont>("ArcadeFont");
+        _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
     }
 
     private void StartGame(string romFilePath, string windowTitle)
@@ -114,6 +115,38 @@ public class Game : Microsoft.Xna.Framework.Game
     protected override void Update(GameTime gameTime)
     {
         KeyboardState keyboardState = Keyboard.GetState();
+        GamePadState newState =  GamePad.GetState(PlayerIndex.One);
+
+        if (_isMenuOpen)
+        {
+            // up / down
+            if (newState.DPad.Down == ButtonState.Pressed && _oldState.DPad.Down == ButtonState.Released)
+                _selectedIndex = (_selectedIndex + 1) % _games.Count;
+            if (newState.DPad.Up == ButtonState.Pressed && _oldState.DPad.Up == ButtonState.Released)
+                _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
+            if (newState.Buttons.A == ButtonState.Pressed && _oldState.Buttons.A == ButtonState.Released)
+            {
+                if (_selectedIndex == 1)
+                    verticalScreenMode = true;
+                StartGame(_games[_selectedIndex][0], _games[_selectedIndex][1]);
+                _isMenuOpen = false;
+                paused = false;
+            }
+            if (newState.Buttons.Y == ButtonState.Pressed && _oldState.Buttons.Y == ButtonState.Released)
+            {
+                _isMenuOpen = false;
+                paused = false;
+            }
+        }
+        else
+        {
+            // start to open menu
+            if (newState.Buttons.Y == ButtonState.Pressed && _oldState.Buttons.Y == ButtonState.Released)
+            {
+                _isMenuOpen = true;
+                paused = true;
+            }
+        }
         if(mode == 1)
         {
             if (keyboardState.IsKeyDown(Keys.Enter) && 
@@ -132,7 +165,7 @@ public class Game : Microsoft.Xna.Framework.Game
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 SteppingThrough = true;
 
-            if (_pacManPcb != null)
+            if (_pacManPcb != null && !paused)
             {
                 _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
 
@@ -188,8 +221,31 @@ public class Game : Microsoft.Xna.Framework.Game
             }
         }
         
+        _oldState = newState;
         _lastState = keyboardState;
         base.Update(gameTime);
+    }
+
+    private void DrawMenu()
+    {
+        _spriteBatch.Begin();
+        _pixelTexture.SetData(new[] { Color.White });
+        _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, 1280, 1280), Color.Black * 0.8f);
+
+        Vector2 pos = new (100, 100);
+        _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
+        pos.Y += 60;
+
+        for (int i = 0; i < _games.Count; i++)
+        {
+            Color color = (i == _selectedIndex) ? Color.Cyan : Color.White;
+            string prefix = (i == _selectedIndex) ? "> " : "  ";
+            
+            _spriteBatch.DrawString(_font, prefix + _games[i][1], pos, color);
+            pos.Y += 40;
+        }
+        
+        _spriteBatch.End();
     }
 
     protected override void Draw(GameTime gameTime)
@@ -198,7 +254,7 @@ public class Game : Microsoft.Xna.Framework.Game
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
-
+        
         if (_pacManPcb != null)
         {
             var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
@@ -233,53 +289,9 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
-
-        if (_isMenuOpen)
-        {
-            _imGuiRenderer.BeginLayout(gameTime);
-            DrawLauncherUI();
-            _imGuiRenderer.EndLayout();
-        }
-    }
-    
-    private void DrawLauncherUI()
-    {
-        ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
-        ImGui.SetNextWindowSize(new System.Numerics.Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
-
-        var windowFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
-
-        if (ImGui.Begin("MainLauncher", windowFlags))
-        {
-            if (ImGui.BeginTabBar("GameCategories"))
-            {
-                if (ImGui.BeginTabItem("Official"))
-                {
-                    if (ImGui.Button("Pac-Man")) { StartGame("roms/pacman.zip", "Pac-Man"); _isMenuOpen = false; }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Pac-Man Rotated"))
-                    {
-                        verticalScreenMode = true;
-                        StartGame("roms/pacman.zip", "Pac-Man");
-                        _isMenuOpen = false; }
-                    ImGui.EndTabItem();
-                }
-            
-                if (ImGui.BeginTabItem("Hacks"))
-                {
-                    if (ImGui.Button("New Puck X")) { StartGame("roms/newpuckx.zip", "New Puck X"); _isMenuOpen = false; }
-                    ImGui.EndTabItem();
-                }
-                
-                if (ImGui.BeginTabItem("Demos"))
-                {
-                    if (ImGui.Button("Matrix Code")) { StartGame("roms/matrix.zip", "Matrix Demo"); _isMenuOpen = false; }
-                    ImGui.EndTabItem();
-                }
-                ImGui.EndTabBar();
-            }
-            ImGui.End();
-        }
+        
+        if(_isMenuOpen)
+            DrawMenu();
     }
     
     private void ToggleFullscreen()
