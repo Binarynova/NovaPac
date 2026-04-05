@@ -41,7 +41,7 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<List<string>> _games = new()
     {
         new List<string>{"roms/pacman.zip", "Pac-Man"},
-        new List<string>{"roms/pacman.zip", "Pac-Man (Rotated)"},
+        new List<string>{"roms/pacman.zip", "Pac-Man (Cocktail)"},
         new List<string>{"roms/newpuckx.zip", "New Puck X"},
         new List<string>{"roms/matrix.zip", "Matrix Demo"}
     };
@@ -128,6 +128,8 @@ public class Game : Microsoft.Xna.Framework.Game
             {
                 if (_selectedIndex == 1)
                     verticalScreenMode = true;
+                else
+                    verticalScreenMode = false;
                 StartGame(_games[_selectedIndex][0], _games[_selectedIndex][1]);
                 _isMenuOpen = false;
                 paused = false;
