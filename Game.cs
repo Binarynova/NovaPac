@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Pac-Man Z80 emulator.
+// Started 1/29/26
+
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -48,6 +51,7 @@ public class Game : Microsoft.Xna.Framework.Game
         new List<string>{"roms/newpuckx.zip", "New Puck X"},
         new List<string>{"roms/matrix.zip", "Matrix Demo"}
     };
+    
     private int _selectedIndex = 0;
     private bool _isMenuOpen = true;
     
