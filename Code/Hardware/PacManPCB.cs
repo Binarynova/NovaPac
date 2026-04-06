@@ -42,6 +42,7 @@ public class PacManPCB : IMemoryProvider
     public int tileViewerPaletteIndex = 0;
     public bool secondPlayerFlip = false;
     private static bool steamDeckTwoPlayerMode = false;
+    bool neonHackEnabled = false;
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
@@ -417,6 +418,11 @@ public class PacManPCB : IMemoryProvider
             charMemory = ExtractRom(archive, "pacman.5e");
             spriteMemory = ExtractRom(archive, "pacman.5f");
             paletteMemory = ExtractRom(archive, "82s126.4a");
+            if (romFileName == "roms/pacman.zip")
+            {
+                if(neonHackEnabled)
+                    LoadPacmanNeonHack();
+            }
         }
         else if (romFileName is "roms/pacplus.zip")
         {
@@ -603,6 +609,32 @@ public class PacManPCB : IMemoryProvider
                 AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
             }
         }
+    }
+
+    private void LoadPacmanNeonHack()
+    {
+        Array.Copy(LoadSpriteROM("roms/hacks/neon/pacman/pacman.5f"),spriteMemory,4096);
+        Array.Copy(LoadCharROM("roms/hacks/neon/pacman/pacman.5e"),charMemory,4096);
+    }
+    
+    private byte[] LoadCharROM(string path)
+    {
+        byte[] charROM = File.ReadAllBytes(path);
+
+        if (charROM.Length != 4096)
+            throw new Exception($"Unexpected ROM size: {charROM.Length} bytes");
+
+        return charROM;
+    }
+
+    private byte[] LoadSpriteROM(string path)
+    {
+        byte[] spriteROM = File.ReadAllBytes(path);
+
+        if (spriteROM.Length != 4096)
+            throw new Exception($"Unexpected ROM size: {spriteROM.Length} bytes");
+
+        return spriteROM;
     }
 
     private static byte[] ExtractRom(ZipArchive archive, string fileName)
