@@ -40,6 +40,9 @@ public class Game : Microsoft.Xna.Framework.Game
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
 
+    private const int _menuTitleOffset = 60;
+    private const int _menuItemOffset = 40;
+    
     private List<string> _menuPlay = new()
     {
         "Play",
@@ -291,7 +294,7 @@ public class Game : Microsoft.Xna.Framework.Game
         if (_menuDepth == 0)
         {
             _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
-            pos.Y += 60;
+            pos.Y += _menuTitleOffset;
 
             for (int i = 0; i < _mainMenu.Count; i++)
             {
@@ -299,13 +302,13 @@ public class Game : Microsoft.Xna.Framework.Game
                 string prefix = (i == _selectedIndex) ? "> " : "  ";
             
                 _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
-                pos.Y += 40;
+                pos.Y += _menuItemOffset;
             }
         }
         else if (_menuDepth == 1)
         {
             _spriteBatch.DrawString(_font, _mainMenu[_selectedIndex][0].ToUpper(), pos, Color.Yellow);
-            pos.Y += 60;
+            pos.Y += _menuTitleOffset;
 
             for (int i = 0; i < _menuPlay.Count; i++)
             {
@@ -313,7 +316,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 string prefix = (i == _selectedSubIndex) ? "> " : "  ";
                 
                 _spriteBatch.DrawString(_font, prefix + _menuPlay[i], pos, color);
-                pos.Y += 40;
+                pos.Y += _menuItemOffset;
             }
         }
         
