@@ -153,7 +153,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
                     _selectedIndex = (_selectedIndex + 1) % _mainMenu.Count;
                 if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                    _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _menuPlay.Count;
+                    _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _mainMenu.Count;
             }
             else if (_menuDepth == 1)
             {
@@ -182,6 +182,7 @@ public class Game : Microsoft.Xna.Framework.Game
             {
                 if (_menuDepth == 1)
                 {
+                    _selectedSubIndex = 0;
                     _menuDepth = 0;
                 }
             }
