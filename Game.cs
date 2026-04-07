@@ -34,25 +34,39 @@ public class Game : Microsoft.Xna.Framework.Game
     bool verticalScreenMode = false;
     float _floatScale = 1.0f;
     bool paused = false;
-    
+
     PacManPCB _pacManPcb;
-    ZEXDOC _zexdocTests;
-    SSTests _singleStateTests;
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
 
-    private List<List<string>> _games = new()
+    private List<string> _menuPlay = new()
     {
-        new List<string>{"roms/pacman.zip", "Pac-Man"},
-        new List<string>{"roms/pacman.zip", "Pac-Man (Cocktail)"},
-        new List<string>{"roms/mspacman.zip", "Ms. Pac-Man"},
-        new List<string>{"roms/mspacman.zip", "Ms. Pac-Man (Cocktail)"},
-        new List<string>{"roms/newpuckx.zip", "New Puck X"},
-        new List<string>{"roms/matrix.zip", "Matrix Demo"}
+        "Play",
+        "Play (Cocktail)"
+    };
+
+    private List<List<string>> _menuOptions = new()
+    {
+        new List<string>{"Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"},
+        new List<string>{"1 Life", "2 Lives", "3 Lives", "5 Lives"},
+        new List<string>{"Bonus Life at 10,000", "Bonus Life at 15,000", "Bonus Life at 20,000", "No Bonus Lives"},
+        new List<string>{"Normal", "Hard"},
+        new List<string>{"Normal Names, Alternate Names"}
+    };
+    
+    private List<List<string>> _mainMenu = new()
+    {
+        new List<string>{"Pac-Man","roms/pacman.zip"},
+        new List<string>{"Ms. Pac-Man","roms/mspacman.zip"},
+        new List<string>{"New Puck X","roms/newpuckx.zip"},
+        new List<string>{"Matrix Demo", "roms/matrix.zip"}
     };
     
     private int _selectedIndex = 0;
+    private int _selectedSubIndex = 0;
+    private string _selectedSubMenu;
+    private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     
     string romFileName;
@@ -60,8 +74,6 @@ public class Game : Microsoft.Xna.Framework.Game
     public Game(string[] args)
     {
         string[] Args = args;
-        _zexdocTests = new ZEXDOC();
-        _singleStateTests = new SSTests();
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
@@ -135,15 +147,43 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (_isMenuOpen)
         {
-            // up / down
-            if (KeyPressed(Keys.Down)  || ButtonPressed(Buttons.DPadDown)) _selectedIndex = (_selectedIndex + 1) % _games.Count;
-            if (KeyPressed(Keys.Up)    || ButtonPressed(Buttons.DPadUp))   _selectedIndex = (_selectedIndex - 1 + _games.Count) % _games.Count;
+            // up / down traverse current menu
+            if (_menuDepth == 0)
+            {
+                if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
+                    _selectedIndex = (_selectedIndex + 1) % _mainMenu.Count;
+                if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
+                    _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _menuPlay.Count;
+            }
+            else if (_menuDepth == 1)
+            {
+                if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
+                    _selectedSubIndex = (_selectedSubIndex + 1) % _menuPlay.Count;
+                if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
+                    _selectedSubIndex = (_selectedSubIndex - 1 + _menuPlay.Count) % _menuPlay.Count;
+            }
             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
             {
-                verticalScreenMode = _selectedIndex is 1 or 3;
-                StartGame(_games[_selectedIndex][0], _games[_selectedIndex][1]);
-                _isMenuOpen = false;
-                paused = false;
+                if (_menuDepth == 0)
+                {
+                    _menuDepth = 1;
+                    _selectedSubMenu = _mainMenu[_selectedIndex][0];
+                }
+                else if (_menuDepth == 1)
+                {
+                    verticalScreenMode = _selectedSubIndex is 1;
+                    StartGame(_mainMenu[_selectedIndex][1], _mainMenu[_selectedIndex][0]);
+                    _isMenuOpen = false;
+                    paused = false;
+                }
+            }
+            
+            if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
+            {
+                if (_menuDepth == 1)
+                {
+                    _menuDepth = 0;
+                }
             }
             if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
             {
@@ -246,16 +286,34 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, 1280, 1280), Color.Black * 0.8f);
 
         Vector2 pos = new (100, 100);
-        _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
-        pos.Y += 60;
 
-        for (int i = 0; i < _games.Count; i++)
+        if (_menuDepth == 0)
         {
-            Color color = (i == _selectedIndex) ? Color.Cyan : Color.White;
-            string prefix = (i == _selectedIndex) ? "> " : "  ";
+            _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
+            pos.Y += 60;
+
+            for (int i = 0; i < _mainMenu.Count; i++)
+            {
+                Color color = (i == _selectedIndex) ? Color.Cyan : Color.White;
+                string prefix = (i == _selectedIndex) ? "> " : "  ";
             
-            _spriteBatch.DrawString(_font, prefix + _games[i][1], pos, color);
-            pos.Y += 40;
+                _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
+                pos.Y += 40;
+            }
+        }
+        else if (_menuDepth == 1)
+        {
+            _spriteBatch.DrawString(_font, _mainMenu[_selectedIndex][0].ToUpper(), pos, Color.Yellow);
+            pos.Y += 60;
+
+            for (int i = 0; i < _menuPlay.Count; i++)
+            {
+                Color color = (i == _selectedSubIndex) ? Color.Cyan : Color.White;
+                string prefix = (i == _selectedSubIndex) ? "> " : "  ";
+                
+                _spriteBatch.DrawString(_font, prefix + _menuPlay[i], pos, color);
+                pos.Y += 40;
+            }
         }
         
         _spriteBatch.End();
@@ -302,9 +360,11 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
-        
-        if(_isMenuOpen)
+
+        if (_isMenuOpen)
+        {
             DrawMenu();
+        }
     }
     
     private void ToggleFullscreen()
