@@ -53,16 +53,16 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         new List<string>{"Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"},
         new List<string>{"1 Life", "2 Lives", "3 Lives", "5 Lives"},
-        new List<string>{"Bonus Life at 10,000", "Bonus Life at 15,000", "Bonus Life at 20,000", "No Bonus Lives"},
+        new List<string>{"10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"},
         new List<string>{"Normal", "Hard"},
-        new List<string>{"Normal Names, Alternate Names"}
+        new List<string>{"Normal Names", "Alternate Names"}
     };
     
     private List<List<string>> _mainMenu = new()
     {
-        new List<string>{"Pac-Man","roms/pacman.zip"},
-        new List<string>{"Ms. Pac-Man","roms/mspacman.zip"},
-        new List<string>{"New Puck X","roms/newpuckx.zip"},
+        new List<string>{"Pac-Man", "roms/pacman.zip"},
+        new List<string>{"Ms. Pac-Man", "roms/mspacman.zip"},
+        new List<string>{"New Puck X", "roms/newpuckx.zip"},
         new List<string>{"Matrix Demo", "roms/matrix.zip"}
     };
     
