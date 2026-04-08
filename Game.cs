@@ -68,6 +68,7 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
+    private List<int> _selectedSubOptionIndices = new() { 1, 2, 0, 0, 0 };
     private string _selectedSubMenu;
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
@@ -154,17 +155,32 @@ public class Game : Microsoft.Xna.Framework.Game
             if (_menuDepth == 0)
             {
                 if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
-                    _selectedIndex = (_selectedIndex + 1) % _mainMenu.Count;
+                    _selectedIndex = (_selectedIndex + 1) % _menuPlay.Count;
                 if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                    _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _mainMenu.Count;
+                    _selectedIndex = (_selectedIndex - 1 + _menuPlay.Count) % _menuPlay.Count;
             }
             else if (_menuDepth == 1)
             {
+                int _totalSubItems = _menuPlay.Count + _menuOptions.Count;
+                
                 if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
-                    _selectedSubIndex = (_selectedSubIndex + 1) % _menuPlay.Count;
+                    _selectedSubIndex = (_selectedSubIndex + 1) % _totalSubItems;
                 if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                    _selectedSubIndex = (_selectedSubIndex - 1 + _menuPlay.Count) % _menuPlay.Count;
+                    _selectedSubIndex = (_selectedSubIndex - 1 + _totalSubItems) % _totalSubItems;
+                
+                // left/right to change options
+                if (_selectedSubIndex >= _menuPlay.Count)
+                {
+                    int optionIndex = _selectedSubIndex - _menuPlay.Count;
+                    int maxChoices = _menuOptions[optionIndex].Count;
+                    
+                    if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft))
+                        _selectedSubOptionIndices[optionIndex] = (_selectedSubOptionIndices[optionIndex] - 1 + maxChoices) % maxChoices;
+                    if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight))
+                        _selectedSubOptionIndices[optionIndex] = (_selectedSubOptionIndices[optionIndex] + 1) % maxChoices;
+                }
             }
+            
             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
             {
                 if (_menuDepth == 0)
@@ -316,6 +332,26 @@ public class Game : Microsoft.Xna.Framework.Game
                 string prefix = (i == _selectedSubIndex) ? "> " : "  ";
                 
                 _spriteBatch.DrawString(_font, prefix + _menuPlay[i], pos, color);
+                pos.Y += _menuItemOffset;
+            }
+
+            pos.Y += 20;
+            _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);
+            pos.Y += _menuItemOffset;
+            
+            for (int i = 0; i < _menuOptions.Count; i++)
+            {
+                // The actual index in the vertical list is offset by the Play buttons
+                int listIndex = _menuPlay.Count + i;
+                Color color = (listIndex == _selectedSubIndex) ? Color.Cyan : Color.White;
+                
+                // Get the string value currently selected for this specific row
+                string optionText = _menuOptions[i][_selectedSubOptionIndices[i]];
+                
+                // Add brackets if highlighted to indicate left/right functionality
+                string displayText = (listIndex == _selectedSubIndex) ? $"< {optionText} >" : $"  {optionText}";
+                
+                _spriteBatch.DrawString(_font, displayText, pos, color);
                 pos.Y += _menuItemOffset;
             }
         }
