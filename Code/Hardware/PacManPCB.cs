@@ -43,6 +43,7 @@ public class PacManPCB : IMemoryProvider
     public bool secondPlayerFlip = false;
     private static bool steamDeckTwoPlayerMode = false;
     bool neonHackEnabled = false;
+    public List<int> subOptionIndices = new List<int>();
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
@@ -320,7 +321,7 @@ public class PacManPCB : IMemoryProvider
         }
         if (address is >= 0x5000 and <= 0x503F) return GetPort0();
         if (address is >= 0x5040 and <= 0x507F) return GetPort1();
-        if (address is >= 0x5080 and <= 0x50BF) return 0xC9; // DIPs
+        if (address is >= 0x5080 and <= 0x50BF) return GetDipSwitchesFromOptions(); // DIPs
 
         return Memory[NormalizeAddress(address)];
     }
@@ -1042,5 +1043,18 @@ public class PacManPCB : IMemoryProvider
         }
 
         return paletteValue;
+    }
+
+    public byte GetDipSwitchesFromOptions()
+    {
+        byte dipSwitchValue = 0x00;
+
+        dipSwitchValue |= (byte)subOptionIndices[0];
+        dipSwitchValue |= (byte)(subOptionIndices[1] << 2);
+        dipSwitchValue |= (byte)(subOptionIndices[2] << 4);
+        dipSwitchValue |= (byte)(subOptionIndices[3] << 5);
+        dipSwitchValue |= (byte)(subOptionIndices[4] << 6);
+
+        return dipSwitchValue;
     }
 }

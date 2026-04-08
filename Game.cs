@@ -58,6 +58,23 @@ public class Game : Microsoft.Xna.Framework.Game
         new List<string>{"Normal Names", "Alternate Names"}
     };
     
+    private List<List<string>> _pacManOptions = new()
+    {
+        new List<string>{"Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"},
+        new List<string>{"1 Life", "2 Lives", "3 Lives", "5 Lives"},
+        new List<string>{"10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"},
+        new List<string>{"Normal", "Hard"},
+        new List<string>{"Normal Names", "Alternate Names"}
+    };
+
+    private List<List<string>> _msPacManOptions = new()
+    {
+        new List<string>{"Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"},
+        new List<string>{"1 Life", "2 Lives", "3 Lives", "5 Lives"},
+        new List<string>{"10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"},
+        new List<string>{"Normal", "Hard"}
+    };
+    
     private List<List<string>> _mainMenu = new()
     {
         new List<string>{"Pac-Man", "roms/pacman.zip"},
@@ -131,6 +148,7 @@ public class Game : Microsoft.Xna.Framework.Game
         
         _pacManPcb = new PacManPCB(romFileName, verticalScreenMode);
         _pacManPcb.InitializeGraphics(GraphicsDevice);
+        _pacManPcb.subOptionIndices = _selectedSubOptionIndices;
         _pacManPcb.mode = mode;
     }
 
@@ -155,9 +173,9 @@ public class Game : Microsoft.Xna.Framework.Game
             if (_menuDepth == 0)
             {
                 if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
-                    _selectedIndex = (_selectedIndex + 1) % _menuPlay.Count;
+                    _selectedIndex = (_selectedIndex + 1) % _mainMenu.Count;
                 if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                    _selectedIndex = (_selectedIndex - 1 + _menuPlay.Count) % _menuPlay.Count;
+                    _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _mainMenu.Count;
             }
             else if (_menuDepth == 1)
             {
@@ -188,7 +206,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     _menuDepth = 1;
                     _selectedSubMenu = _mainMenu[_selectedIndex][0];
                 }
-                else if (_menuDepth == 1)
+                else if (_menuDepth == 1 && _selectedSubIndex is >= 0 and <= 1)
                 {
                     verticalScreenMode = _selectedSubIndex is 1;
                     StartGame(_mainMenu[_selectedIndex][1], _mainMenu[_selectedIndex][0]);
@@ -323,6 +341,10 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else if (_menuDepth == 1)
         {
+            if (_mainMenu[_selectedIndex][0] == "Ms. Pac-Man")
+                _menuOptions = _msPacManOptions;
+            else
+                _menuOptions = _pacManOptions;
             _spriteBatch.DrawString(_font, _mainMenu[_selectedIndex][0].ToUpper(), pos, Color.Yellow);
             pos.Y += _menuTitleOffset;
 
@@ -335,24 +357,25 @@ public class Game : Microsoft.Xna.Framework.Game
                 pos.Y += _menuItemOffset;
             }
 
-            pos.Y += 20;
-            _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);
-            pos.Y += _menuItemOffset;
-            
-            for (int i = 0; i < _menuOptions.Count; i++)
+            if (_mainMenu[_selectedIndex][0] != "Matrix Demo")
             {
-                // The actual index in the vertical list is offset by the Play buttons
-                int listIndex = _menuPlay.Count + i;
-                Color color = (listIndex == _selectedSubIndex) ? Color.Cyan : Color.White;
-                
-                // Get the string value currently selected for this specific row
-                string optionText = _menuOptions[i][_selectedSubOptionIndices[i]];
-                
-                // Add brackets if highlighted to indicate left/right functionality
-                string displayText = (listIndex == _selectedSubIndex) ? $"< {optionText} >" : $"  {optionText}";
-                
-                _spriteBatch.DrawString(_font, displayText, pos, color);
+                pos.Y += 20;
+                _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);
                 pos.Y += _menuItemOffset;
+            
+                for (int i = 0; i < _menuOptions.Count; i++)
+                {
+                    // The actual index in the vertical list is offset by the Play buttons
+                    int listIndex = _menuPlay.Count + i;
+                    Color color = (listIndex == _selectedSubIndex) ? Color.Cyan : Color.White;
+                
+                    string optionText = _menuOptions[i][_selectedSubOptionIndices[i]];
+                
+                    string displayText = (listIndex == _selectedSubIndex) ? $"< {optionText} >" : $"  {optionText}";
+                
+                    _spriteBatch.DrawString(_font, displayText, pos, color);
+                    pos.Y += _menuItemOffset;
+                }
             }
         }
         
