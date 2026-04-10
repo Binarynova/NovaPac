@@ -36,6 +36,7 @@ public class Game : Microsoft.Xna.Framework.Game
     bool paused = false;
 
     PacManPCB _pacManPcb;
+    GalagaPCB _galagaPcb;
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
@@ -77,10 +78,11 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private List<List<string>> _mainMenu = new()
     {
-        new List<string>{"Pac-Man", "roms/pacman.zip"},
-        new List<string>{"Ms. Pac-Man", "roms/mspacman.zip"},
-        new List<string>{"New Puck X", "roms/newpuckx.zip"},
-        new List<string>{"Matrix Demo", "roms/matrix.zip"}
+        new List<string>{"Pac-Man", "roms/pacman.zip", "pacman"},
+        new List<string>{"Ms. Pac-Man", "roms/mspacman.zip", "pacman"},
+        new List<string>{"New Puck X", "roms/newpuckx.zip", "pacman"},
+        new List<string>{"Galaga", "roms/galaga.zip", "galaga"},
+        new List<string>{"Matrix Demo", "roms/matrix.zip", "pacman"}
     };
     
     private int _selectedIndex = 0;
@@ -123,33 +125,41 @@ public class Game : Microsoft.Xna.Framework.Game
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
     }
 
-    private void StartGame(string romFilePath, string windowTitle)
+    private void StartGame(string romFilePath, string windowTitle, string machineName)
     {
         Window.Title = windowTitle;
         romFileName = romFilePath;
         CalculateFloatScale(verticalScreenMode);
         
-        _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
-        // Sound Buffer Handling
-        _soundOut.BufferNeeded += (_, _) =>
-        {
-            short[] samples = _pacManPcb.GetAudioSamples();
-            
-            // If the audio buffer is empty, submit silence to keep the thread alive
-            if (samples == null || samples.Length == 0) {
-                samples = new short[441];
-            }
+        //_soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
+        //// Sound Buffer Handling
+        //_soundOut.BufferNeeded += (_, _) =>
+        //{
+        //    short[] samples = _pacManPcb.GetAudioSamples();
+        //    
+        //    // If the audio buffer is empty, submit silence to keep the thread alive
+        //    if (samples == null || samples.Length == 0) {
+        //        samples = new short[441];
+        //    }
+        //
+        //    byte[] byteArray = new byte[samples.Length * 2];
+        //    Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
+        //    _soundOut.SubmitBuffer(byteArray);
+        //};
+        //_soundOut.Play();
 
-            byte[] byteArray = new byte[samples.Length * 2];
-            Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
-            _soundOut.SubmitBuffer(byteArray);
-        };
-        _soundOut.Play();
-        
-        _pacManPcb = new PacManPCB(romFileName, verticalScreenMode);
-        _pacManPcb.InitializeGraphics(GraphicsDevice);
-        _pacManPcb.subOptionIndices = _selectedSubOptionIndices;
-        _pacManPcb.mode = mode;
+        switch (machineName)
+        {
+            case "pacman":
+                _pacManPcb = new PacManPCB(romFileName, verticalScreenMode);
+                _pacManPcb.InitializeGraphics(GraphicsDevice);
+                _pacManPcb.subOptionIndices = _selectedSubOptionIndices;
+                _pacManPcb.mode = mode;
+                break;
+            case "galaga":
+                _galagaPcb = new GalagaPCB(romFileName, verticalScreenMode);
+                break;
+        }
     }
 
     private bool KeyPressed(Keys key)
@@ -209,7 +219,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 else if (_menuDepth == 1 && _selectedSubIndex is >= 0 and <= 1)
                 {
                     verticalScreenMode = _selectedSubIndex is 1;
-                    StartGame(_mainMenu[_selectedIndex][1], _mainMenu[_selectedIndex][0]);
+                    StartGame(_mainMenu[_selectedIndex][1], _mainMenu[_selectedIndex][0], _mainMenu[_selectedIndex][2]);
                     _isMenuOpen = false;
                     paused = false;
                 }
