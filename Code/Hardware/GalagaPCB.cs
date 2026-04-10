@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using Microsoft.Xna.Framework.Graphics;
 
-public class GalagaPCB : IMemoryProvider
+public class GalagaPCB : IArcadeMachine
 {
     private Z80Cpu maincpu, sub, sub2;
     private NamcoWSG soundChip;
@@ -37,6 +38,37 @@ public class GalagaPCB : IMemoryProvider
     {
         Array.Clear(MainCPUMemory, 0, MainCPUMemory.Length);
     }
+
+    public short[] GetAudioSamples()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void InitializeGraphics(GraphicsDevice device)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void TriggerVBlankInterrupt()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int mode { get; set; }
+    public List<int> subOptionIndices { get; set; }
+    public bool secondPlayerFlip { get; }
+    public int graphicsViewerMode { get; set; }
+    public int tileViewerPaletteIndex { get; set; }
 
     private void LoadROM(string romFileName)
     {

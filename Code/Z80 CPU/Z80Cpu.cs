@@ -5,7 +5,7 @@ using Reg = Registers;
 
 public partial class Z80Cpu
 {
-    private IMemoryProvider _machine;
+    private IArcadeMachine _machine;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
@@ -31,7 +31,7 @@ public partial class Z80Cpu
         C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
     }
     
-    public Z80Cpu(IMemoryProvider machine)
+    public Z80Cpu(IArcadeMachine machine)
     {
         _machine = machine;
         Reset();

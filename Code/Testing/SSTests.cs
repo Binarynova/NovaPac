@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Xna.Framework.Graphics;
 
-public class SSTests : IMemoryProvider
+public class SSTests : IArcadeMachine
 {
     Z80Cpu cpu;
     private byte[] Memory = new byte[0x10000];
@@ -21,6 +22,37 @@ public class SSTests : IMemoryProvider
         Array.Clear(Memory, 0, Memory.Length);
     }
 
+    public short[] GetAudioSamples()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void InitializeGraphics(GraphicsDevice device)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void TriggerVBlankInterrupt()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int mode { get; set; }
+    public List<int> subOptionIndices { get; set; }
+    public bool secondPlayerFlip { get; }
+    public int graphicsViewerMode { get; set; }
+    public int tileViewerPaletteIndex { get; set; }
+
     public SSTests()
     {
         cpu = new Z80Cpu(this);
@@ -30,7 +62,7 @@ public class SSTests : IMemoryProvider
     public void Run()
     {
         // Load
-        IMemoryProvider sstMachine = new SSTests();
+        IArcadeMachine sstMachine = new SSTests();
         cpu = new Z80Cpu(sstMachine);
         int hexCode = 0;
         int passedCount;

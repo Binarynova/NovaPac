@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xna.Framework.Graphics;
 using Reg = Registers;
 
-public class ZEXDOC : IMemoryProvider
+public class ZEXDOC : IArcadeMachine
 {
     private byte[] Memory = new byte[0x10000];
     private Z80Cpu _cpu;
@@ -29,7 +31,38 @@ public class ZEXDOC : IMemoryProvider
     {
         Array.Clear(Memory, 0, Memory.Length);
     }
-    
+
+    public short[] GetAudioSamples()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void InitializeGraphics(GraphicsDevice device)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void TriggerVBlankInterrupt()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int mode { get; set; }
+    public List<int> subOptionIndices { get; set; }
+    public bool secondPlayerFlip { get; }
+    public int graphicsViewerMode { get; set; }
+    public int tileViewerPaletteIndex { get; set; }
+
     public void Run()
     {
         // CP/M initialization

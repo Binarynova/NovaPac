@@ -35,8 +35,7 @@ public class Game : Microsoft.Xna.Framework.Game
     float _floatScale = 1.0f;
     bool paused = false;
 
-    PacManPCB _pacManPcb;
-    GalagaPCB _galagaPcb;
+    IArcadeMachine _activeMachine;
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
@@ -131,35 +130,36 @@ public class Game : Microsoft.Xna.Framework.Game
         romFileName = romFilePath;
         CalculateFloatScale(verticalScreenMode);
         
-        //_soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
-        //// Sound Buffer Handling
-        //_soundOut.BufferNeeded += (_, _) =>
-        //{
-        //    short[] samples = _pacManPcb.GetAudioSamples();
-        //    
-        //    // If the audio buffer is empty, submit silence to keep the thread alive
-        //    if (samples == null || samples.Length == 0) {
-        //        samples = new short[441];
-        //    }
-        //
-        //    byte[] byteArray = new byte[samples.Length * 2];
-        //    Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
-        //    _soundOut.SubmitBuffer(byteArray);
-        //};
-        //_soundOut.Play();
+        _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
+        // Sound Buffer Handling
+        _soundOut.BufferNeeded += (_, _) =>
+        {
+            short[] samples = _activeMachine.GetAudioSamples();
+            
+            // If the audio buffer is empty, submit silence to keep the thread alive
+            if (samples == null || samples.Length == 0) {
+                samples = new short[441];
+            }
+        
+            byte[] byteArray = new byte[samples.Length * 2];
+            Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
+            _soundOut.SubmitBuffer(byteArray);
+        };
+        _soundOut.Play();
 
         switch (machineName)
         {
             case "pacman":
-                _pacManPcb = new PacManPCB(romFileName, verticalScreenMode);
-                _pacManPcb.InitializeGraphics(GraphicsDevice);
-                _pacManPcb.subOptionIndices = _selectedSubOptionIndices;
-                _pacManPcb.mode = mode;
+                _activeMachine = new PacManPCB(romFileName, verticalScreenMode);
                 break;
             case "galaga":
-                _galagaPcb = new GalagaPCB(romFileName, verticalScreenMode);
+                _activeMachine = new GalagaPCB(romFileName, verticalScreenMode);
                 break;
         }
+        
+        _activeMachine.InitializeGraphics(GraphicsDevice);
+        _activeMachine.subOptionIndices = _selectedSubOptionIndices;
+        _activeMachine.mode = mode;
     }
 
     private bool KeyPressed(Keys key)
@@ -266,19 +266,19 @@ public class Game : Microsoft.Xna.Framework.Game
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 SteppingThrough = true;
 
-            if (_pacManPcb != null && !paused)
+            if (_activeMachine != null && !paused)
             {
                 _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
 
                 while (_cycleAccumulator > 0)
                 {
-                    int cycles = _pacManPcb.Step(SteppingThrough);
+                    int cycles = _activeMachine.Step(SteppingThrough);
                     _cycleAccumulator -= cycles;
 
                     interruptCycleCounter += cycles;
                     if (interruptCycleCounter >= CYCLES_PER_INTERRUPT)
                     {
-                        _pacManPcb.TriggerVBlankInterrupt();
+                        _activeMachine.TriggerVBlankInterrupt();
                         interruptCycleCounter -= CYCLES_PER_INTERRUPT;
                     }
             
@@ -294,31 +294,31 @@ public class Game : Microsoft.Xna.Framework.Game
                      _currentState.IsKeyDown(Keys.Right) && _lastState.IsKeyUp(Keys.Right))
             {
                 // switch ROMs to view
-                switch(_pacManPcb.graphicsViewerMode)
+                switch(_activeMachine.graphicsViewerMode)
                 {
                     case 0:
-                        _pacManPcb.graphicsViewerMode = 1;
+                        _activeMachine.graphicsViewerMode = 1;
                         break;
                     case 1:
-                        _pacManPcb.graphicsViewerMode = 0;
+                        _activeMachine.graphicsViewerMode = 0;
                         break;
                 }
             }
             
             else if (_currentState.IsKeyDown(Keys.Up) && _lastState.IsKeyUp(Keys.Up))
             {
-                if (_pacManPcb.tileViewerPaletteIndex == 20)
-                    _pacManPcb.tileViewerPaletteIndex = 0;
+                if (_activeMachine.tileViewerPaletteIndex == 20)
+                    _activeMachine.tileViewerPaletteIndex = 0;
                 else
-                    _pacManPcb.tileViewerPaletteIndex++;
+                    _activeMachine.tileViewerPaletteIndex++;
             }
             
             else if (_currentState.IsKeyDown(Keys.Down) && _lastState.IsKeyUp(Keys.Down))
             {
-                if (_pacManPcb.tileViewerPaletteIndex == 0)
-                    _pacManPcb.tileViewerPaletteIndex = 20;
+                if (_activeMachine.tileViewerPaletteIndex == 0)
+                    _activeMachine.tileViewerPaletteIndex = 20;
                 else
-                    _pacManPcb.tileViewerPaletteIndex--;
+                    _activeMachine.tileViewerPaletteIndex--;
             }
         }
         
@@ -399,9 +399,9 @@ public class Game : Microsoft.Xna.Framework.Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
         
-        if (_pacManPcb != null)
+        if (_activeMachine != null)
         {
-            var frame = _pacManPcb.GetDrawRequests(_pacManPcb.secondPlayerFlip);
+            var frame = _activeMachine.GetDrawRequests(_activeMachine.secondPlayerFlip);
 
             foreach (var drawRequest in frame)
             {
@@ -419,7 +419,7 @@ public class Game : Microsoft.Xna.Framework.Game
             if (verticalScreenMode)
             {
                 float rotation = MathHelper.PiOver2;
-                if (_pacManPcb.secondPlayerFlip)
+                if (_activeMachine.secondPlayerFlip)
                 {
                     _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
                 }

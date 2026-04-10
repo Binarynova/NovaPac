@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-public class PacManPCB : IMemoryProvider
+public class PacManPCB : IArcadeMachine
 {
     public enum DisplayMode
     {
@@ -33,16 +33,16 @@ public class PacManPCB : IMemoryProvider
     public List<Color> colors = [];
     public List<List<Color>> palettes = [];
 
-    public int mode = 0;
-    public int graphicsViewerMode = 0;
+    public int mode { get; set; } = 0;
+    public int graphicsViewerMode { get; set; } = 0;
     const int tileWidth = 8;
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
-    public int tileViewerPaletteIndex = 0;
-    public bool secondPlayerFlip = false;
+    public int tileViewerPaletteIndex { get; set; } = 0;
+    public bool secondPlayerFlip { get; set; } = false;
     private static bool steamDeckTwoPlayerMode = false;
     bool neonHackEnabled = false;
-    public List<int> subOptionIndices = new List<int>();
+    public List<int> subOptionIndices { get; set; } = new ();
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
