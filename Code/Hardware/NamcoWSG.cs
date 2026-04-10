@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace pacman;
-
 public class NamcoWSG
 {
     private double _accumulator = 0;
