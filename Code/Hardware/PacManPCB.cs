@@ -19,8 +19,6 @@ public class PacManPCB : IArcadeMachine
     private byte[] spriteram2 = new byte[0x10];
     private NamcoWSG wsg;
     private Z80Cpu cpu;
-    bool _auxBoardEnabled = false;
-    bool _decryptEnabled = false;
     byte[] AuxROMs = null;
 
     Texture2D[,] TileTextures = new Texture2D[256, 32];
@@ -34,7 +32,6 @@ public class PacManPCB : IArcadeMachine
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex { get; set; } = 0;
-    private static bool steamDeckTwoPlayerMode = false;
     bool neonHackEnabled = false;
     public bool secondPlayerFlip
     {
@@ -57,10 +54,11 @@ public class PacManPCB : IArcadeMachine
     
     public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        wsg = new NamcoWSG(romFileName);
         LoadRom(romFileName);
+        wsg = new NamcoWSG(romFileName);
         memoryBus = new PacManMemoryMap(Memory, AuxROMs, spriteram, spriteram2, wsg);
         memoryBus.AuxBoardEnabled = (romFileName == "roms/mspacman.zip");
+        memoryBus.DecryptEnabled = (romFileName == "roms/mspacman.zip");
         memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
         memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
         cpu = new Z80Cpu(memoryBus);
@@ -126,8 +124,8 @@ public class PacManPCB : IArcadeMachine
                 int tileAddress = 0x4000 + i + 0x20 * row;
                 int paletteAddress = 0x4400 + i + 0x20 * row;
             
-                byte tileIndex = ReadByte((ushort)tileAddress);
-                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+                byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+                int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
 
                 int yPos = 0 + 8 * row;
                 int xPos = 232 - (i - 0x3C0) * 8;
@@ -147,8 +145,8 @@ public class PacManPCB : IArcadeMachine
                 int tileAddress = 0x4000 + i + 0x20 * col;
                 int paletteAddress = 0x4400 + i + 0x20 * col;
             
-                byte tileIndex = ReadByte((ushort)tileAddress);
-                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+                byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+                int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
         
                 int yPos = 8 * (i - 0x040) + 16;
                 int xPos = 216 - (col) * 8;
@@ -168,8 +166,8 @@ public class PacManPCB : IArcadeMachine
                 int tileAddress = 0x4000 + i + 0x20 * row;
                 int paletteAddress = 0x4400 + i + 0x20 * row;
             
-                byte tileIndex = ReadByte((ushort)tileAddress);
-                int paletteIndex = ReadByte((ushort)paletteAddress) & 0x1F;
+                byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+                int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
         
                 int yPos = 272 + 8 * row;
                 int xPos = 232 - (i - 0x000) * 8;
@@ -287,122 +285,12 @@ public class PacManPCB : IArcadeMachine
         return spriteram2[index];
     }
     
-    private static ushort NormalizeAddress(ushort address)
-    {
-        if (address < 0x4000 || (address >= 0x5000 && address <= 0x50FF))
-        {
-            return address;
-        }
-
-        // Everything else (0x4000-0x4FFF, 0x8000-0x8FFF, 0xC000-0xCFFF, etc.)
-        // maps down to the primary 4KB RAM block at 0x4000.
-        // (address & 0x0FFF) gets the offset within any 4KB bank.
-        return (ushort)(0x4000 | (address & 0x0FFF));
-    }
-
-    public byte ReadByte(ushort address)
-    {
-        if (_auxBoardEnabled)
-        {
-            switch (address)
-            {
-                case >= 0x3FF8 and <= 0x3FFF:
-                    _decryptEnabled = true;
-                    break;
-                case >= 0x0038 and <= 0x003F:
-                case >= 0x03B0 and <= 0x03B7:
-                case >= 0x1600 and <= 0x1607:
-                case >= 0x2120 and <= 0x2127:
-                case >= 0x3FF0 and <= 0x3FF7:
-                case >= 0x8000 and <= 0x8007:
-                case >= 0x97F0 and <= 0x97F7:
-                    _decryptEnabled = false;
-                    break;
-            }
-
-            switch (address)
-            {
-                case < 0x4000:
-                    return _decryptEnabled ? AuxROMs[address] : Memory[address];
-                case >= 0x8000 and < 0x8800:
-                    return AuxROMs[address - 0x8000 + 0x6000];
-                case >= 0x8800 and < 0xA000:
-                    return AuxROMs[(address & 0xFFF) + 0x5000];
-            }
-        }
-        
-        switch (address)
-        {
-            case >= 0x5000 and <= 0x503F:
-                return GetPort0();
-            case >= 0x5040 and <= 0x507F:
-                return GetPort1();
-            case >= 0x5080 and <= 0x50BF:
-                return GetDipSwitchesFromOptions(); // DIPs
-            default:
-                return Memory[NormalizeAddress(address)];
-        }
-    }
-
-    public void WriteByte(ushort address, byte value)
-    {
-        if (_auxBoardEnabled)
-        {
-            switch (address)
-            {
-                case >= 0x3FF8 and <= 0x3FFF:
-                    _decryptEnabled = true;
-                    break;
-                case >= 0x0038 and <= 0x003F:
-                case >= 0x03B0 and <= 0x03B7:
-                case >= 0x1600 and <= 0x1607:
-                case >= 0x2120 and <= 0x2127:
-                case >= 0x3FF0 and <= 0x3FF7:
-                case >= 0x8000 and <= 0x8007:
-                case >= 0x97F0 and <= 0x97F7:
-                    _decryptEnabled = false;
-                    break;
-            }
-
-            if (address is >= 0x8000 and < 0xA000)
-                return;
-        }
-        
-        switch (address)
-        {
-            case < 0x4000:
-                return; // Protect ROM
-            case >= 0x5040 and <= 0x505F: // Intercept sound writes
-                wsg.UpdateRegister(address, value);
-                return;
-            case 0x5003: // intercept flip
-                secondPlayerFlip = value == 1;
-                break;
-            case >= 0x5060 and <= 0x506F: // Handle special non-mirrored I/O writes (Sync bus)
-                spriteram2[address - 0x5060] = value;
-                return;
-        }
-
-        ushort normAddr = NormalizeAddress(address);
-
-        // Sync Sprite RAM 1
-        // 0x4FF0 is the canonical location for sprite data
-        if (normAddr is >= 0x4FF0 and <= 0x4FFF)
-        {
-            spriteram[normAddr - 0x4FF0] = value;
-        }
-
-        // Store the value in our normalized "canonical" RAM block
-        Memory[normAddr] = value;
-    }
-    
     private void LoadRom(string romFileName)
     {
         switch (romFileName)
         {
             case "roms/pacman.zip" or "roms/matrix.zip":
             {
-                _auxBoardEnabled = false;
                 using ZipArchive archive = ZipFile.OpenRead(romFileName);
                 var romMap = new Dictionary<string, int>
                 {
@@ -444,7 +332,6 @@ public class PacManPCB : IArcadeMachine
             }
             case "roms/pacplus.zip":
             {
-                _auxBoardEnabled = false;
                 using ZipArchive archive = ZipFile.OpenRead(romFileName);
                 var romMap = new Dictionary<string, int>
                 {
@@ -489,7 +376,6 @@ public class PacManPCB : IArcadeMachine
             }
             case "roms/newpuckx.zip":
             {
-                _auxBoardEnabled = false;
                 using ZipArchive archive = ZipFile.OpenRead(romFileName);
                 var romMap = new Dictionary<string, int>
                 {
@@ -525,8 +411,6 @@ public class PacManPCB : IArcadeMachine
             }
             case "roms/mspacman.zip":
             {
-                _auxBoardEnabled = true;
-                _decryptEnabled = true;
                 using ZipArchive archive = ZipFile.OpenRead(romFileName);
                 var romMap = new Dictionary<string, int>
                 {
@@ -675,72 +559,6 @@ public class PacManPCB : IArcadeMachine
     public void ClearRAM()
     {
         Array.Clear(Memory, 0, Memory.Length);
-    }
-
-    private static byte GetPort0()
-    {
-        KeyboardState state = Keyboard.GetState();
-        GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
-
-        if (steamDeckTwoPlayerMode)
-        {
-            return (byte)
-            (
-                ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 1)
-                | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 3)
-                | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 0)
-                | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 2)
-                | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-                | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
-                | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
-                | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
-            );
-        }
-        
-        return (byte)
-        (
-            ((state.IsKeyDown(Keys.Up) || gamePadState.DPad.Up == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y >= 0.5f ? 0 : 1) << 0)
-            | ((state.IsKeyDown(Keys.Left) || gamePadState.DPad.Left == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X <= -0.5f ? 0 : 1) << 1)
-            | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
-            | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
-            | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
-            | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
-            | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
-        );
-    }
-    
-    private static byte GetPort1()
-    {
-        KeyboardState state = Keyboard.GetState();
-        GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
-
-        if (steamDeckTwoPlayerMode)
-        {
-            return (byte)
-            (
-                ((state.IsKeyDown(Keys.NumPad8) || gamePadState.ThumbSticks.Right.Y >= 0.5f ? 0 : 1) << 2)
-                | ((state.IsKeyDown(Keys.NumPad4) || gamePadState.ThumbSticks.Right.X <= -0.5f ? 0 : 1) << 0)
-                | ((state.IsKeyDown(Keys.NumPad6) || gamePadState.ThumbSticks.Right.X >= 0.5f ? 0 : 1) << 3)
-                | ((state.IsKeyDown(Keys.NumPad2) || gamePadState.ThumbSticks.Right.Y <= -0.5f ? 0 : 1) << 1)
-                | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-                | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
-                | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-                | (0x0 << 7) // 1 for upright, 0 for cocktail
-            );
-        }
-        
-        return (byte)
-        (
-            ((state.IsKeyDown(Keys.NumPad8) ? 0 : 1) << 0)
-            | ((state.IsKeyDown(Keys.NumPad4) ? 0 : 1) << 1)
-            | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
-            | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
-            | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
-            | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-            | (0x1 << 7) // 1 for upright, 0 for cocktail
-        );
     }
 
     // methods for decrypting Ms. Pac-Man data and applying the data to Pac-Man
@@ -1062,18 +880,5 @@ public class PacManPCB : IArcadeMachine
         }
 
         return paletteValue;
-    }
-
-    public byte GetDipSwitchesFromOptions()
-    {
-        byte dipSwitchValue = 0x00;
-
-        dipSwitchValue |= (byte)subOptionIndices[0];
-        dipSwitchValue |= (byte)(subOptionIndices[1] << 2);
-        dipSwitchValue |= (byte)(subOptionIndices[2] << 4);
-        dipSwitchValue |= (byte)(subOptionIndices[3] << 5);
-        dipSwitchValue |= (byte)(subOptionIndices[4] << 6);
-
-        return dipSwitchValue;
     }
 }

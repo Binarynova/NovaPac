@@ -59,16 +59,6 @@ public class GalagaPCB : IArcadeMachine
 
         return cycles;
     }
-    
-    public byte ReadByte(ushort address)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void WriteByte(ushort address, byte value)
-    {
-        throw new System.NotImplementedException();
-    }
 
     public void ClearRAM()
     {
