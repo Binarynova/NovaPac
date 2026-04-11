@@ -12,7 +12,7 @@ public partial class Z80Cpu
         return _fdOpcodes[opcode]();
     }
 
-    private int Op_ADD_IY_BC() // Opcode: FD 09
+    private static int Op_ADD_IY_BC() // Opcode: FD 09
     {
         Reg.IY = ADDWord(Reg.IY, Reg.BC);
         
@@ -20,7 +20,7 @@ public partial class Z80Cpu
         return 15;
     }
     
-    private int Op_ADD_IY_DE() // Opcode: FD 19
+    private static int Op_ADD_IY_DE() // Opcode: FD 19
     {
         Reg.IY = ADDWord(Reg.IY, Reg.DE);
         
@@ -39,7 +39,7 @@ public partial class Z80Cpu
         return 20;
     }
     
-    private int Op_ADD_IY_IY() // Opcode: FD 29
+    private static int Op_ADD_IY_IY() // Opcode: FD 29
     {
         Reg.IY = ADDWord(Reg.IY, Reg.IY);
         
@@ -75,7 +75,7 @@ public partial class Z80Cpu
         return 23;
     }
     
-    private int Op_ADD_IY_SP() // Opcode: FD 39
+    private static int Op_ADD_IY_SP() // Opcode: FD 39
     {
         Reg.IY = ADDWord(Reg.IY, Reg.SP);
         
@@ -134,7 +134,7 @@ public partial class Z80Cpu
         return 15;
     }
     
-    private int Op_INC_IY() // Opcode: FD 23
+    private static int Op_INC_IY() // Opcode: FD 23
     {
         Reg.IY += 1;
         
@@ -142,7 +142,7 @@ public partial class Z80Cpu
         return 10;
     }
     
-    private int Op_DEC_IY() // Opcode: FD 2B
+    private static int Op_DEC_IY() // Opcode: FD 2B
     {
         Reg.IY -= 1;
         
@@ -177,28 +177,28 @@ public partial class Z80Cpu
         return 23;
     }
     
-    private int Op_LD_IYH_r(byte register)
+    private static int Op_LD_IYH_r(byte register)
     {
         Reg.IYH = register;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_IYL_r(byte register)
+    private static int Op_LD_IYL_r(byte register)
     {
         Reg.IYL = register;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_r_IYH(ref byte register)
+    private static int Op_LD_r_IYH(ref byte register)
     {
         register = Reg.IYH;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_r_IYL(ref byte register)
+    private static int Op_LD_r_IYL(ref byte register)
     {
         register = Reg.IYL;
         Reg.PC += 2;
@@ -279,14 +279,14 @@ public partial class Z80Cpu
         return 23;
     }
 
-    private int Op_JP_ptrIY()
+    private static int Op_JP_ptrIY()
     {
         Reg.PC = Reg.IY;
 
         return 8;
     }
 
-    private int Op_LD_SP_IY()
+    private static int Op_LD_SP_IY()
     {
         Reg.SP = Reg.IY;
         Reg.PC += 2;

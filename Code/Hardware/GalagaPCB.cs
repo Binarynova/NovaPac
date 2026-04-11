@@ -6,19 +6,27 @@ using Microsoft.Xna.Framework.Graphics;
 
 public class GalagaPCB : IArcadeMachine
 {
-    private Z80Cpu maincpu, sub, sub2;
+    private Z80Cpu mainCpu, subCpu, subCpu2;
     private NamcoWSG soundChip;
 
     private byte[] MainCPUMemory = new byte[0x10000];
     private byte[] SubCPUMemory = new byte[0x10000];
     private byte[] Sub2CPUMemory = new byte[0x10000];
 
+    public int mode { get; set; }
+    public List<int> subOptionIndices { get; set; }
+    public bool secondPlayerFlip { get; }
+    private static bool steamDeckTwoPlayerMode = false;
+    public int graphicsViewerMode { get; set; }
+    public int tileViewerPaletteIndex { get; set; }
+
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        maincpu = new Z80Cpu(this);
-        sub = new Z80Cpu(this);
-        sub2 = new Z80Cpu(this);
+        mainCpu = new Z80Cpu(this);
+        subCpu = new Z80Cpu(this);
+        subCpu2 = new Z80Cpu(this);
         soundChip = new NamcoWSG(romFileName);
+        steamDeckTwoPlayerMode = twoPlayerScreenFlip;
 
         ClearRAM();
         LoadROM(romFileName);
@@ -63,12 +71,6 @@ public class GalagaPCB : IArcadeMachine
     {
         throw new NotImplementedException();
     }
-
-    public int mode { get; set; }
-    public List<int> subOptionIndices { get; set; }
-    public bool secondPlayerFlip { get; }
-    public int graphicsViewerMode { get; set; }
-    public int tileViewerPaletteIndex { get; set; }
 
     private void LoadROM(string romFileName)
     {

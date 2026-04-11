@@ -167,14 +167,14 @@ public partial class Z80Cpu
     
     #region HELPER_METHODS
 
-    private void wz_LD_ptrRR_A(byte lowerReg)
+    private static void wz_LD_ptrRR_A(byte lowerReg)
     {
         byte wzLow = (byte)((lowerReg + 1) & 0xFF);
         byte wzHigh = Reg.A;
         Reg.WZ = (ushort)((wzHigh << 8) | wzLow);
     }
 
-    private void wz_LD_A_ptrRR(ushort registerPair)
+    private static void wz_LD_A_ptrRR(ushort registerPair)
     {
         Reg.WZ = (ushort)(registerPair + 1);
     }

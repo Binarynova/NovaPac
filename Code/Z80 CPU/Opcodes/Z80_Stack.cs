@@ -59,6 +59,7 @@ public partial class Z80Cpu
     }
     
     #region Helper Methods
+    
     private void PushWord(ushort value)
     {
         Reg.SP--; // decrement stack pointer
@@ -77,5 +78,6 @@ public partial class Z80Cpu
         ushort value = (ushort)((high << 8) | low);
         return value;
     }
+    
     #endregion
 }

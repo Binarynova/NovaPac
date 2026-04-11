@@ -1,4 +1,3 @@
-using System;
 using Reg = Registers;
 
 public partial class Z80Cpu
@@ -46,7 +45,7 @@ public partial class Z80Cpu
         return 20;
     }
 
-    private int Op_INC_IX() // Opcode: DD 23
+    private static int Op_INC_IX() // Opcode: DD 23
     {
         Reg.IX += 1;
         
@@ -72,7 +71,7 @@ public partial class Z80Cpu
         return 20;
     }
 
-    private int Op_DEC_IX() // Opcode: DD 2B
+    private static int Op_DEC_IX() // Opcode: DD 2B
     {
         Reg.IX -= 1;
         
@@ -257,14 +256,14 @@ public partial class Z80Cpu
         return 23;
     }
 
-    private int Op_JP_ptrIX() // DD E9
+    private static int Op_JP_ptrIX() // DD E9
     {
         Reg.PC = Reg.IX;
 
         return 8;
     }
 
-    private int Op_LD_SP_IX() // DD F9
+    private static int Op_LD_SP_IX() // DD F9
     {
         Reg.SP = Reg.IX;
         Reg.PC += 2;
@@ -327,34 +326,34 @@ public partial class Z80Cpu
 
     private int Op_DD_CP(byte register) // Opcodes: DD B8 B9 BA BB BC BD BF
     {
-        InternalCP(register); ;
+        InternalCP(register);
 
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_IXH_r(byte register)
+    private static int Op_LD_IXH_r(byte register)
     {
         Reg.IXH = register;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_IXL_r(byte register)
+    private static int Op_LD_IXL_r(byte register)
     {
         Reg.IXL = register;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_r_IXH(ref byte register)
+    private static int Op_LD_r_IXH(ref byte register)
     {
         register = Reg.IXH;
         Reg.PC += 2;
         return 8;
     }
     
-    private int Op_LD_r_IXL(ref byte register)
+    private static int Op_LD_r_IXL(ref byte register)
     {
         register = Reg.IXL;
         Reg.PC += 2;

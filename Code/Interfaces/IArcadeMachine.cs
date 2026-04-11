@@ -7,7 +7,6 @@ public interface IArcadeMachine
 {
     byte ReadByte(ushort address);
     void WriteByte(ushort address, byte value);
-    void ClearRAM();
     short[] GetAudioSamples();
     void InitializeGraphics(GraphicsDevice device);
     int Step(bool steppingThrough);

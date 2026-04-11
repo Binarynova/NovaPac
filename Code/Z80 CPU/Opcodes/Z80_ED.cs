@@ -1,5 +1,3 @@
-using System;
-using System.Xml.Schema;
 using Reg = Registers;
 
 public partial class Z80Cpu
@@ -286,16 +284,12 @@ public partial class Z80Cpu
         ClearFlag(Flags.N | Flags.H);
         WriteFlag(Flags.P, Reg.BC != 0);
 
-        if (Reg.BC == 0)
-        {
-            Reg.PC += 2; // move past ED B0
-            return 16;
-        }
-        else
-        {
-            // stay on ED B0 until BC == 0
-            return 21;
-        }
+        if (Reg.BC != 0) return 21;
+        
+        Reg.PC += 2; // move past ED B0
+        return 16;
+
+        // stay on ED B0 until BC == 0
     }
     
     private int Op_LDD() // Opcode: ED A8
@@ -326,16 +320,12 @@ public partial class Z80Cpu
         ClearFlag(Flags.N | Flags.H);
         WriteFlag(Flags.P, Reg.BC != 0);
 
-        if (Reg.BC == 0)
-        {
-            Reg.PC += 2; // move past ED B0
-            return 16;
-        }
-        else
-        {
-            // stay on ED B0 until BC == 0
-            return 21;
-        }
+        if (Reg.BC != 0) return 21;
+        
+        Reg.PC += 2; // move past ED B0
+        return 16;
+
+        // stay on ED B0 until BC == 0
     }
 
     private int Op_CPI()
@@ -404,7 +394,6 @@ public partial class Z80Cpu
     {
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
-        byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
         byte upper4ofHL = (byte)((_machine.ReadByte(Reg.HL) & 0xF0) >> 4);
 
         byte value = _machine.ReadByte(Reg.HL); // save value
@@ -427,7 +416,6 @@ public partial class Z80Cpu
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
         byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
-        byte upper4ofHL = (byte)((_machine.ReadByte(Reg.HL) & 0xF0) >> 4);
 
         byte value = _machine.ReadByte(Reg.HL); // save value
         value >>= 4; // shift it right 4 bits, leaving 0s behind

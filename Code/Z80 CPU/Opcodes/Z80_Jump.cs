@@ -262,11 +262,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_Z_nn() // Opcode: CC
@@ -277,11 +275,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_NC_nn() // Opcode: D4
@@ -292,11 +288,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_C_nn() // Opcode: DC
@@ -307,11 +301,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_PO_nn() // Opcode: E4
@@ -322,11 +314,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_PE_nn() // Opcode: EC
@@ -337,11 +327,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_P_nn() // Opcode: F4
@@ -352,11 +340,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
     
     private int Op_CALL_M_nn() // Opcode: FC
@@ -367,11 +353,9 @@ public partial class Z80Cpu
             Reg.PC = ImmediateWord();
             return 17;
         }
-        else
-        {
-            Reg.PC += 3;
-            return 10;
-        }
+        
+        Reg.PC += 3;
+        return 10;
     }
 
     private int Op_RST(ushort vector) // Opcodes: C7 D7 E7 F7 CF DF EF FF
@@ -389,16 +373,14 @@ public partial class Z80Cpu
         Reg.PC += 2;
         Reg.P = Reg.Q = 0;
         Reg.B--;
-        if (Reg.B != 0)
-        {
-            ushort target = (ushort)(Reg.PC + offset);
-            Reg.PC = target;
-            Reg.WZ = target;
         
-            return 13;
-        }
-    
-        return 8;
+        if (Reg.B == 0) return 8;
+        
+        ushort target = (ushort)(Reg.PC + offset);
+        Reg.PC = target;
+        Reg.WZ = target;
+        
+        return 13;
     }
 
     #region Helper Methods

@@ -333,7 +333,7 @@ public partial class Z80Cpu
     }
     
     #region Helper Methods
-    private int BIT(byte n, byte value, bool isMemory = false)
+    private static int BIT(byte n, byte value, bool isMemory = false)
     {
         bool bitSet = (value & (1 << n)) != 0;
 

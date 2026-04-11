@@ -231,7 +231,7 @@ public partial class Z80Cpu
 
     private int Op_CP(byte register) // Opcodes: B8 B9 BA BB BC BD BF
     {
-        InternalCP(register); ;
+        InternalCP(register);
 
         Reg.PC += 1;
         return 4;

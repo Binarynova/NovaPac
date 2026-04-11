@@ -92,32 +92,32 @@ public class NamcoWSG
 
     public void UpdateRegister(ushort address, byte value)
     {
-            switch (address)
-            {
-                // Voice 1
-                case 0x5045: Voice1Waveform = (byte)(value & 0x07); break;
-                case 0x5050: Voice1Frequency = (Voice1Frequency & ~0x0000F) | (value & 0x0F); break;
-                case 0x5051: Voice1Frequency = (Voice1Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
-                case 0x5052: Voice1Frequency = (Voice1Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
-                case 0x5053: Voice1Frequency = (Voice1Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
-                case 0x5054: Voice1Frequency = (Voice1Frequency & ~0xF0000) | ((value & 0x0F) << 16); break;
-                case 0x5055: Voice1Volume = (byte)(value & 0x0F); break;
+        switch (address)
+        {
+            // Voice 1
+            case 0x5045: Voice1Waveform = (byte)(value & 0x07); break;
+            case 0x5050: Voice1Frequency = (Voice1Frequency & ~0x0000F) | (value & 0x0F); break;
+            case 0x5051: Voice1Frequency = (Voice1Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
+            case 0x5052: Voice1Frequency = (Voice1Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
+            case 0x5053: Voice1Frequency = (Voice1Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
+            case 0x5054: Voice1Frequency = (Voice1Frequency & ~0xF0000) | ((value & 0x0F) << 16); break;
+            case 0x5055: Voice1Volume = (byte)(value & 0x0F); break;
 
-                // Voice 2
-                case 0x504A: Voice2Waveform = (byte)(value & 0x07); break;
-                case 0x5056: Voice2Frequency = (Voice2Frequency & ~0x0000F) | (value & 0x0F); break;
-                case 0x5057: Voice2Frequency = (Voice2Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
-                case 0x5058: Voice2Frequency = (Voice2Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
-                case 0x5059: Voice2Frequency = (Voice2Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
-                case 0x505A: Voice2Volume = (byte)(value & 0x0F); break;
+            // Voice 2
+            case 0x504A: Voice2Waveform = (byte)(value & 0x07); break;
+            case 0x5056: Voice2Frequency = (Voice2Frequency & ~0x0000F) | (value & 0x0F); break;
+            case 0x5057: Voice2Frequency = (Voice2Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
+            case 0x5058: Voice2Frequency = (Voice2Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
+            case 0x5059: Voice2Frequency = (Voice2Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
+            case 0x505A: Voice2Volume = (byte)(value & 0x0F); break;
 
-                // Voice 3
-                case 0x504F: Voice3Waveform = (byte)(value & 0x07); break;
-                case 0x505B: Voice3Frequency = (Voice3Frequency & ~0x0000F) | (value & 0x0F); break;
-                case 0x505C: Voice3Frequency = (Voice3Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
-                case 0x505D: Voice3Frequency = (Voice3Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
-                case 0x505E: Voice3Frequency = (Voice3Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
-                case 0x505F: Voice3Volume = (byte)(value & 0x0F); break;
+            // Voice 3
+            case 0x504F: Voice3Waveform = (byte)(value & 0x07); break;
+            case 0x505B: Voice3Frequency = (Voice3Frequency & ~0x0000F) | (value & 0x0F); break;
+            case 0x505C: Voice3Frequency = (Voice3Frequency & ~0x000F0) | ((value & 0x0F) << 4); break;
+            case 0x505D: Voice3Frequency = (Voice3Frequency & ~0x00F00) | ((value & 0x0F) << 8); break;
+            case 0x505E: Voice3Frequency = (Voice3Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
+            case 0x505F: Voice3Volume = (byte)(value & 0x0F); break;
         }
     }
     
