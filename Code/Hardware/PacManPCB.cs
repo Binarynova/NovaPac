@@ -34,9 +34,13 @@ public class PacManPCB : IArcadeMachine
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex { get; set; } = 0;
-    public bool secondPlayerFlip { get; set; } = false;
     private static bool steamDeckTwoPlayerMode = false;
     bool neonHackEnabled = false;
+    public bool secondPlayerFlip
+    {
+        get => memoryBus.SecondPlayerFlip;
+        set => memoryBus.SecondPlayerFlip = value;
+    }
     public List<int> subOptionIndices
     {
         get => memoryBus.SubOptionIndices;
@@ -57,6 +61,7 @@ public class PacManPCB : IArcadeMachine
         LoadRom(romFileName);
         memoryBus = new PacManMemoryMap(Memory, AuxROMs, spriteram, spriteram2, wsg);
         memoryBus.AuxBoardEnabled = (romFileName == "roms/mspacman.zip");
+        memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
         memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
         cpu = new Z80Cpu(memoryBus);
         
