@@ -8,7 +8,7 @@ public class ZEXDOC : IArcadeMachine
 {
     private byte[] Memory = new byte[0x10000];
     private Z80Cpu _cpu;
-    private PacManMemoryMap _memoryMap = null;
+    private PacManMemoryBus _memoryMap = null;
 
     public ZEXDOC()
     {

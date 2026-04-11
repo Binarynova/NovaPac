@@ -1,11 +1,11 @@
 using System.Runtime.InteropServices;
 
-public class CPU2MemoryMap : IMemoryBus
+public class CPU2MemoryBus : IMemoryBus
 {
     private byte[] _mainRom;
     private byte[] _sharedRam;
 
-    public CPU2MemoryMap(byte[] mainRom, byte[] sharedRam)
+    public CPU2MemoryBus(byte[] mainRom, byte[] sharedRam)
     {
         _mainRom = mainRom;
         _sharedRam = sharedRam;

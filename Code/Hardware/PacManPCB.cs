@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 public class PacManPCB : IArcadeMachine
 {
     GraphicsDevice _graphicsDevice;
-    private PacManMemoryMap memoryBus;
+    private PacManMemoryBus memoryBus;
     private byte[] Memory = new byte[0x10000];
     byte[] paletteMemory;
     byte[] charMemory;
@@ -56,7 +56,7 @@ public class PacManPCB : IArcadeMachine
     {
         LoadRom(romFileName);
         wsg = new NamcoWSG(romFileName);
-        memoryBus = new PacManMemoryMap(Memory, AuxROMs, spriteram, spriteram2, wsg);
+        memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
         memoryBus.AuxBoardEnabled = (romFileName == "roms/mspacman.zip");
         memoryBus.DecryptEnabled = (romFileName == "roms/mspacman.zip");
         memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;

@@ -25,13 +25,13 @@ public class GalagaPCB : IArcadeMachine
 
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        var cpu1Map = new CPU1MemoryMap(MainCPUMemory, _sharedRam);
-        var cpu2Map = new CPU2MemoryMap(SubCPUMemory, _sharedRam);
-        var cpu3Map = new CPU3MemoryMap(Sub2CPUMemory, _sharedRam);
+        var cpu1Bus = new CPU1MemoryBus(MainCPUMemory, _sharedRam);
+        var cpu2Bus = new CPU2MemoryBus(SubCPUMemory, _sharedRam);
+        var cpu3Bus = new CPU3MemoryBus(Sub2CPUMemory, _sharedRam);
         
-        mainCpu = new Z80Cpu(cpu1Map);
-        subCpu = new Z80Cpu(cpu2Map);
-        subCpu2 = new Z80Cpu(cpu3Map);
+        mainCpu = new Z80Cpu(cpu1Bus);
+        subCpu = new Z80Cpu(cpu2Bus);
+        subCpu2 = new Z80Cpu(cpu3Bus);
         soundChip = new NamcoWSG(romFileName);
         steamDeckTwoPlayerMode = twoPlayerScreenFlip;
 

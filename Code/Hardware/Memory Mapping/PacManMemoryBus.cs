@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-public class PacManMemoryMap : IMemoryBus
+public class PacManMemoryBus : IMemoryBus
 {
     private byte[] _memory;
     private byte[] _auxRoms;
@@ -16,7 +16,7 @@ public class PacManMemoryMap : IMemoryBus
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];
     
-    public PacManMemoryMap(byte[] memory, byte[] auxRoms, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg)
+    public PacManMemoryBus(byte[] memory, byte[] auxRoms, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg)
     {
         _memory = memory;
         _auxRoms = auxRoms;

@@ -9,7 +9,7 @@ public class SSTests : IArcadeMachine
 {
     Z80Cpu cpu;
     private byte[] Memory = new byte[0x10000];
-    private PacManMemoryMap _memoryMap = null;
+    private PacManMemoryBus _memoryMap = null;
 
     public byte ReadByte(ushort address) => Memory[address];
 
