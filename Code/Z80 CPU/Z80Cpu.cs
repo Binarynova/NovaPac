@@ -5,11 +5,11 @@ using Reg = Registers;
 
 public partial class Z80Cpu
 {
-    private IArcadeMachine _machine;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
     private bool _halted;
+    private IMemoryBus _bus;
 
     public delegate int OpcodeHandler();
     public readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
@@ -31,9 +31,9 @@ public partial class Z80Cpu
         C = 1 << 0, N = 1 << 1, P = 1 << 2, F3 = 1 << 3, H = 1 << 4, F5 = 1 << 5, Z = 1 << 6, S = 1 << 7
     }
     
-    public Z80Cpu(IArcadeMachine machine)
+    public Z80Cpu(IMemoryBus memoryBus)
     {
-        _machine = machine;
+        _bus = memoryBus;
         Reset();
 
         BuildOpcodeTable();
@@ -67,8 +67,8 @@ public partial class Z80Cpu
                 break;
             case 2:
                 ushort vectorAddress = (ushort)((Reg.I << 8) | interruptVectorLow);
-                byte low = _machine.ReadByte(vectorAddress);
-                byte high = _machine.ReadByte((ushort)(vectorAddress + 1));
+                byte low = _bus.ReadByte(vectorAddress);
+                byte high = _bus.ReadByte((ushort)(vectorAddress + 1));
                 Reg.PC = (ushort)((high << 8) | low);
                 break;
         }
@@ -87,7 +87,7 @@ public partial class Z80Cpu
                 return 4;              // stay halted, do not fetch opcode
         }
         
-        byte opcode = _machine.ReadByte(Reg.PC);
+        byte opcode = _bus.ReadByte(Reg.PC);
         
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
@@ -933,22 +933,22 @@ public partial class Z80Cpu
     
     byte ImmediateByte()
     {
-        return _machine.ReadByte((ushort)(Reg.PC + 1));
+        return _bus.ReadByte((ushort)(Reg.PC + 1));
     }
     ushort ImmediateWord(bool prefixed = false)
     {
         if(!prefixed)
-            return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 1)) | 
-                           (_machine.ReadByte((ushort)(Reg.PC + 2)) << 8));
+            return (ushort)(_bus.ReadByte((ushort)(Reg.PC + 1)) | 
+                           (_bus.ReadByte((ushort)(Reg.PC + 2)) << 8));
         else
-            return (ushort)(_machine.ReadByte((ushort)(Reg.PC + 2)) | 
-                            (_machine.ReadByte((ushort)(Reg.PC + 3)) << 8));
+            return (ushort)(_bus.ReadByte((ushort)(Reg.PC + 2)) | 
+                            (_bus.ReadByte((ushort)(Reg.PC + 3)) << 8));
     }
     private byte PeekNextByte() => ImmediateByte();
     
     private ushort IndexAddressingWithDisplacement(ushort indexPair)
     {
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
+        sbyte d = (sbyte)_bus.ReadByte((ushort)(Reg.PC + 2));
         ushort addr = (ushort)(indexPair + d);
 
         return addr;
@@ -957,7 +957,7 @@ public partial class Z80Cpu
     private int Op_UNK()
     {
         throw new NotImplementedException(
-            $"Unhandled opcode {_machine.ReadByte(Reg.PC):X2} at {Reg.PC:X4}. Next byte: {_machine.ReadByte((ushort)(Reg.PC+1)):X2}");
+            $"Unhandled opcode {_bus.ReadByte(Reg.PC):X2} at {Reg.PC:X4}. Next byte: {_bus.ReadByte((ushort)(Reg.PC+1)):X2}");
     }
     
     
@@ -991,7 +991,7 @@ public partial class Z80Cpu
 
         foreach (List<int> entry in test.Initial.RAM)
         {
-            _machine.WriteByte((ushort)entry[0], (byte)entry[1]);
+            _bus.WriteByte((ushort)entry[0], (byte)entry[1]);
         }
     }
     
@@ -1087,7 +1087,7 @@ public partial class Z80Cpu
         foreach (var entry in test.Initial.RAM)
         {
             ushort address = (ushort)entry[0];
-            byte value = _machine.ReadByte(address);
+            byte value = _bus.ReadByte(address);
             
             actualCPUState.RAM.Add(new List<int> {address, value});
         }

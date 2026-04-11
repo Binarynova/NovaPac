@@ -73,7 +73,7 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = new() { 1, 2, 0, 0, 0 };
+    private List<int> _selectedSubOptionIndices = [1, 2, 0, 0, 0];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     

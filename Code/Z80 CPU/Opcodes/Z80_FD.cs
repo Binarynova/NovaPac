@@ -32,8 +32,8 @@ public partial class Z80Cpu
     {
         ushort addr = ImmediateWord(true);
         
-        _machine.WriteByte(addr, Reg.IYL);
-        _machine.WriteByte((ushort)(addr + 1), Reg.IYH);
+        _bus.WriteByte(addr, Reg.IYL);
+        _bus.WriteByte((ushort)(addr + 1), Reg.IYH);
         
         Reg.PC += 4;
         return 20;
@@ -51,8 +51,8 @@ public partial class Z80Cpu
     {
         ushort nn = ImmediateWord(true);
         
-        Reg.IYL = _machine.ReadByte(nn);
-        Reg.IYH = _machine.ReadByte((ushort)(nn + 1));
+        Reg.IYL = _bus.ReadByte(nn);
+        Reg.IYH = _bus.ReadByte((ushort)(nn + 1));
         
         Reg.PC += 4;
         return 20;
@@ -61,9 +61,9 @@ public partial class Z80Cpu
     private int Op_INC_ptrIYd() // Opcode: DD 34
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        byte val = _machine.ReadByte(addr);
+        byte val = _bus.ReadByte(addr);
         byte result = (byte)(val + 1);
-        _machine.WriteByte(addr, result);
+        _bus.WriteByte(addr, result);
 
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, result == 0);
@@ -94,9 +94,9 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        byte n = _machine.ReadByte((ushort)(Reg.PC + 3));
+        byte n = _bus.ReadByte((ushort)(Reg.PC + 3));
         
-        _machine.WriteByte(addr, n);
+        _bus.WriteByte(addr, n);
         Reg.PC += 4;
         return 19;
     }
@@ -105,7 +105,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
 
-        register = _machine.ReadByte(addr);
+        register = _bus.ReadByte(addr);
         
         Reg.PC += 3;
         return 19;
@@ -115,7 +115,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        _machine.WriteByte(addr, register);
+        _bus.WriteByte(addr, register);
         Reg.PC += 3;
         return 19;
     }
@@ -154,7 +154,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        InternalCP(_machine.ReadByte(addr));
+        InternalCP(_bus.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -163,9 +163,9 @@ public partial class Z80Cpu
     private int Op_DEC_ptrIYd() // Opcode: FD 35
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        byte val = _machine.ReadByte(addr);
+        byte val = _bus.ReadByte(addr);
         byte result = (byte)(val - 1);
-        _machine.WriteByte(addr, result);
+        _bus.WriteByte(addr, result);
 
         WriteFlag(Flags.S, (result & 0x80) != 0);
         WriteFlag(Flags.Z, result == 0);
@@ -209,7 +209,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
 
-        Reg.A = ADD(Reg.A, _machine.ReadByte(addr));
+        Reg.A = ADD(Reg.A, _bus.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -219,7 +219,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        Reg.A = SUB(Reg.A, _machine.ReadByte(addr));
+        Reg.A = SUB(Reg.A, _bus.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -229,7 +229,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        AND(_machine.ReadByte(addr));
+        AND(_bus.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -239,7 +239,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        Reg.A = ADC(Reg.A, _machine.ReadByte(addr));
+        Reg.A = ADC(Reg.A, _bus.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -249,7 +249,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        Reg.A = SBC(Reg.A, _machine.ReadByte(addr));
+        Reg.A = SBC(Reg.A, _bus.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;
@@ -258,7 +258,7 @@ public partial class Z80Cpu
     private int Op_XOR_A_ptrIYd() // Opcode: DD AE
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
-        XOR(_machine.ReadByte(addr));
+        XOR(_bus.ReadByte(addr));
 
         Reg.PC += 3;
         return 19;
@@ -269,11 +269,11 @@ public partial class Z80Cpu
         byte oldIYL = Reg.IYL;
         byte oldIYH = Reg.IYH;
         
-        Reg.IYL = _machine.ReadByte(Reg.SP);
-        Reg.IYH = _machine.ReadByte((ushort)(Reg.SP + 1));
+        Reg.IYL = _bus.ReadByte(Reg.SP);
+        Reg.IYH = _bus.ReadByte((ushort)(Reg.SP + 1));
         
-        _machine.WriteByte(Reg.SP, oldIYL);
-        _machine.WriteByte((ushort)(Reg.SP + 1), oldIYH);
+        _bus.WriteByte(Reg.SP, oldIYL);
+        _bus.WriteByte((ushort)(Reg.SP + 1), oldIYH);
 
         Reg.PC += 2;
         return 23;
@@ -297,7 +297,7 @@ public partial class Z80Cpu
     {
         ushort addr = IndexAddressingWithDisplacement(Reg.IY);
         
-        OR(_machine.ReadByte(addr));
+        OR(_bus.ReadByte(addr));
         
         Reg.PC += 3;
         return 19;

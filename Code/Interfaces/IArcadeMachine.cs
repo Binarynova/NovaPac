@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using static PacManPCB;
 
 public interface IArcadeMachine
 {
-    byte ReadByte(ushort address);
-    void WriteByte(ushort address, byte value);
     short[] GetAudioSamples();
     void InitializeGraphics(GraphicsDevice device);
     int Step(bool steppingThrough);

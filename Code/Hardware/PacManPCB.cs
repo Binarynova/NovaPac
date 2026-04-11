@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 public class PacManPCB : IArcadeMachine
 {
     GraphicsDevice _graphicsDevice;
+    private PacManMemoryMap memoryBus;
     private byte[] Memory = new byte[0x10000];
     byte[] paletteMemory;
     byte[] charMemory;
@@ -36,7 +37,11 @@ public class PacManPCB : IArcadeMachine
     public bool secondPlayerFlip { get; set; } = false;
     private static bool steamDeckTwoPlayerMode = false;
     bool neonHackEnabled = false;
-    public List<int> subOptionIndices { get; set; } = [];
+    public List<int> subOptionIndices
+    {
+        get => memoryBus.SubOptionIndices;
+        set => memoryBus.SubOptionIndices = value;
+    }
     
     private List<DrawRequest> requests = new ();
     public struct DrawRequest
@@ -48,13 +53,14 @@ public class PacManPCB : IArcadeMachine
     
     public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        mode = 0;
-        cpu = new Z80Cpu(this);
         wsg = new NamcoWSG(romFileName);
-        steamDeckTwoPlayerMode = twoPlayerScreenFlip;
-        
-        ClearRAM();
         LoadRom(romFileName);
+        memoryBus = new PacManMemoryMap(Memory, AuxROMs, spriteram, spriteram2, wsg);
+        memoryBus.AuxBoardEnabled = (romFileName == "roms/mspacman.zip");
+        memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
+        cpu = new Z80Cpu(memoryBus);
+        
+        mode = 0;
     }
     
     private void DrawGameSprites(bool secondPlayFlip)

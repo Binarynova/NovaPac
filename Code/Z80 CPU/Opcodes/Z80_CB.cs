@@ -32,7 +32,7 @@ public partial class Z80Cpu
     
     private int Op_RLC_ptrHL() // Opcode: CB 06
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         // save off bit 7
         byte bit7 = (byte)((value & 0x80) >> 7);
@@ -41,7 +41,7 @@ public partial class Z80Cpu
         value = (byte)((value << 1) | bit7);
         WriteFlag(Flags.C, bit7 != 0);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -70,7 +70,7 @@ public partial class Z80Cpu
     
     private int Op_RRC_ptrHL() // Opcodes: CB 0E
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         // save off bit 0
         byte origBit0 = (byte)(value & 0x01);
@@ -79,7 +79,7 @@ public partial class Z80Cpu
         value = (byte)((value >> 1) | (origBit0 << 7));
         WriteFlag(Flags.C, origBit0 != 0);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -109,7 +109,7 @@ public partial class Z80Cpu
     
     private int Op_RL_ptrHL() // Opcodes: CB 16
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         // save off the carry flag and the register's bit 7
         byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
@@ -119,7 +119,7 @@ public partial class Z80Cpu
         value = (byte)((value << 1) | origCarry);
         WriteFlag(Flags.C, origBit7 != 0);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -149,7 +149,7 @@ public partial class Z80Cpu
     
     private int Op_RR_ptrHL() // Opcodes: CB 1E
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         // save off the carry flag and the register's bit 0
         byte origCarry = (byte)(GetFlag(Flags.C) ? 1 : 0);
@@ -159,7 +159,7 @@ public partial class Z80Cpu
         value = (byte)((value >> 1) | (origCarry << 7));
         WriteFlag(Flags.C, origBit0 != 0);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -186,14 +186,14 @@ public partial class Z80Cpu
     
     private int Op_SLA_ptrHL() // Opcode: CB 26
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         byte carry = (byte)(value & 0x80);
         WriteFlag(Flags.C, carry != 0);
 
         value = (byte)(value << 1);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -223,7 +223,7 @@ public partial class Z80Cpu
 
     private int Op_SRA_ptrHL() // Opcode: CB 2E
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         byte bit7 = (byte)((value & 0x80) >> 7);
         byte carry = (byte)(value & 0x01);
@@ -232,7 +232,7 @@ public partial class Z80Cpu
         value = (byte)(value >> 1);
         value |= (byte)(bit7 << 7);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
 
         WriteFlag(Flags.C, carry != 0);
         ClearFlag(Flags.H | Flags.N);
@@ -261,7 +261,7 @@ public partial class Z80Cpu
     
     private int Op_SLL_ptrHL() // Opcode: CB 36
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         byte carry = (byte)(value & 0x80);
         WriteFlag(Flags.C, carry != 0);
@@ -269,7 +269,7 @@ public partial class Z80Cpu
         value = (byte)(value << 1);
         value |= 0x1;
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         ClearFlag(Flags.H | Flags.N);
         SetSZFlags(value);
@@ -298,14 +298,14 @@ public partial class Z80Cpu
     
     private int Op_SRL_ptrHL() // Opcode: CB 3E
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         
         byte carry = (byte)(value & 0x01);
         WriteFlag(Flags.C, carry != 0);
 
         value = (byte)(value >> 1);
         
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
 
         WriteFlag(Flags.C, carry != 0);
         
@@ -319,7 +319,7 @@ public partial class Z80Cpu
     
     private int Op_BIT_7_ptrHL() // Opcode: CB 7E
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         Reg.PC += 2;
         return BIT(7, value, isMemory: true);
     }
@@ -392,7 +392,7 @@ public partial class Z80Cpu
             3 => Reg.E,
             4 => Reg.H,
             5 => Reg.L,
-            6 => _machine.ReadByte(Reg.HL),
+            6 => _bus.ReadByte(Reg.HL),
             7 => Reg.A,
             _ => 0
         };

@@ -19,8 +19,8 @@ public partial class Z80Cpu
     private int Op_LD_ptrNN_BC() // Opcode: ED 43
     {
         ushort addr = ImmediateWord(true);
-        _machine.WriteByte(addr, Reg.C);
-        _machine.WriteByte((ushort)(addr + 1), Reg.B);
+        _bus.WriteByte(addr, Reg.C);
+        _bus.WriteByte((ushort)(addr + 1), Reg.B);
         Reg.PC += 4;
         return 20;
     }
@@ -54,8 +54,8 @@ public partial class Z80Cpu
     {
         ushort nn = ImmediateWord(true);
 
-        Reg.C = _machine.ReadByte(nn);
-        Reg.B = _machine.ReadByte((ushort)(nn + 1));
+        Reg.C = _bus.ReadByte(nn);
+        Reg.B = _bus.ReadByte((ushort)(nn + 1));
         
         Reg.PC += 4;
         return 20;
@@ -71,8 +71,8 @@ public partial class Z80Cpu
     private int Op_LD_ptrNN_DE() // Opcode: ED 53
     {
         ushort addr = ImmediateWord(true);
-        _machine.WriteByte(addr, Reg.E);
-        _machine.WriteByte((ushort)(addr + 1), Reg.D);
+        _bus.WriteByte(addr, Reg.E);
+        _bus.WriteByte((ushort)(addr + 1), Reg.D);
         Reg.PC += 4;
         return 20;
     }
@@ -81,8 +81,8 @@ public partial class Z80Cpu
     {
         ushort nn = ImmediateWord(true);
 
-        Reg.E = _machine.ReadByte(nn);
-        Reg.D = _machine.ReadByte((ushort)(nn + 1));
+        Reg.E = _bus.ReadByte(nn);
+        Reg.D = _bus.ReadByte((ushort)(nn + 1));
         
         Reg.PC += 4;
         return 20;
@@ -92,8 +92,8 @@ public partial class Z80Cpu
     {
         ushort addr = ImmediateWord(true);
         
-        _machine.WriteByte(addr, (byte)(Reg.SP & 0x00FF));
-        _machine.WriteByte((ushort)(addr + 1), (byte)((Reg.SP & 0xFF00) >> 8));
+        _bus.WriteByte(addr, (byte)(Reg.SP & 0x00FF));
+        _bus.WriteByte((ushort)(addr + 1), (byte)((Reg.SP & 0xFF00) >> 8));
         Reg.PC += 4;
         return 20;
     }
@@ -102,8 +102,8 @@ public partial class Z80Cpu
     {
         ushort nn = ImmediateWord(true);
 
-        byte low = _machine.ReadByte(nn);
-        byte high = _machine.ReadByte((ushort)(nn + 1));
+        byte low = _bus.ReadByte(nn);
+        byte high = _bus.ReadByte((ushort)(nn + 1));
         Reg.SP = (ushort)((high << 8) | low);
         
         Reg.PC += 4;
@@ -258,8 +258,8 @@ public partial class Z80Cpu
     
     private int Op_LDI() // Opcode: ED A0
     {
-        byte value = _machine.ReadByte(Reg.HL);
-        _machine.WriteByte(Reg.DE, value);
+        byte value = _bus.ReadByte(Reg.HL);
+        _bus.WriteByte(Reg.DE, value);
 
         Reg.HL++;
         Reg.DE++;
@@ -274,8 +274,8 @@ public partial class Z80Cpu
 
     private int Op_LDIR() // Opcode: ED B0
     {
-        byte value = _machine.ReadByte(Reg.HL);
-        _machine.WriteByte(Reg.DE, value);
+        byte value = _bus.ReadByte(Reg.HL);
+        _bus.WriteByte(Reg.DE, value);
 
         Reg.HL++;
         Reg.DE++;
@@ -294,8 +294,8 @@ public partial class Z80Cpu
     
     private int Op_LDD() // Opcode: ED A8
     {
-        byte value = _machine.ReadByte(Reg.HL);
-        _machine.WriteByte(Reg.DE, value);
+        byte value = _bus.ReadByte(Reg.HL);
+        _bus.WriteByte(Reg.DE, value);
 
         Reg.HL--;
         Reg.DE--;
@@ -310,8 +310,8 @@ public partial class Z80Cpu
 
     private int Op_LDDR() // Opcode: ED B8
     {
-        byte value = _machine.ReadByte(Reg.HL);
-        _machine.WriteByte(Reg.DE, value);
+        byte value = _bus.ReadByte(Reg.HL);
+        _bus.WriteByte(Reg.DE, value);
 
         Reg.HL--;
         Reg.DE--;
@@ -330,7 +330,7 @@ public partial class Z80Cpu
 
     private int Op_CPI()
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         int result = Reg.A - value;
 
         Reg.HL++;
@@ -361,7 +361,7 @@ public partial class Z80Cpu
 
     private int Op_CPD() // ED A9
     {
-        byte value = _machine.ReadByte(Reg.HL);
+        byte value = _bus.ReadByte(Reg.HL);
         int result = Reg.A - value;
 
         Reg.HL--;
@@ -394,14 +394,14 @@ public partial class Z80Cpu
     {
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
-        byte upper4ofHL = (byte)((_machine.ReadByte(Reg.HL) & 0xF0) >> 4);
+        byte upper4ofHL = (byte)((_bus.ReadByte(Reg.HL) & 0xF0) >> 4);
 
-        byte value = _machine.ReadByte(Reg.HL); // save value
+        byte value = _bus.ReadByte(Reg.HL); // save value
         value <<= 4; // shift it left 4 bits, leaving 0s behind
         value |= lower4ofA; // because lower 4 of value are 0, this sets those 4 to match
         Reg.A &= 0xF0;      // clear lower 4 of Reg.A
         Reg.A |= upper4ofHL; // same as above
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         SetSZFlags(Reg.A);
         ClearFlag(Flags.H | Flags.N);
@@ -415,14 +415,14 @@ public partial class Z80Cpu
     {
         // save off bits that are moving
         byte lower4ofA = (byte)(Reg.A & 0x0F);
-        byte lower4ofHL = (byte)(_machine.ReadByte(Reg.HL) & 0x0F);
+        byte lower4ofHL = (byte)(_bus.ReadByte(Reg.HL) & 0x0F);
 
-        byte value = _machine.ReadByte(Reg.HL); // save value
+        byte value = _bus.ReadByte(Reg.HL); // save value
         value >>= 4; // shift it right 4 bits, leaving 0s behind
         value |= (byte)(lower4ofA << 4); // because upper 4 of value are 0, this sets those 4 to match
         Reg.A &= 0xF0;      // clear lower 4 of Reg.A
         Reg.A |= lower4ofHL; // same as above
-        _machine.WriteByte(Reg.HL, value);
+        _bus.WriteByte(Reg.HL, value);
         
         SetSZFlags(Reg.A);
         ClearFlag(Flags.H | Flags.N);
@@ -435,8 +435,8 @@ public partial class Z80Cpu
     private int Op_ED_LD_HL_ptrNN() // Opcode: ED 6B
     {
         ushort addr = ImmediateWord(prefixed:true);
-        Reg.L = _machine.ReadByte(addr);
-        Reg.H = _machine.ReadByte((ushort)(addr + 1));
+        Reg.L = _bus.ReadByte(addr);
+        Reg.H = _bus.ReadByte((ushort)(addr + 1));
         Reg.PC += 4;
         return 20;
     }
@@ -444,8 +444,8 @@ public partial class Z80Cpu
     private int Op_ED_LD_ptrNN_HL() // Opcode: ED 63
     {
         ushort address = ImmediateWord(prefixed:true);
-        _machine.WriteByte(address, Reg.L);
-        _machine.WriteByte((ushort)(address + 1), Reg.H);
+        _bus.WriteByte(address, Reg.L);
+        _bus.WriteByte((ushort)(address + 1), Reg.H);
         Reg.PC += 4;
         return 20;
     }

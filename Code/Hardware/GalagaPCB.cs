@@ -8,10 +8,13 @@ public class GalagaPCB : IArcadeMachine
 {
     private Z80Cpu mainCpu, subCpu, subCpu2;
     private NamcoWSG soundChip;
+    GraphicsDevice _graphicsDevice;
 
     private byte[] MainCPUMemory = new byte[0x10000];
-    private byte[] SubCPUMemory = new byte[0x10000];
+    private byte[] SubCPUMemory =  new byte[0x10000];
     private byte[] Sub2CPUMemory = new byte[0x10000];
+    
+    private byte[] _sharedRam = new byte[0x10000];
 
     public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
@@ -22,14 +25,39 @@ public class GalagaPCB : IArcadeMachine
 
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        mainCpu = new Z80Cpu(this);
-        subCpu = new Z80Cpu(this);
-        subCpu2 = new Z80Cpu(this);
+        var cpu1Map = new CPU1MemoryMap(MainCPUMemory, _sharedRam);
+        var cpu2Map = new CPU2MemoryMap(SubCPUMemory, _sharedRam);
+        var cpu3Map = new CPU3MemoryMap(Sub2CPUMemory, _sharedRam);
+        
+        mainCpu = new Z80Cpu(cpu1Map);
+        subCpu = new Z80Cpu(cpu2Map);
+        subCpu2 = new Z80Cpu(cpu3Map);
         soundChip = new NamcoWSG(romFileName);
         steamDeckTwoPlayerMode = twoPlayerScreenFlip;
 
         ClearRAM();
         LoadROM(romFileName);
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        int cycles = mainCpu.Step(steppingThrough);
+        int subCycles = 0;
+        int sub2Cycles = 0;
+
+        while(subCycles < cycles)
+        {
+            subCycles += subCpu.Step(steppingThrough);
+        }
+
+        while (sub2Cycles < cycles)
+        {
+            sub2Cycles += subCpu2.Step(steppingThrough);
+        }
+        
+        soundChip.Update(cycles);
+
+        return cycles;
     }
     
     public byte ReadByte(ushort address)
@@ -54,12 +82,7 @@ public class GalagaPCB : IArcadeMachine
 
     public void InitializeGraphics(GraphicsDevice device)
     {
-        throw new NotImplementedException();
-    }
-
-    public int Step(bool steppingThrough)
-    {
-        throw new NotImplementedException();
+        _graphicsDevice = device;
     }
 
     public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)

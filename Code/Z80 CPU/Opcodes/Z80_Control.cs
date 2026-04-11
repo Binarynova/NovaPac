@@ -64,12 +64,12 @@ public partial class Z80Cpu
     
     private int Op_EX_ptrSP_HL() // Opcode: E3
     {
-        byte low = _machine.ReadByte(Reg.SP);
-        _machine.WriteByte(Reg.SP, Reg.L);
+        byte low = _bus.ReadByte(Reg.SP);
+        _bus.WriteByte(Reg.SP, Reg.L);
         Reg.L = low;
         
-        byte high = _machine.ReadByte((ushort)(Reg.SP + 1));
-        _machine.WriteByte((ushort)(Reg.SP+1), Reg.H);
+        byte high = _bus.ReadByte((ushort)(Reg.SP + 1));
+        _bus.WriteByte((ushort)(Reg.SP+1), Reg.H);
         Reg.H = high;
 
         Reg.PC += 1;

@@ -9,6 +9,7 @@ public class SSTests : IArcadeMachine
 {
     Z80Cpu cpu;
     private byte[] Memory = new byte[0x10000];
+    private PacManMemoryMap _memoryMap = null;
 
     public byte ReadByte(ushort address) => Memory[address];
 
@@ -55,15 +56,14 @@ public class SSTests : IArcadeMachine
 
     public SSTests()
     {
-        cpu = new Z80Cpu(this);
+        cpu = new Z80Cpu(_memoryMap);
     }
     
 
     public void Run()
     {
         // Load
-        IArcadeMachine sstMachine = new SSTests();
-        cpu = new Z80Cpu(sstMachine);
+        cpu = new Z80Cpu(_memoryMap);
         int hexCode = 0;
         int passedCount;
         

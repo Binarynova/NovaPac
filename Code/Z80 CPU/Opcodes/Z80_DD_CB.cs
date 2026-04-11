@@ -5,11 +5,11 @@ public partial class Z80Cpu
     private int Op_DD_CB()
     {
         IncrementRegisterR();
-        sbyte d = (sbyte)_machine.ReadByte((ushort)(Reg.PC + 2));
-        byte opcode = _machine.ReadByte((ushort)(Reg.PC + 3));
+        sbyte d = (sbyte)_bus.ReadByte((ushort)(Reg.PC + 2));
+        byte opcode = _bus.ReadByte((ushort)(Reg.PC + 3));
 
         ushort addr = (ushort)(Reg.IX + d);
-        byte value = _machine.ReadByte(addr);
+        byte value = _bus.ReadByte(addr);
 
         int group = opcode >> 6;
         int bit = (opcode >> 3) & 0x07;
@@ -36,7 +36,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -55,7 +55,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -75,7 +75,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -95,7 +95,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -114,7 +114,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -134,7 +134,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -153,7 +153,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -172,7 +172,7 @@ public partial class Z80Cpu
                         SetSZFlags(result);
                         SetParity(result);
 
-                        _machine.WriteByte(addr, result);
+                        _bus.WriteByte(addr, result);
 
                         if (reg != 6)
                             SetRegisterByIndex(reg, result);
@@ -203,7 +203,7 @@ public partial class Z80Cpu
             case 2: // RES
             {
                 result = (byte)(value & ~(1 << bit));
-                _machine.WriteByte(addr, result);
+                _bus.WriteByte(addr, result);
                 int destinationReg = opcode & 0x07;
                 if (destinationReg != 6) // 6 is (HL)/(IX+d), which is already handled
                 {
@@ -215,7 +215,7 @@ public partial class Z80Cpu
             case 3: // SET
             {
                 result = (byte)(value | (1 << bit));
-                _machine.WriteByte(addr, result);
+                _bus.WriteByte(addr, result);
                 int destinationReg = opcode & 0x07;
                 if (destinationReg != 6) // 6 is (HL)/(IX+d), which is already handled
                 {
@@ -239,7 +239,7 @@ public partial class Z80Cpu
             case 3: Reg.E = value; break;
             case 4: Reg.H = value; break;
             case 5: Reg.L = value; break;
-            case 6: _machine.WriteByte(Reg.HL, value); break; // Memory access
+            case 6: _bus.WriteByte(Reg.HL, value); break; // Memory access
             case 7: Reg.A = value; break;
         }
     }

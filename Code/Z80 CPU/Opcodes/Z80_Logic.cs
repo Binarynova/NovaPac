@@ -11,7 +11,7 @@ public partial class Z80Cpu
 
     private int Op_AND_ptrHL() // Opcode: A6
     {
-        AND(_machine.ReadByte(Reg.HL));
+        AND(_bus.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -33,7 +33,7 @@ public partial class Z80Cpu
 
     private int Op_OR_ptrHL() // Opcode: B6
     {
-        OR(_machine.ReadByte(Reg.HL));
+        OR(_bus.ReadByte(Reg.HL));
         Reg.PC += 1;
         return 7;
     }
@@ -64,7 +64,7 @@ public partial class Z80Cpu
     
     private int Op_XOR_A_ptrHL() // Opcode: AE
     {
-        XOR(_machine.ReadByte(Reg.HL));
+        XOR(_bus.ReadByte(Reg.HL));
 
         Reg.PC += 1;
         return 7;
