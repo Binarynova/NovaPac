@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.ImGuiNet;
 using static PacManPCB;
 
 public interface IArcadeMachine
@@ -9,7 +10,7 @@ public interface IArcadeMachine
     int Step(bool steppingThrough);
     List<DrawRequest> GetDrawRequests(bool secondPlayFlip);
     void TriggerVBlankInterrupt();
-    void DrawDebugUI();
+    void DrawDebugUI(ImGuiRenderer renderer);
     
     int mode { get; set; }
     List<int> subOptionIndices { get; set; }

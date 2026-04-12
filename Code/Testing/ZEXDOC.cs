@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.ImGuiNet;
 using Reg = Registers;
 
 public class ZEXDOC : IArcadeMachine
@@ -58,7 +59,7 @@ public class ZEXDOC : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public void DrawDebugUI()
+    public void DrawDebugUI(ImGuiRenderer renderer)
     {
         throw new NotImplementedException();
     }

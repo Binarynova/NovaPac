@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.ImGuiNet;
 
 public class GalagaPCB : IArcadeMachine
 {
@@ -16,7 +17,7 @@ public class GalagaPCB : IArcadeMachine
     
     private byte[] _sharedRam = new byte[0x10000];
 
-    public void DrawDebugUI()
+    public void DrawDebugUI(ImGuiRenderer renderer)
     {
         throw new NotImplementedException();
     }

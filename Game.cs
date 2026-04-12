@@ -449,10 +449,16 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (_isDebugOpen)
         {
-            _renderer.BeginLayout(gameTime);
-            _activeMachine?.DrawDebugUI();
-            _renderer.EndLayout();
+            DrawGraphicsViewerWindow(gameTime);
         }
+    }
+
+    void DrawGraphicsViewerWindow(GameTime gameTime)
+    {
+        _renderer.BeginLayout(gameTime);
+        GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+        _activeMachine?.DrawDebugUI(_renderer);
+        _renderer.EndLayout();
     }
     
     private void ToggleFullscreen()

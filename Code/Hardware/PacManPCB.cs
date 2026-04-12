@@ -6,6 +6,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.ImGuiNet;
 
 public class PacManPCB : IArcadeMachine
 {
@@ -67,10 +68,54 @@ public class PacManPCB : IArcadeMachine
         mode = 0;
     }
 
-    public void DrawDebugUI()
+    public void DrawDebugUI(ImGuiRenderer renderer)
     {
-        ImGui.Begin("My Window");
+        ImGui.Begin("Graphics Viewer");
 
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
+        ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        switch (graphicsViewerMode)
+        {
+            case 0:
+                if (ImGui.BeginTable("Tiles", 16, flags))
+                {
+                    for (int i = 0; i < 256; i++)
+                    {
+                        ImGui.TableNextColumn();
+                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i, 1]);
+                        ImGui.Image(texturePtr, new System.Numerics.Vector2(16, 16));
+                    }
+                    ImGui.EndTable();
+                }
+                break;
+            case 1:
+                if (ImGui.BeginTable("Sprites", 8, flags))
+                {
+                    for (int i = 0; i < 64; i++)
+                    {
+                        ImGui.TableNextColumn();
+                        IntPtr texturePtr = renderer.BindTexture(SpriteTextures[i, 1]);
+                        ImGui.Image(texturePtr, new System.Numerics.Vector2(32, 32));
+                    }
+                    ImGui.EndTable();
+                }
+                break;
+        }
+        
+        ImGui.PopStyleVar();
+
+        if (ImGui.Button("Change"))
+        {
+            switch (graphicsViewerMode)
+            {
+                case 0:
+                    graphicsViewerMode = 1;
+                    break;
+                case 1:
+                    graphicsViewerMode = 0;
+                    break;
+            }
+        }
         ImGui.End();
     }
     

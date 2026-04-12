@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.ImGuiNet;
 
 public class SSTests : IArcadeMachine
 {
@@ -48,7 +49,7 @@ public class SSTests : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public void DrawDebugUI()
+    public void DrawDebugUI(ImGuiRenderer renderer)
     {
         throw new NotImplementedException();
     }
