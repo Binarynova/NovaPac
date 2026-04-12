@@ -69,6 +69,27 @@ public class PacManPCB : IArcadeMachine
         mode = 0;
     }
 
+    public void DrawSpriteRamViewer(ImGuiRenderer renderer)
+    {
+        
+        if (ImGui.BeginTable("SpriteRam", 16))
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                
+                int offset = i * 2;
+                int attr = GetSpriteRam(offset);
+                int paletteIndex = GetSpriteRam(offset + 1) & 0x1F;
+                
+                int spriteIndex = (attr & 0xFC) >> 2;
+                ImGui.TableNextColumn();
+                IntPtr texturePtr = renderer.BindTexture(SpriteTextures[spriteIndex, paletteIndex]);
+                ImGui.Image(texturePtr, new System.Numerics.Vector2(32,32));
+            }
+            ImGui.EndTable();
+        }
+    }
+
     public void DrawGraphicsViewer(ImGuiRenderer renderer)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
@@ -130,6 +151,10 @@ public class PacManPCB : IArcadeMachine
     {
         ImGui.Begin("Graphics Viewer");
         DrawGraphicsViewer(renderer);
+        ImGui.End();
+
+        ImGui.Begin("Sprite RAM Viewer");
+        DrawSpriteRamViewer(renderer);
         ImGui.End();
     }
     
