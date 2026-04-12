@@ -5,7 +5,6 @@ using System.IO.Compression;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using MonoGame.ImGuiNet;
 
 public class PacManPCB : IArcadeMachine
@@ -71,12 +70,10 @@ public class PacManPCB : IArcadeMachine
 
     public void DrawSpriteRamViewer(ImGuiRenderer renderer)
     {
-        
         if (ImGui.BeginTable("SpriteRam", 16))
         {
             for (int i = 0; i < 8; i++)
             {
-                
                 int offset = i * 2;
                 int attr = GetSpriteRam(offset);
                 int paletteIndex = GetSpriteRam(offset + 1) & 0x1F;
@@ -694,7 +691,7 @@ public class PacManPCB : IArcadeMachine
     // Method for decrypting Pac-Man Plus
     private static uint pacPlusDecrypt(int addr, byte e)
     {
-        byte[][] swapXorTable = new byte[6][]
+        byte[][] swapXorTable = new byte[][]
         {
             [ 7,6,5,4,3,2,1,0, 0x00],
             [ 7,6,5,4,3,2,1,0, 0x28],
@@ -703,7 +700,7 @@ public class PacManPCB : IArcadeMachine
             [ 0,3,7,6,4,2,1,5, 0xD5],
             [ 0,3,4,6,7,2,1,5, 0xDD]
         };
-        int[] pickTable = new int[32]
+        int[] pickTable = new []
         {
             0,2,4,2,4,0,4,2,2,0,2,2,4,0,4,2,
             2,2,4,0,4,2,4,0,0,4,0,4,4,2,4,2
