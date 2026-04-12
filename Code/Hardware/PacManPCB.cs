@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -64,6 +65,13 @@ public class PacManPCB : IArcadeMachine
         cpu = new Z80Cpu(memoryBus);
         
         mode = 0;
+    }
+
+    public void DrawDebugUI()
+    {
+        ImGui.Begin("My Window");
+
+        ImGui.End();
     }
     
     private void DrawGameSprites(bool secondPlayFlip)

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
+using MonoGame.ImGuiNet;
 
 namespace pacman;
 
@@ -36,6 +37,7 @@ public class Game : Microsoft.Xna.Framework.Game
     bool paused = false;
 
     IArcadeMachine _activeMachine;
+    ImGuiRenderer _renderer;
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
@@ -98,6 +100,8 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
+        _renderer = new ImGuiRenderer(this);
+        _renderer.RebuildFontAtlas();
         base.Initialize();
     }
 
@@ -436,6 +440,10 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             DrawMenu();
         }
+        
+        _renderer.BeginLayout(gameTime);
+        _activeMachine?.DrawDebugUI();
+        _renderer.EndLayout();
     }
     
     private void ToggleFullscreen()

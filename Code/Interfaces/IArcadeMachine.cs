@@ -9,6 +9,7 @@ public interface IArcadeMachine
     int Step(bool steppingThrough);
     List<DrawRequest> GetDrawRequests(bool secondPlayFlip);
     void TriggerVBlankInterrupt();
+    void DrawDebugUI();
     
     int mode { get; set; }
     List<int> subOptionIndices { get; set; }

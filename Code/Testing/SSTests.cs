@@ -48,6 +48,11 @@ public class SSTests : IArcadeMachine
         throw new NotImplementedException();
     }
 
+    public void DrawDebugUI()
+    {
+        throw new NotImplementedException();
+    }
+
     public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
     public bool secondPlayerFlip { get; }

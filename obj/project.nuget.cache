@@ -1,21 +1,24 @@
 {
   "version": 2,
-  "dgSpecHash": "dPWZwECfeN8=",
+  "dgSpecHash": "CLMekOxYwSo=",
   "success": true,
-  "projectFilePath": "/var/home/thomas/Projects/pacman/pacman.csproj",
+  "projectFilePath": "/home/thomas/Projects/pacman/pacman.csproj",
   "expectedPackageFiles": [
+    "/home/thomas/.nuget/packages/alexmacocian.monogame.imguinet/1.1.0/alexmacocian.monogame.imguinet.1.1.0.nupkg.sha512",
+    "/home/thomas/.nuget/packages/imgui.net/1.91.6.1/imgui.net.1.91.6.1.nupkg.sha512",
     "/home/thomas/.nuget/packages/json.net/1.0.33/json.net.1.0.33.nupkg.sha512",
     "/home/thomas/.nuget/packages/monogame.content.builder.task/3.8.4.1/monogame.content.builder.task.3.8.4.1.nupkg.sha512",
     "/home/thomas/.nuget/packages/monogame.framework.desktopgl/3.8.4.1/monogame.framework.desktopgl.3.8.4.1.nupkg.sha512",
     "/home/thomas/.nuget/packages/monogame.library.openal/1.24.3.2/monogame.library.openal.1.24.3.2.nupkg.sha512",
     "/home/thomas/.nuget/packages/monogame.library.sdl/2.32.2.1/monogame.library.sdl.2.32.2.1.nupkg.sha512",
     "/home/thomas/.nuget/packages/nvorbis/0.10.4/nvorbis.0.10.4.nupkg.sha512",
+    "/home/thomas/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
     "/home/thomas/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/home/thomas/.nuget/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512",
+    "/home/thomas/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "/home/thomas/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.netcore.app.ref/9.0.13/microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
-    "/home/thomas/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/9.0.13/microsoft.netcore.app.runtime.linux-x64.9.0.13.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.13/microsoft.aspnetcore.app.ref.9.0.13.nupkg.sha512",
-    "/home/thomas/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/9.0.13/microsoft.aspnetcore.app.runtime.linux-x64.9.0.13.nupkg.sha512",
     "/home/thomas/.nuget/packages/microsoft.netcore.app.host.linux-x64/9.0.13/microsoft.netcore.app.host.linux-x64.9.0.13.nupkg.sha512"
   ],
   "logs": []

@@ -16,6 +16,11 @@ public class GalagaPCB : IArcadeMachine
     
     private byte[] _sharedRam = new byte[0x10000];
 
+    public void DrawDebugUI()
+    {
+        throw new NotImplementedException();
+    }
+
     public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
     public bool secondPlayerFlip { get; }
