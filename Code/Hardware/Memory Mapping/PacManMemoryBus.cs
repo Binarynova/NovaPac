@@ -207,8 +207,8 @@ public class PacManMemoryBus : IMemoryBus
         dipSwitchValue |= (byte)SubOptionIndices[0];
         dipSwitchValue |= (byte)(SubOptionIndices[1] << 2);
         dipSwitchValue |= (byte)(SubOptionIndices[2] << 4);
-        dipSwitchValue |= (byte)(SubOptionIndices[3] << 5);
-        dipSwitchValue |= (byte)(SubOptionIndices[4] << 6);
+        dipSwitchValue |= (byte)(SubOptionIndices[3] << 6);
+        dipSwitchValue |= (byte)(SubOptionIndices[4] << 7);
 
         return dipSwitchValue;
     }

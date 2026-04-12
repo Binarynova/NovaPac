@@ -59,8 +59,8 @@ public class Game : Microsoft.Xna.Framework.Game
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
-        ["Normal", "Hard"],
-        ["Normal Names", "Alternate Names"]
+        ["Hard", "Normal"],
+        ["Alternate Names", "Normal Names"]
     ];
     
     private List<List<string>> _msPacManOptions =
@@ -68,12 +68,12 @@ public class Game : Microsoft.Xna.Framework.Game
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
-        ["Normal", "Hard"]
+        ["Hard", "Normal"],
     ];
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = [1, 2, 0, 0, 0];
+    private List<int> _selectedSubOptionIndices = [1, 2, 0, 1, 1];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     
