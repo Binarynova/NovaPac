@@ -287,41 +287,6 @@ public class Game : Microsoft.Xna.Framework.Game
                 }
             }
         }
-        else if(mode == 2)
-        {            
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-            else if (_currentState.IsKeyDown(Keys.Left) && _lastState.IsKeyUp(Keys.Left) ||
-                     _currentState.IsKeyDown(Keys.Right) && _lastState.IsKeyUp(Keys.Right))
-            {
-                // switch ROMs to view
-                switch(_activeMachine.graphicsViewerMode)
-                {
-                    case 0:
-                        _activeMachine.graphicsViewerMode = 1;
-                        break;
-                    case 1:
-                        _activeMachine.graphicsViewerMode = 0;
-                        break;
-                }
-            }
-            
-            else if (_currentState.IsKeyDown(Keys.Up) && _lastState.IsKeyUp(Keys.Up))
-            {
-                if (_activeMachine.tileViewerPaletteIndex == 20)
-                    _activeMachine.tileViewerPaletteIndex = 0;
-                else
-                    _activeMachine.tileViewerPaletteIndex++;
-            }
-            
-            else if (_currentState.IsKeyDown(Keys.Down) && _lastState.IsKeyUp(Keys.Down))
-            {
-                if (_activeMachine.tileViewerPaletteIndex == 0)
-                    _activeMachine.tileViewerPaletteIndex = 20;
-                else
-                    _activeMachine.tileViewerPaletteIndex--;
-            }
-        }
         
         _lastGamePadState = _currentGamePadState;
         _lastState = _currentState;
