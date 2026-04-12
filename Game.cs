@@ -264,9 +264,6 @@ public class Game : Microsoft.Xna.Framework.Game
                 Exit();
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                SteppingThrough = true;
-
             if (_activeMachine != null && !paused)
             {
                 _cycleAccumulator += gameTime.ElapsedGameTime.TotalSeconds * CPU_CLOCK_SPEED * _speedMultiplier;
