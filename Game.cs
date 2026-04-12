@@ -78,6 +78,7 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<int> _selectedSubOptionIndices = [1, 2, 0, 1, 1];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
+    private bool _isDebugOpen = false;
     
     string romFileName;
 
@@ -241,6 +242,11 @@ public class Game : Microsoft.Xna.Framework.Game
             {
                 _isMenuOpen = true;
                 paused = true;
+            }
+
+            if (KeyPressed(Keys.Delete))
+            {
+                _isDebugOpen = !_isDebugOpen;
             }
         }
         if(mode == 1)
@@ -440,10 +446,13 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             DrawMenu();
         }
-        
-        _renderer.BeginLayout(gameTime);
-        _activeMachine?.DrawDebugUI();
-        _renderer.EndLayout();
+
+        if (_isDebugOpen)
+        {
+            _renderer.BeginLayout(gameTime);
+            _activeMachine?.DrawDebugUI();
+            _renderer.EndLayout();
+        }
     }
     
     private void ToggleFullscreen()
