@@ -34,6 +34,7 @@ public class PacManPCB : IArcadeMachine
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     public int tileViewerPaletteIndex { get; set; } = 0;
+    int pIndex = 0;
     bool neonHackEnabled = false;
     public bool secondPlayerFlip
     {
@@ -68,10 +69,8 @@ public class PacManPCB : IArcadeMachine
         mode = 0;
     }
 
-    public void DrawDebugUI(ImGuiRenderer renderer)
+    public void DrawGraphicsViewer(ImGuiRenderer renderer)
     {
-        ImGui.Begin("Graphics Viewer");
-
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
         ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
         switch (graphicsViewerMode)
@@ -82,7 +81,7 @@ public class PacManPCB : IArcadeMachine
                     for (int i = 0; i < 256; i++)
                     {
                         ImGui.TableNextColumn();
-                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i, 1]);
+                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i, tileViewerPalettes[tileViewerPaletteIndex]]);
                         ImGui.Image(texturePtr, new System.Numerics.Vector2(16, 16));
                     }
                     ImGui.EndTable();
@@ -94,7 +93,7 @@ public class PacManPCB : IArcadeMachine
                     for (int i = 0; i < 64; i++)
                     {
                         ImGui.TableNextColumn();
-                        IntPtr texturePtr = renderer.BindTexture(SpriteTextures[i, 1]);
+                        IntPtr texturePtr = renderer.BindTexture(SpriteTextures[i, tileViewerPalettes[tileViewerPaletteIndex]]);
                         ImGui.Image(texturePtr, new System.Numerics.Vector2(32, 32));
                     }
                     ImGui.EndTable();
@@ -116,6 +115,21 @@ public class PacManPCB : IArcadeMachine
                     break;
             }
         }
+
+        if (ImGui.InputInt("Palette Number", ref pIndex))
+        {
+            if (pIndex < 0)
+                pIndex = 0;
+            if (pIndex >= tileViewerPalettes.Count)
+                pIndex = tileViewerPalettes.Count - 1;
+            
+            tileViewerPaletteIndex = pIndex;
+        }
+    }
+    public void DrawDebugUI(ImGuiRenderer renderer)
+    {
+        ImGui.Begin("Graphics Viewer");
+        DrawGraphicsViewer(renderer);
         ImGui.End();
     }
     
