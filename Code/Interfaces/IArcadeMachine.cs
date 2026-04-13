@@ -15,6 +15,4 @@ public interface IArcadeMachine
     int mode { get; set; }
     List<int> subOptionIndices { get; set; }
     bool secondPlayerFlip { get; }
-    int graphicsViewerMode { get; set; }
-    int tileViewerPaletteIndex { get; set; }
 }
