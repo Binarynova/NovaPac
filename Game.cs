@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using MonoGame.ImGuiNet;
 
-namespace pacman;
-
 public class Game : Microsoft.Xna.Framework.Game
 {
     int mode = 1;
