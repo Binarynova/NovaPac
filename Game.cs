@@ -294,7 +294,7 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         _spriteBatch.Begin();
         _pixelTexture.SetData([Color.White]);
-        _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, 1280, 1280), Color.Black * 0.8f);
+        _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
 
         Vector2 pos = new (100, 100);
 
