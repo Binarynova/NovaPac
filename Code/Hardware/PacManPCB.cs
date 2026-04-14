@@ -35,6 +35,7 @@ public class PacManPCB : IArcadeMachine
     private int tileViewerPaletteIndex { get; set; } = 0;
     int pIndex = 0;
     bool neonHackEnabled = false;
+    bool fastHackEnabled = false;
     public bool secondPlayerFlip
     {
         get => memoryBus.SecondPlayerFlip;
@@ -55,9 +56,10 @@ public class PacManPCB : IArcadeMachine
         public SpriteEffects Effects;
     }
     
-    public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool neonHack)
+    public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool[] hacks)
     {
-        neonHackEnabled = neonHack;
+        neonHackEnabled = hacks[0];
+        fastHackEnabled = hacks[1];
         LoadRom(romFileName);
         wsg = new NamcoWSG(romFileName);
         memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
@@ -419,6 +421,20 @@ public class PacManPCB : IArcadeMachine
                 {
                     if(neonHackEnabled)
                         LoadPacmanNeonHack();
+                    if (fastHackEnabled)
+                    {
+                        string fastHackPath = "roms/pacmanf.zip";
+                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
+                        ZipArchiveEntry fastHackEntry = archive2.GetEntry("pacfast.6f");
+                        if (fastHackEntry != null)
+                        {
+                            using Stream s = fastHackEntry.Open();
+                            byte[] buffer = new byte[fastHackEntry.Length];
+                            s.ReadExactly(buffer, 0, buffer.Length);
+                
+                            Buffer.BlockCopy(buffer, 0, Memory, 0x1000, buffer.Length);
+                        }
+                    }
                 }
 
                 break;
@@ -456,6 +472,25 @@ public class PacManPCB : IArcadeMachine
                 charMemory = ExtractRom(archive, "pacman.5e");
                 spriteMemory = ExtractRom(archive, "pacman.5f");
                 paletteMemory = ExtractRom(archive, "82s126.4a");
+                if (romFileName == "roms/newpuckx.zip")
+                {
+                    if(neonHackEnabled)
+                        LoadPacmanNeonHack();
+                    if (fastHackEnabled)
+                    {
+                        string fastHackPath = "roms/pacmanf.zip";
+                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
+                        ZipArchiveEntry fastHackEntry = archive2.GetEntry("pacfast.6f");
+                        if (fastHackEntry != null)
+                        {
+                            using Stream s = fastHackEntry.Open();
+                            byte[] buffer = new byte[fastHackEntry.Length];
+                            s.ReadExactly(buffer, 0, buffer.Length);
+                
+                            Buffer.BlockCopy(buffer, 0, Memory, 0x1000, buffer.Length);
+                        }
+                    }
+                }
                 break;
             }
             case "roms/mspacman.zip":
@@ -498,6 +533,17 @@ public class PacManPCB : IArcadeMachine
                 byte[] codeRom1 = ExtractRom(archive, "pacman.6e");
                 byte[] codeRom2 = ExtractRom(archive, "pacman.6f");
                 byte[] codeRom3 = ExtractRom(archive, "pacman.6h");
+
+                if (romFileName == "roms/mspacman.zip")
+                {
+                    if (fastHackEnabled)
+                    {
+                        string fastHackPath = "roms/mspacmnf.zip";
+                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
+                        codeRom2 = ExtractRom(archive2, "pacfast.6f");
+                    }
+                }
+                
 
                 AuxROMs = new byte[(16 + 10) * 1024];
 

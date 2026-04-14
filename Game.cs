@@ -56,7 +56,8 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<string> _menuPlay = [ "Play", "Play (Cocktail)" ];
     private List<List<string>> _pacManOptions =
     [
-        ["No Hacks", "Neon Hack"],
+        ["Normal Color", "Neon Hack"],
+        ["Normal Speed", "Fast Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -66,7 +67,8 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private List<List<string>> _msPacManOptions =
     [
-        ["No Hacks", "Neon Hack"],
+        ["Normal Color", "Neon Hack"],
+        ["Normal Speed", "Fast Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -75,7 +77,7 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = [0, 1, 2, 0, 1, 1];
+    private List<int> _selectedSubOptionIndices = [0, 0, 1, 2, 0, 1, 1];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     private bool _isDebugOpen = false;
@@ -136,11 +138,13 @@ public class Game : Microsoft.Xna.Framework.Game
             _soundOut.SubmitBuffer(byteArray);
         };
         _soundOut.Play();
+        bool[] hacks = new bool[2];
         switch (machineName)
         {
             case "pacman":
-                bool neonHackEnabled = _selectedSubOptionIndices[0] == 1;
-                _activeMachine = new PacManPCB(romFileName, verticalScreenMode, neonHackEnabled);
+                 hacks[0] = _selectedSubOptionIndices[0] == 1;
+                 hacks[1] = _selectedSubOptionIndices[1] == 1;
+                _activeMachine = new PacManPCB(romFileName, verticalScreenMode, hacks);
                 break;
             case "galaga":
                 _activeMachine = new GalagaPCB(romFileName, verticalScreenMode);
@@ -352,6 +356,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 
                         _spriteBatch.DrawString(_font, displayText, pos, color);
                         pos.Y += _menuItemOffset;
+                        if(i == 1) pos.Y += _menuItemOffset;
                     }
                 }
 
