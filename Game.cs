@@ -48,7 +48,6 @@ public class Game : Microsoft.Xna.Framework.Game
     [
         ["Pac-Man", "roms/pacman.zip", "pacman"],
         ["Ms. Pac-Man", "roms/mspacman.zip", "pacman"],
-        ["New Puck X", "roms/newpuckx.zip", "pacman"],
         ["Galaga", "roms/galaga.zip", "galaga"],
         ["Matrix Demo", "roms/matrix.zip", "pacman"]
     ];
@@ -316,6 +315,7 @@ public class Game : Microsoft.Xna.Framework.Game
             
                     _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
                     pos.Y += _menuItemOffset;
+                    if(i == 2) pos.Y += _menuItemOffset;
                 }
 
                 break;
@@ -338,7 +338,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     pos.Y += _menuItemOffset;
                 }
 
-                if (_mainMenu[_selectedIndex][0] != "Matrix Demo")
+                if (_selectedIndex < 2)
                 {
                     pos.Y += 20;
                     _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);

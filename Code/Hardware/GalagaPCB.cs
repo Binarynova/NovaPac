@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using ImGuiNET;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.ImGuiNet;
 
@@ -17,17 +19,30 @@ public class GalagaPCB : IArcadeMachine
     
     private byte[] _sharedRam = new byte[0x10000];
 
-    public void DrawDebugUI(ImGuiRenderer renderer)
-    {
-        throw new NotImplementedException();
-    }
-
     public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
     public bool secondPlayerFlip { get; }
     private static bool steamDeckTwoPlayerMode = false;
     public int graphicsViewerMode { get; set; }
     public int tileViewerPaletteIndex { get; set; }
+    List<Color> colors = [];
+    List<List<Color>> palettes = [];
+    
+    public void DrawDebugUI(ImGuiRenderer renderer)
+    {
+        ImGui.Begin("Graphics Viewer");
+        ImGui.SetWindowSize(new System.Numerics.Vector2(300, 340));
+        DrawGraphicsViewer(renderer);
+        ImGui.End();
+    }
+    
+    public void DrawGraphicsViewer(ImGuiRenderer renderer)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
+        ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        
+        ImGui.PopStyleVar();
+    }
 
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
@@ -73,7 +88,7 @@ public class GalagaPCB : IArcadeMachine
 
     public short[] GetAudioSamples()
     {
-        throw new NotImplementedException();
+        return soundChip.DumpSamples();
     }
 
     public void InitializeGraphics(GraphicsDevice device)
@@ -83,12 +98,12 @@ public class GalagaPCB : IArcadeMachine
 
     public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
-        throw new NotImplementedException();
+        return new List<PacManPCB.DrawRequest>();
     }
 
     public void TriggerVBlankInterrupt()
     {
-        throw new NotImplementedException();
+        mainCpu.RequestInterrupt();
     }
 
     private void LoadROM(string romFileName)
@@ -170,5 +185,63 @@ public class GalagaPCB : IArcadeMachine
             }
             Console.WriteLine("CPU ROMs read into Memory.");
         }
+    }
+    void PrepareColors()
+    {
+        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
+        colors =
+        [
+            new Color(0xDE, 0xDE, 0xDE),      
+            new Color(0xFF, 0x00, 0x00),      
+            new Color(0xFF, 0xFF, 0x00),      
+            new Color(0xFF, 0x97, 0x00),      
+            new Color(0xFF, 0xB8, 0x00),      
+            new Color(0xFF, 0x00, 0xDE),      
+            new Color(0x00, 0xFF, 0xDE),      
+            new Color(0xB8, 0xB8, 0xDE),      
+            new Color(0xDE, 0x47, 0x00),      
+            new Color(0x00, 0xFF, 0x00),      
+            new Color(0x21, 0x97, 0x00),       //(not used in palettes)
+            new Color(0x00, 0x68, 0xDE),      
+            new Color(0x97, 0x00, 0xDE),      
+            new Color(0x00, 0x00, 0xDE),      
+            new Color(0x00, 0x97, 0x97),      
+            new Color(0x00, 0x00, 0x00)
+        ];
+    }
+    
+    static int GetPixelValue(byte pixelData, int pixelIndex)
+    {
+        int paletteValue = 0;
+        // returns the palette value of a pixel
+        switch(pixelIndex)
+        {
+            case 0 or 4:
+                if((pixelData & 0x80) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x08) != 0)
+                    paletteValue += 1;
+                break;
+            case 1 or 5:
+                if((pixelData & 0x40) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x04) != 0)
+                    paletteValue += 1;
+                break;
+            case 2 or 6:
+                if((pixelData & 0x20) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x02) != 0)
+                    paletteValue += 1;
+                break;
+            case 3 or 7:
+                if((pixelData & 0x10) != 0)
+                    paletteValue += 2;
+                if((pixelData & 0x01) != 0)
+                    paletteValue += 1;
+                break;
+        }
+
+        return paletteValue;
     }
 }

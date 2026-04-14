@@ -439,60 +439,6 @@ public class PacManPCB : IArcadeMachine
 
                 break;
             }
-            case "roms/newpuckx.zip":
-            {
-                using ZipArchive archive = ZipFile.OpenRead(romFileName);
-                var romMap = new Dictionary<string, int>
-                {
-                    { "puckman.6e", 0x0000 },
-                    { "pacman.6f", 0x1000 },
-                    { "puckman.6h", 0x2000 },
-                    { "puckman.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
-            
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
-
-                charMemory = ExtractRom(archive, "pacman.5e");
-                spriteMemory = ExtractRom(archive, "pacman.5f");
-                paletteMemory = ExtractRom(archive, "82s126.4a");
-                if (romFileName == "roms/newpuckx.zip")
-                {
-                    if(neonHackEnabled)
-                        LoadPacmanNeonHack();
-                    if (fastHackEnabled)
-                    {
-                        string fastHackPath = "roms/pacmanf.zip";
-                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
-                        ZipArchiveEntry fastHackEntry = archive2.GetEntry("pacfast.6f");
-                        if (fastHackEntry != null)
-                        {
-                            using Stream s = fastHackEntry.Open();
-                            byte[] buffer = new byte[fastHackEntry.Length];
-                            s.ReadExactly(buffer, 0, buffer.Length);
-                
-                            Buffer.BlockCopy(buffer, 0, Memory, 0x1000, buffer.Length);
-                        }
-                    }
-                }
-                break;
-            }
             case "roms/mspacman.zip":
             {
                 using ZipArchive archive = ZipFile.OpenRead(romFileName);

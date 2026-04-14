@@ -893,7 +893,7 @@ public partial class Z80Cpu
         Reg.IX = Reg.IY = 0xFFFF;
         Reg.F = 0x00;
         Reg.I = Reg.R = 0;
-        Reg.SP = 0x4FC0;
+        Reg.SP = 0x0000;
         _iff1 = false;
         _halted = false;
         EI_Pending = false;
