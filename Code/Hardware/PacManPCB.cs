@@ -28,11 +28,11 @@ public class PacManPCB : IArcadeMachine
     List<List<Color>> palettes = [];
 
     public int mode { get; set; } = 0;
-    public int graphicsViewerMode { get; set; } = 0;
+    private int graphicsViewerMode { get; set; } = 0;
     const int tileWidth = 8;
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
-    public int tileViewerPaletteIndex { get; set; } = 0;
+    private int tileViewerPaletteIndex { get; set; } = 0;
     int pIndex = 0;
     bool neonHackEnabled = false;
     public bool secondPlayerFlip
@@ -40,6 +40,7 @@ public class PacManPCB : IArcadeMachine
         get => memoryBus.SecondPlayerFlip;
         set => memoryBus.SecondPlayerFlip = value;
     }
+
     public List<int> subOptionIndices
     {
         get => memoryBus.SubOptionIndices;
@@ -54,8 +55,9 @@ public class PacManPCB : IArcadeMachine
         public SpriteEffects Effects;
     }
     
-    public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
+    public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool neonHack)
     {
+        neonHackEnabled = neonHack;
         LoadRom(romFileName);
         wsg = new NamcoWSG(romFileName);
         memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
@@ -66,6 +68,24 @@ public class PacManPCB : IArcadeMachine
         cpu = new Z80Cpu(memoryBus);
         
         mode = 0;
+    }
+
+    public int Step(bool steppingThrough)
+    {
+        int cycles = cpu.Step(steppingThrough);
+        wsg.Update(cycles);
+
+        return cycles;
+    }
+
+    public void InitializeGraphics(GraphicsDevice device)
+    {
+        _graphicsDevice = device;
+        
+        PrepareColors();
+        PreparePalettes();
+        PrepareTileTextures(_graphicsDevice);
+        PrepareSpriteTextures(_graphicsDevice);
     }
 
     public void DrawSpriteRamViewer(ImGuiRenderer renderer)
@@ -338,24 +358,6 @@ public class PacManPCB : IArcadeMachine
         return requests;
     }
 
-    public void InitializeGraphics(GraphicsDevice device)
-    {
-        _graphicsDevice = device;
-        
-        PrepareColors();
-        PreparePalettes();
-        PrepareTileTextures(_graphicsDevice);
-        PrepareSpriteTextures(_graphicsDevice);
-    }
-
-    public int Step(bool steppingThrough)
-    {
-        int cycles = cpu.Step(steppingThrough);
-        wsg.Update(cycles);
-
-        return cycles;
-    }
-
     public short[] GetAudioSamples()
     {
         return wsg.DumpSamples();
@@ -417,50 +419,6 @@ public class PacManPCB : IArcadeMachine
                 {
                     if(neonHackEnabled)
                         LoadPacmanNeonHack();
-                }
-
-                break;
-            }
-            case "roms/pacplus.zip":
-            {
-                using ZipArchive archive = ZipFile.OpenRead(romFileName);
-                var romMap = new Dictionary<string, int>
-                {
-                    { "pacplus.6e", 0x0000 },
-                    { "pacplus.6f", 0x1000 },
-                    { "pacplus.6h", 0x2000 },
-                    { "pacplus.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
-            
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
-
-                charMemory = ExtractRom(archive, "pacplus.5e");
-                spriteMemory = ExtractRom(archive, "pacplus.5f");
-                paletteMemory = ExtractRom(archive, "pacplus.4a");
-
-                for (int i = 0; i < charMemory.Length; i++) charMemory[i] = PacPlusDecryptGraphics(charMemory[i]);
-                for (int i = 0; i < spriteMemory.Length; i++) spriteMemory[i] = PacPlusDecryptGraphics(spriteMemory[i]);
-            
-                for (int i = 0; i < 0x4000; i++)
-                {
-                    Memory[i] = (byte)pacPlusDecrypt(i, Memory[i]);
                 }
 
                 break;
@@ -605,6 +563,12 @@ public class PacManPCB : IArcadeMachine
                     AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
                 }
 
+                if (romFileName == "roms/mspacman.zip")
+                {
+                    if(neonHackEnabled)
+                        LoadMsPacmanNeonHack();
+                }
+                
                 break;
             }
         }
@@ -614,6 +578,12 @@ public class PacManPCB : IArcadeMachine
     {
         Array.Copy(LoadSpriteROM("roms/hacks/neon/pacman/pacman.5f"),spriteMemory,4096);
         Array.Copy(LoadCharROM("roms/hacks/neon/pacman/pacman.5e"),charMemory,4096);
+    }
+
+    private void LoadMsPacmanNeonHack()
+    {
+        Array.Copy(LoadSpriteROM("roms/hacks/neon/mspacman/5f"),spriteMemory,4096);
+        Array.Copy(LoadCharROM("roms/hacks/neon/mspacman/5e"),charMemory,4096);
     }
     
     private static byte[] LoadCharROM(string path)
@@ -689,65 +659,6 @@ public class PacManPCB : IArcadeMachine
         
         return decryptedData;
     }
-    
-    // Method for decrypting Pac-Man Plus
-    private static uint pacPlusDecrypt(int addr, byte e)
-    {
-        byte[][] swapXorTable = new byte[][]
-        {
-            [ 7,6,5,4,3,2,1,0, 0x00],
-            [ 7,6,5,4,3,2,1,0, 0x28],
-            [ 6,1,3,2,5,7,0,4, 0x96],
-            [ 6,1,5,2,3,7,0,4, 0xBE],
-            [ 0,3,7,6,4,2,1,5, 0xD5],
-            [ 0,3,4,6,7,2,1,5, 0xDD]
-        };
-        int[] pickTable = new []
-        {
-            0,2,4,2,4,0,4,2,2,0,2,2,4,0,4,2,
-            2,2,4,0,4,2,4,0,0,4,0,4,4,2,4,2
-        };
-
-        uint method = (uint)pickTable[
-            (addr & 0x001) |
-            ((addr & 0x004) >> 1) |
-            ((addr & 0x020) >> 3) |
-            ((addr & 0x080) >> 4) |
-            ((addr & 0x200) >> 5)];
-
-        if ((addr & 0x800) == 0x800)
-            method ^= 1;
-
-        byte[] tbl = swapXorTable[method];
-        int res = 0;
-        for (int i = 0; i < 8; i++)
-        {
-            // If the bit at the position defined by the table is set...
-            if ((e & (1 << tbl[i])) != 0)
-            {
-                // ...set the current bit in our result
-                res |= (1 << i);
-            }
-        }
-
-        // Final XOR step
-        return (byte)(res ^ tbl[8]);
-    }
-    
-    private static byte PacPlusDecryptGraphics(byte data)
-    {
-        // Pac-Man Plus graphics use a constant bit-swap encryption
-        int res = 0;
-        if ((data & 0x01) != 0) res |= 0x01;
-        if ((data & 0x02) != 0) res |= 0x10;
-        if ((data & 0x04) != 0) res |= 0x02;
-        if ((data & 0x08) != 0) res |= 0x20;
-        if ((data & 0x10) != 0) res |= 0x04;
-        if ((data & 0x20) != 0) res |= 0x40;
-        if ((data & 0x40) != 0) res |= 0x08;
-        if ((data & 0x80) != 0) res |= 0x80;
-        return (byte)res;
-    }
 
     private void PreparePalettes()
     {
@@ -787,28 +698,29 @@ public class PacManPCB : IArcadeMachine
             }
         }
     }
-    
-    private int[,] ExtractRawTileData(int tileIndex)
+
+    void PrepareColors()
     {
-        int[,] tile = new int[8,8];
-        for(int i = 0; i < 8; i++) // first 8 bytes of tile
-        {
-            byte pixelQuad = charMemory[i + (tileIndex * 16)];
-            for(int r = 4; r < 8; r++)
-            {
-                tile[7-i,r] = GetPixelValue(pixelQuad,r);
-            }
-        }
-        for(int i = 8; i < 16; i++) // second 8 bytes of tile
-        {
-            byte pixelQuad = charMemory[i + (tileIndex * 16)];
-            for(int r = 0; r < 4; r++)
-            {
-                tile[15-i,r] = GetPixelValue(pixelQuad, r);
-            }
-        }
-        
-        return tile;
+        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
+        colors =
+        [
+            new Color(0, 0, 0, 0), // 0 alpha to produce transparency
+            new Color(255, 0, 0, 255),
+            new Color(222, 151, 81, 255),
+            new Color(255, 184, 255, 255),
+            new Color(0, 0, 0, 255),
+            new Color(0, 255, 255, 255),
+            new Color(71, 184, 255, 255),
+            new Color(255, 184, 81, 255),
+            new Color(0, 0, 0, 255),
+            new Color(255, 255, 0, 255),
+            new Color(0, 0, 0, 255),
+            new Color(33, 33, 255, 255),
+            new Color(0, 255, 0, 255),
+            new Color(71, 184, 174, 255),
+            new Color(255, 184, 174, 255),
+            new Color(222, 222, 255, 255)
+        ];
     }
 
     private void PrepareSpriteTextures(GraphicsDevice graphicsDevice)
@@ -834,6 +746,29 @@ public class PacManPCB : IArcadeMachine
                 SpriteTextures[spriteIndex, paletteIndex] = spriteTexture;
             }
         }
+    }
+    
+    private int[,] ExtractRawTileData(int tileIndex)
+    {
+        int[,] tile = new int[8,8];
+        for(int i = 0; i < 8; i++) // first 8 bytes of tile
+        {
+            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            for(int r = 4; r < 8; r++)
+            {
+                tile[7-i,r] = GetPixelValue(pixelQuad,r);
+            }
+        }
+        for(int i = 8; i < 16; i++) // second 8 bytes of tile
+        {
+            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            for(int r = 0; r < 4; r++)
+            {
+                tile[15-i,r] = GetPixelValue(pixelQuad, r);
+            }
+        }
+        
+        return tile;
     }
     
     private int[,] ExtractRawSpriteData(int spriteIndex)
@@ -912,30 +847,6 @@ public class PacManPCB : IArcadeMachine
         }
 
         return sprite;
-    }
-
-    void PrepareColors()
-    {
-        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
-        colors =
-        [
-            new Color(0, 0, 0, 0), // 0 alpha to produce transparency
-            new Color(255, 0, 0, 255),
-            new Color(222, 151, 81, 255),
-            new Color(255, 184, 255, 255),
-            new Color(0, 0, 0, 255),
-            new Color(0, 255, 255, 255),
-            new Color(71, 184, 255, 255),
-            new Color(255, 184, 81, 255),
-            new Color(0, 0, 0, 255),
-            new Color(255, 255, 0, 255),
-            new Color(0, 0, 0, 255),
-            new Color(33, 33, 255, 255),
-            new Color(0, 255, 0, 255),
-            new Color(71, 184, 174, 255),
-            new Color(255, 184, 174, 255),
-            new Color(222, 222, 255, 255)
-        ];
     }
 
     static int GetPixelValue(byte pixelData, int pixelIndex)
