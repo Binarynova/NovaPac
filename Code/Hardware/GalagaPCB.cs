@@ -18,6 +18,10 @@ public class GalagaPCB : IArcadeMachine
     private byte[] SubCPUMemory =  new byte[0x10000]; // first 0x1000 contains ROM
     private byte[] Sub2CPUMemory = new byte[0x10000]; // first 0x1000 contains ROM
     
+    CPU1MemoryBus cpu1Bus;
+    CPU2MemoryBus cpu2Bus;
+    CPU3MemoryBus cpu3Bus;
+    
     private byte[] _sharedRam = new byte[0x10000];
 
     public int mode { get; set; }
@@ -31,25 +35,42 @@ public class GalagaPCB : IArcadeMachine
     
     public void DrawDebugUI(ImGuiRenderer renderer)
     {
-        ImGui.Begin("Graphics Viewer");
-        ImGui.SetWindowSize(new System.Numerics.Vector2(300, 340));
-        DrawMemoryViewer(renderer);
+        ImGui.Begin("Debug Windows");
+        ImGui.SetWindowSize(new System.Numerics.Vector2(460, 340));
+        DrawMemoryViewer();
         ImGui.End();
     }
 
-    public void DrawMemoryViewer(ImGuiRenderer renderer)
+    public void DrawMemoryViewer()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
         ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        
+        if (ImGui.BeginTable("Memory Viewer", 18, flags))
+        {
+            for (int j = 0; j < 256; j++)
+            {
+                ImGui.TableNextColumn();
+                ImGui.Text($"{(j * 16):X8}");
+                ImGui.TableNextColumn();
+                ImGui.Text($"|");
+                for (int i = 0; i < 16; i++)
+                {
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{cpu1Bus.ReadByte((ushort)(i + 16 * j)):X2}");
+                }
+            }
+            ImGui.EndTable();
+        }
         
         ImGui.PopStyleVar();
     }
 
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        var cpu1Bus = new CPU1MemoryBus(MainCPUMemory, _sharedRam);
-        var cpu2Bus = new CPU2MemoryBus(SubCPUMemory, _sharedRam);
-        var cpu3Bus = new CPU3MemoryBus(Sub2CPUMemory, _sharedRam);
+        cpu1Bus = new CPU1MemoryBus(MainCPUMemory, _sharedRam);
+        cpu2Bus = new CPU2MemoryBus(SubCPUMemory, _sharedRam); 
+        cpu3Bus = new CPU3MemoryBus(Sub2CPUMemory, _sharedRam);
         
         mainCpu = new Z80Cpu(cpu1Bus);
         subCpu = new Z80Cpu(cpu2Bus);
