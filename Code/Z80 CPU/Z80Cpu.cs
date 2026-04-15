@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Reg = Registers;
 
 public partial class Z80Cpu
 {
+    Registers Reg;
     private readonly bool[] _parity = new bool[256];
     private bool _iff1;
     private bool _iff2;
@@ -33,6 +33,7 @@ public partial class Z80Cpu
     
     public Z80Cpu(IMemoryBus memoryBus)
     {
+        Reg = new Registers();
         _bus = memoryBus;
         Reset();
 
@@ -40,7 +41,7 @@ public partial class Z80Cpu
         InitParity();
     }
     
-    private static void IncrementRegisterR()
+    private void IncrementRegisterR()
     {
         Reg.R = (byte)((Reg.R & 0x80) | (((Reg.R & 0x7f) + 1) & 0x7f));
     }
@@ -902,30 +903,30 @@ public partial class Z80Cpu
         InterruptPending = false;
     }    
 
-    private static void SetFlag(Flags f)
+    private void SetFlag(Flags f)
     {
         Reg.F |= (byte)f;
     }
-    private static void ClearFlag(Flags f)
+    private void ClearFlag(Flags f)
     {
         Reg.F &= (byte)~f;
     }
-    private static bool GetFlag(Flags f)
+    private bool GetFlag(Flags f)
     {
         return (Reg.F & (byte)f) != 0;
     }
-    private static void WriteFlag(Flags f, bool value)
+    private void WriteFlag(Flags f, bool value)
     {
         if (value) Reg.F |= (byte)f;
         else Reg.F &= (byte)~f;
     }
 
-    private static string GetFlagDebugValue(Flags f)
+    private string GetFlagDebugValue(Flags f)
     {
         return (Reg.F & (byte)f) != 0 ? f.ToString() : ".";
     }
 
-    private static void SetSZFlags(byte value)
+    private void SetSZFlags(byte value)
     {
         WriteFlag(Flags.Z, value == 0);
         WriteFlag(Flags.S, (value & 0x80) != 0);    // if bit 7 is not 0, the number is negative

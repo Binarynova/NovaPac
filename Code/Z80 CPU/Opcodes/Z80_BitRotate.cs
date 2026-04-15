@@ -1,8 +1,6 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
-    private static int Op_RLCA() // Opcode: 07
+    private int Op_RLCA() // Opcode: 07
     {
         if((Reg.A & 0x80) != 0)
         {
@@ -27,7 +25,7 @@ public partial class Z80Cpu
         return 4;
     }
     
-    private static int Op_RLA() // Opcode: 17
+    private int Op_RLA() // Opcode: 17
     {
         int oldBit7 = Reg.A & 0x80;
         int carry = GetFlag(Flags.C) ? 1 : 0;
@@ -97,7 +95,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_RRCA() // Opcode: 0F
+    private int Op_RRCA() // Opcode: 0F
     {
         if((Reg.A & 0x01) != 0)
         {
@@ -121,7 +119,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_RRA() // Opcode: 1F
+    private int Op_RRA() // Opcode: 1F
     {
         int oldBit0 = Reg.A & 0x01;
         int carry = GetFlag(Flags.C) ? 1 : 0;
@@ -143,7 +141,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_CPL() // Opcode: 2F
+    private int Op_CPL() // Opcode: 2F
     {
         Reg.A = (byte)~Reg.A;
         SetFlag(Flags.H | Flags.N);

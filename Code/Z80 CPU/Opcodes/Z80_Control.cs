@@ -1,8 +1,6 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
-    private static int Op_NOP() // Opcode: 00
+    private int Op_NOP() // Opcode: 00
     {
         // this instruction doesn't touch flags, so:
         Reg.Q = 0;
@@ -36,7 +34,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_EXX() // Opcode: D9
+    private int Op_EXX() // Opcode: D9
     {
         (Reg.BC, Reg.DE, Reg.HL, Reg.BC2, Reg.DE2, Reg.HL2) = (Reg.BC2, Reg.DE2, Reg.HL2, Reg.BC, Reg.DE, Reg.HL);
 
@@ -44,7 +42,7 @@ public partial class Z80Cpu
         return 4;
     }
     
-    private static int Op_EX_AF_AF2() // Opcode: 08
+    private int Op_EX_AF_AF2() // Opcode: 08
     {
         (Reg.AF, Reg.AF2) = (Reg.AF2, Reg.AF); // tuples from .NET 7 allow swapping values without a temp var
 
@@ -54,7 +52,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_EX_DE_HL() // Opcode: EB
+    private int Op_EX_DE_HL() // Opcode: EB
     {
         (Reg.DE, Reg.HL) = (Reg.HL, Reg.DE); // tuples from .NET 7 allow swapping values without a temp var
 
@@ -95,7 +93,7 @@ public partial class Z80Cpu
         return 11;
     }
 
-    private static int Op_SCF() // Opcode: 37
+    private int Op_SCF() // Opcode: 37
     {
         WriteFlag(Flags.H, false);
         WriteFlag(Flags.N, false);
@@ -105,7 +103,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_CCF() // Opcode: 3F
+    private int Op_CCF() // Opcode: 3F
     {
         bool carry = GetFlag(Flags.C);
         

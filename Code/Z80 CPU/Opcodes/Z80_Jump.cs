@@ -1,6 +1,4 @@
 using System;
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
     private int Op_JR_e() // Opcode: 18
@@ -139,7 +137,7 @@ public partial class Z80Cpu
         return 10;
     }
 
-    private static int Op_JP_ptrHL() // Opcode: E9
+    private int Op_JP_ptrHL() // Opcode: E9
     {
         Reg.PC = Reg.HL;
         return 4;

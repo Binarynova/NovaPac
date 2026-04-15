@@ -1,22 +1,22 @@
-public static class Registers
+public class Registers
 {
-    public static byte A, F, B, C, D, E, H, L, P, Q;
-    private static byte A2, F2, B2, C2, D2, E2, H2, L2;
-    public static byte I, R;
-    public static ushort PC, SP, WZ;
-    public static byte IXL, IXH, IYL, IYH;
+    public byte A, F, B, C, D, E, H, L, P, Q;
+    private byte A2, F2, B2, C2, D2, E2, H2, L2;
+    public byte I, R;
+    public ushort PC, SP, WZ;
+    public byte IXL, IXH, IYL, IYH;
 
-    public static byte HighByte(ushort word)
+    public byte HighByte(ushort word)
     {
         return (byte)(word >> 8);
     }
-    public static byte LowByte(ushort word)
+    public byte LowByte(ushort word)
     {
         return (byte)(word & 0xFF);
     }
 
     // reminder to self that the z80 is little-endian
-    public static ushort AF
+    public ushort AF
     {
         get => (ushort)((A << 8) | F);
         set
@@ -26,7 +26,7 @@ public static class Registers
         }
     }
 
-    public static ushort BC
+    public ushort BC
     {
         get => (ushort)((B << 8) | C);
         set
@@ -36,7 +36,7 @@ public static class Registers
         }
     }
 
-    public static ushort DE
+    public ushort DE
     {
         get => (ushort)((D << 8) | E);
         set
@@ -46,7 +46,7 @@ public static class Registers
         }
     }
 
-    public static ushort HL
+    public ushort HL
     {
         get => (ushort)((H << 8) | L);
         set
@@ -56,7 +56,7 @@ public static class Registers
         }
     }
     
-    public static ushort AF2
+    public ushort AF2
     {
         get => (ushort)((A2 << 8) | F2);
         set
@@ -66,7 +66,7 @@ public static class Registers
         }
     }
 
-    public static ushort BC2
+    public ushort BC2
     {
         get => (ushort)((B2 << 8) | C2);
         set
@@ -76,7 +76,7 @@ public static class Registers
         }
     }
 
-    public static ushort DE2
+    public ushort DE2
     {
         get => (ushort)((D2 << 8) | E2);
         set
@@ -86,7 +86,7 @@ public static class Registers
         }
     }
 
-    public static ushort HL2
+    public ushort HL2
     {
         get => (ushort)((H2 << 8) | L2);
         set
@@ -96,7 +96,7 @@ public static class Registers
         }
     }
 
-    public static ushort IX
+    public ushort IX
     {
         get => (ushort)((IXH << 8) | IXL);
         set
@@ -107,7 +107,7 @@ public static class Registers
     }
     
 
-    public static ushort IY
+    public ushort IY
     {
         get => (ushort)((IYH << 8) | IYL);
         set

@@ -1,5 +1,3 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
     private int Op_CB() // Opcode: CB
@@ -333,7 +331,7 @@ public partial class Z80Cpu
     }
     
     #region Helper Methods
-    private static int BIT(byte n, byte value, bool isMemory = false)
+    private int BIT(byte n, byte value, bool isMemory = false)
     {
         bool bitSet = (value & (1 << n)) != 0;
 

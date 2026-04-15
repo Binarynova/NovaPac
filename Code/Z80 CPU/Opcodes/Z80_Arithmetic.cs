@@ -1,8 +1,6 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
-    private static int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
+    private int Op_ADD_HL(ushort registerPair) // Opcodes: 09 19 29 39
     {
         Reg.WZ = (ushort)(Reg.HL + 1);
         
@@ -15,7 +13,7 @@ public partial class Z80Cpu
         return 11;
     }
 
-    private static int Op_ADD_A(byte register) // Opcodes: 80 81 82 83 84 85 87
+    private int Op_ADD_A(byte register) // Opcodes: 80 81 82 83 84 85 87
     {
         Reg.A = ADD(Reg.A, register);
 
@@ -37,7 +35,7 @@ public partial class Z80Cpu
         return 7;
     }
 
-    private static int Op_ADC_A(byte register) // Opcodes: 88 89 8A 8B 8C 8D 8F
+    private int Op_ADC_A(byte register) // Opcodes: 88 89 8A 8B 8C 8D 8F
     {
         Reg.A = ADC(Reg.A, register);
         Reg.PC += 1;
@@ -58,7 +56,7 @@ public partial class Z80Cpu
         return 7;
     }
 
-    private static int Op_SUB(byte register) // Opcodes: 90 91 92 93 94 95 97
+    private int Op_SUB(byte register) // Opcodes: 90 91 92 93 94 95 97
     {
         Reg.A = SUB(Reg.A, register);
         Reg.PC += 1;
@@ -80,7 +78,7 @@ public partial class Z80Cpu
         return 7;
     }
 
-    private static int Op_SBC(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
+    private int Op_SBC(byte register) // Opcodes: 98 99 9A 9B 9C 9D 9F
     {
         Reg.A = SBC(Reg.A, register);
         Reg.PC += 1;
@@ -102,7 +100,7 @@ public partial class Z80Cpu
         return 7;
     }
 
-    private static int Op_INC_r(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
+    private int Op_INC_r(ref byte register) // Opcodes: 04 0C 14 1C 24 2C
     {
         SetIncFlags(register);
         register += 1;
@@ -110,7 +108,7 @@ public partial class Z80Cpu
         return 4;
     }
     
-    private static int Op_INC_BC() // Opcode: 03
+    private int Op_INC_BC() // Opcode: 03
     {
         Reg.BC++;
         
@@ -120,7 +118,7 @@ public partial class Z80Cpu
         return 6;
     }
 
-    private static int Op_INC_DE() // Opcode: 13
+    private int Op_INC_DE() // Opcode: 13
     {
         Reg.DE++;
         
@@ -130,7 +128,7 @@ public partial class Z80Cpu
         return 6;
     }
 
-    private static int Op_INC_HL() // Opcode: 23
+    private int Op_INC_HL() // Opcode: 23
     {
         Reg.HL++;
         
@@ -140,7 +138,7 @@ public partial class Z80Cpu
         return 6;
     }
 
-    private static int Op_INC_SP() // Opcode: 33
+    private int Op_INC_SP() // Opcode: 33
     {
         Reg.SP++;
         
@@ -169,7 +167,7 @@ public partial class Z80Cpu
         return 11;
     }
 
-    private static int Op_DEC_r(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
+    private int Op_DEC_r(ref byte register) // Opcodes: 05 0D 15 1D 25 2D
     {
         SetDecFlags(register);
         register--;
@@ -177,7 +175,7 @@ public partial class Z80Cpu
         return 4;
     }
 
-    private static int Op_DEC_BC() // Opcode: 0B
+    private int Op_DEC_BC() // Opcode: 0B
     {
         Reg.BC--;
 
@@ -186,7 +184,7 @@ public partial class Z80Cpu
         return 6;
     }
     
-    private static int Op_DEC_DE() // Opcode: 1B
+    private int Op_DEC_DE() // Opcode: 1B
     {
         Reg.DE--;
         
@@ -195,7 +193,7 @@ public partial class Z80Cpu
         return 6;
     }
     
-    private static int Op_DEC_HL() // Opcode: 2B
+    private int Op_DEC_HL() // Opcode: 2B
     {
         Reg.HL--;
         
@@ -204,7 +202,7 @@ public partial class Z80Cpu
         return 6;
     }
     
-    private static int Op_DEC_SP() // Opcode: 3B
+    private int Op_DEC_SP() // Opcode: 3B
     {
         Reg.SP--;
         
@@ -257,7 +255,7 @@ public partial class Z80Cpu
 
     #region HelperMethods
 
-    private static byte ADD(byte acc, byte value)
+    private byte ADD(byte acc, byte value)
     {
         ushort sum = (ushort)(acc + value);
         byte result = (byte)sum;
@@ -271,7 +269,7 @@ public partial class Z80Cpu
         return (byte)sum;
     }
 
-    private static ushort ADDWord(ushort acc, ushort value)
+    private ushort ADDWord(ushort acc, ushort value)
     {
         uint sum = (uint)(acc + value);
 
@@ -285,7 +283,7 @@ public partial class Z80Cpu
         return (ushort)sum;
     }
 
-    private static byte SUB(byte acc, byte value)
+    private byte SUB(byte acc, byte value)
     {
         byte result = (byte)(acc - value);
 
@@ -298,7 +296,7 @@ public partial class Z80Cpu
         return result;
     }
 
-    private static byte ADC(byte acc, byte value)
+    private byte ADC(byte acc, byte value)
     {
         int carry = GetFlag(Flags.C) ? 1 : 0;
         ushort sum = (ushort)(acc + value + carry);
@@ -313,7 +311,7 @@ public partial class Z80Cpu
         return (byte)sum;
     }
 
-    private static byte SBC(byte acc, byte value)
+    private byte SBC(byte acc, byte value)
     {
         int carry = GetFlag(Flags.C) ? 1 : 0;
     
@@ -330,7 +328,7 @@ public partial class Z80Cpu
         return result;
     }
 
-    private static ushort SBCWord(ushort acc, ushort value)
+    private ushort SBCWord(ushort acc, ushort value)
     {
         int carry = GetFlag(Flags.C) ? 1 : 0;
         int fullResult = acc - value - carry;
@@ -348,7 +346,7 @@ public partial class Z80Cpu
         return result;
     }
 
-    private static void CheckINCOverflow(byte value)
+    private void CheckINCOverflow(byte value)
     {
         if (value == 0x7F)
             SetFlag(Flags.P);
@@ -356,7 +354,7 @@ public partial class Z80Cpu
             ClearFlag(Flags.P);
     }
 
-    private static void CheckDECOverflow(byte value)
+    private void CheckDECOverflow(byte value)
     {
         if (value == 0x80)
             SetFlag(Flags.P);
@@ -364,7 +362,7 @@ public partial class Z80Cpu
             ClearFlag(Flags.P);
     }
 
-    private static void SetIncFlags(byte target)
+    private void SetIncFlags(byte target)
     {
         byte result = (byte)(target + 1);
         CheckINCOverflow(target);
@@ -380,7 +378,7 @@ public partial class Z80Cpu
         ClearFlag(Flags.N);
     }
 
-    private static void SetDecFlags(byte target)
+    private void SetDecFlags(byte target)
     {
         byte original = target;
         target--;

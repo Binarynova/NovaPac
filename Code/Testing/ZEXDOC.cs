@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.ImGuiNet;
-using Reg = Registers;
 
 public class ZEXDOC : IArcadeMachine
 {
+    Registers Reg;
     private byte[] Memory = new byte[0x10000];
     private Z80Cpu _cpu;
     private PacManMemoryBus _memoryMap = null;

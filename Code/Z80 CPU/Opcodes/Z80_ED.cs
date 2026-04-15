@@ -1,5 +1,3 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
     private int Op_ED() // Opcode: ED
@@ -9,7 +7,7 @@ public partial class Z80Cpu
         return _edOpcodes[opcode]();
     }
 
-    private static int Op_SBC_HL_BC() // Opcode: ED 42
+    private int Op_SBC_HL_BC() // Opcode: ED 42
     {
         Reg.HL = SBCWord(Reg.HL, Reg.BC);
         Reg.PC += 2;
@@ -110,21 +108,21 @@ public partial class Z80Cpu
         return 20;
     }
 
-    private static int Op_SBC_HL_DE() // Opcode: ED 52
+    private int Op_SBC_HL_DE() // Opcode: ED 52
     {
         Reg.HL = SBCWord(Reg.HL, Reg.DE);
         Reg.PC += 2;
         return 15;
     }
 
-    private static int Op_SBC_HL_HL() // Opcode: ED 62
+    private int Op_SBC_HL_HL() // Opcode: ED 62
     {
         Reg.HL = SBCWord(Reg.HL, Reg.HL);
         Reg.PC += 2;
         return 15;
     }
 
-    private static int Op_SBC_HL_SP() // Opcode: ED 72
+    private int Op_SBC_HL_SP() // Opcode: ED 72
     {
         Reg.HL = SBCWord(Reg.HL, Reg.SP);
         Reg.PC += 2;
@@ -207,28 +205,28 @@ public partial class Z80Cpu
         return 15;
     }
 
-    private static int Op_LD_I_A() // Opcode: ED 47
+    private int Op_LD_I_A() // Opcode: ED 47
     {
         Reg.I = Reg.A;
         Reg.PC += 2;
         return 9;
     }
 
-    private static int Op_LD_A_I() // Opcode: ED 47
+    private int Op_LD_A_I() // Opcode: ED 47
     {
         Reg.A = Reg.I;
         Reg.PC += 2;
         return 9;
     }
 
-    private static int Op_LD_R_A() // Opcode: ED 47
+    private int Op_LD_R_A() // Opcode: ED 47
     {
         Reg.R = Reg.A;
         Reg.PC += 2;
         return 9;
     }
 
-    private static int Op_LD_A_R() // Opcode: ED 47
+    private int Op_LD_A_R() // Opcode: ED 47
     {
         Reg.A = Reg.R;
         Reg.PC += 2;

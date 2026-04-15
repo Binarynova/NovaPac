@@ -1,5 +1,3 @@
-using Reg = Registers;
-
 public partial class Z80Cpu
 {
     private int Op_LD_r_n(ref byte register)
@@ -19,7 +17,7 @@ public partial class Z80Cpu
         return 7;
     }
 
-    private static int Op_LD_r_R(ref byte destination, byte source)
+    private int Op_LD_r_R(ref byte destination, byte source)
     {
         destination = source;
         Reg.PC += 1;
@@ -167,14 +165,14 @@ public partial class Z80Cpu
     
     #region HELPER_METHODS
 
-    private static void wz_LD_ptrRR_A(byte lowerReg)
+    private void wz_LD_ptrRR_A(byte lowerReg)
     {
         byte wzLow = (byte)((lowerReg + 1) & 0xFF);
         byte wzHigh = Reg.A;
         Reg.WZ = (ushort)((wzHigh << 8) | wzLow);
     }
 
-    private static void wz_LD_A_ptrRR(ushort registerPair)
+    private void wz_LD_A_ptrRR(ushort registerPair)
     {
         Reg.WZ = (ushort)(registerPair + 1);
     }
