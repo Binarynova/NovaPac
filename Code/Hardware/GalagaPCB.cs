@@ -503,24 +503,50 @@ public class GalagaPCB : IArcadeMachine
     private int[,] ExtractRawTileData(int tileIndex)
     {
         int[,] tile = new int[8, 8];
-        // first 8 bytes of a tile
-        for (int i = 0; i < 8; i++)
+
+        if (tileIndex < 128)
         {
-            byte pixelQuad = gfx1[i + tileIndex * 16];
-            for (int c = 4; c < 8; c++)
+            // first 8 bytes of a tile
+            for (int i = 0; i < 8; i++)
             {
-                tile[7-i, c] = GetPixelValue(pixelQuad, c);
+                byte pixelQuad = gfx1[i + tileIndex * 16];
+                for (int c = 4; c < 8; c++)
+                {
+                    tile[7-i, c] = GetPixelValue(pixelQuad, c);
+                }
+            }
+            // second 8 bytes of tile
+            for (int i = 8; i < 16; i++)
+            {
+                byte pixelQuad = gfx1[i + tileIndex * 16];
+                for (int c = 0; c < 4; c++)
+                {
+                    tile[15-i, c] = GetPixelValue(pixelQuad, c);
+                }
             }
         }
-        // second 8 bytes of tile
-        for (int i = 8; i < 16; i++)
+        else if (tileIndex >= 128)
         {
-            byte pixelQuad = gfx1[i + tileIndex * 16];
-            for (int c = 0; c < 4; c++)
+            // first 8 bytes of a tile
+            for (int i = 8; i < 16; i++)
             {
-                tile[15-i, c] = GetPixelValue(pixelQuad, c);
+                byte pixelQuad = gfx1[i + tileIndex * 16];
+                for (int c = 4; c < 8; c++)
+                {
+                    tile[15-i, c] = GetPixelValue(pixelQuad, c);
+                }
+            }
+            // second 8 bytes of tile
+            for (int i = 0; i < 8; i++)
+            {
+                byte pixelQuad = gfx1[i + tileIndex * 16];
+                for (int c = 0; c < 4; c++)
+                {
+                    tile[7-i, c] = GetPixelValue(pixelQuad, c);
+                }
             }
         }
+        
 
         return tile;
     }
