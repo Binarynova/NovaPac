@@ -27,6 +27,8 @@ public class GalagaPCB : IArcadeMachine
     CPU3MemoryBus cpu3Bus;
     
     private byte[] _sharedRam = new byte[0x10000];
+    Texture2D[,] TileTextures = new Texture2D[256, 32];
+    Texture2D[,] SpriteTextures = new Texture2D[64, 32];
 
     public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
@@ -44,6 +46,11 @@ public class GalagaPCB : IArcadeMachine
         ImGui.Begin("Memory Viewer");
         ImGui.SetWindowSize(new System.Numerics.Vector2(460, 300));
         DrawMemoryViewer();
+        ImGui.End();
+        
+        ImGui.Begin("Graphics Viewer");
+        ImGui.SetWindowSize(new System.Numerics.Vector2(300, 340));
+        DrawGraphicsViewer(renderer);
         ImGui.End();
     }
 
@@ -186,6 +193,29 @@ public class GalagaPCB : IArcadeMachine
         
         ImGui.PopStyleVar();
     }
+    
+    public void DrawGraphicsViewer(ImGuiRenderer renderer)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
+        ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        switch (graphicsViewerMode)
+        {
+            case 0:
+                if (ImGui.BeginTable("Tiles", 16, flags))
+                {
+                    for (int i = 0; i < 256; i++)
+                    {
+                        ImGui.TableNextColumn();
+                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i, 1]);
+                        ImGui.Image(texturePtr, new System.Numerics.Vector2(16, 16));
+                    }
+                    ImGui.EndTable();
+                }
+                break;
+        }
+        
+        ImGui.PopStyleVar();
+    }
 
     public GalagaPCB(string romFileName, bool twoPlayerScreenFlip)
     {
@@ -237,6 +267,9 @@ public class GalagaPCB : IArcadeMachine
     public void InitializeGraphics(GraphicsDevice device)
     {
         _graphicsDevice = device;
+        PrepareColors();
+        PreparePalettes();
+        PrepareTileTextures(_graphicsDevice);
     }
 
     public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
@@ -402,6 +435,47 @@ public class GalagaPCB : IArcadeMachine
             Console.WriteLine("PROMS read into Memory.");
         }
     }
+    
+    private void PrepareTileTextures(GraphicsDevice graphicsDevice)
+    {
+        for (int tileIndex = 0; tileIndex < 256; tileIndex++)
+        {
+            int[,] rawTile = ExtractRawTileData(tileIndex);
+            for (int paletteIndex = 0; paletteIndex < 32; paletteIndex++)
+            {
+                Texture2D tileTexture = new (graphicsDevice, 8, 8);
+                Color[] colorData = new Color[8 * 8];
+
+                for (int y = 0; y < 8; y++)
+                {
+                    for (int x = 0; x < 8; x++)
+                    {
+                        int colorId = rawTile[x, y];
+                        colorData[y * 8 + x] = palettes[paletteIndex][colorId];
+                    }
+                }
+                
+                tileTexture.SetData(colorData);
+                TileTextures[tileIndex, paletteIndex] = tileTexture;
+            }
+        }
+    }
+    
+    private void PreparePalettes()
+    {
+        int promOffset = 0x20;
+        for (int i = 0; i < 64; i++)
+        {
+            palettes.Add([
+                colors[proms[4*i + 0 + promOffset]],
+                colors[proms[4*i + 1 + promOffset]],
+                colors[proms[4*i + 2 + promOffset]],
+                colors[proms[4*i + 3 + promOffset]]
+            ]);
+        }
+        // second 32 palettes are just black
+    }
+    
     void PrepareColors()
     {
         // hard-coded because the ROM stores them as intensities of output on hardware, not as color
