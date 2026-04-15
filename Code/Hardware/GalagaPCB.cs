@@ -524,10 +524,9 @@ public class GalagaPCB : IArcadeMachine
     
     private void DrawGameTiles()
     {
-        // Row 1 and 2
         for (int i = 0x000; i < 0x020; i++)
         {
-            for (int row = 0; row < 2; row++)
+            for (int row = 0; row < 32; row++)
             {
                 int tileAddress = 0x8000 + i + 0x20 * row;
                 int paletteAddress = 0x8400 + i + 0x20 * row;
@@ -535,8 +534,8 @@ public class GalagaPCB : IArcadeMachine
                 byte tileIndex = cpu1Bus.ReadByte((ushort)tileAddress);
                 int paletteIndex = cpu1Bus.ReadByte((ushort)paletteAddress) & 0x1F;
 
-                int yPos = 0 + 8 * row;
-                int xPos = 232 - i * 8;
+                int yPos = 0 + 8 * i;
+                int xPos = 232 - row * 8;
 
                 requests.Add(new DrawRequest
                 {
