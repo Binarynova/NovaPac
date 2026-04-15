@@ -560,7 +560,6 @@ public class GalagaPCB : IArcadeMachine
                 break;
         }
         paletteValue = lowBit | (highBit << 1);
-        Console.WriteLine($"{paletteValue}");
 
         return paletteValue;
     }
