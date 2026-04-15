@@ -509,7 +509,7 @@ public class GalagaPCB : IArcadeMachine
             byte pixelQuad = gfx1[i + tileIndex * 16];
             for (int c = 4; c < 8; c++)
             {
-                tile[c, 7-i] = GetPixelValue(pixelQuad, c);
+                tile[7-i, c] = GetPixelValue(pixelQuad, c);
             }
         }
         // second 8 bytes of tile
@@ -518,7 +518,7 @@ public class GalagaPCB : IArcadeMachine
             byte pixelQuad = gfx1[i + tileIndex * 16];
             for (int c = 0; c < 4; c++)
             {
-                tile[c, 15-i] = GetPixelValue(pixelQuad, c);
+                tile[15-i, c] = GetPixelValue(pixelQuad, c);
             }
         }
 
