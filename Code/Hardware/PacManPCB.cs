@@ -109,6 +109,31 @@ public class PacManPCB : IArcadeMachine
         }
     }
 
+    public void DrawMemoryViewer()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
+        ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        
+        if (ImGui.BeginTable("Memory Viewer", 18, flags))
+        {
+            for (int j = 0; j < 256; j++)
+            {
+                ImGui.TableNextColumn();
+                ImGui.Text($"{(j * 16):X8}");
+                ImGui.TableNextColumn();
+                ImGui.Text($"|");
+                for (int i = 0; i < 16; i++)
+                {
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{memoryBus.ReadByte((ushort)(i + 16 * j)):X2}");
+                }
+            }
+            ImGui.EndTable();
+        }
+        
+        ImGui.PopStyleVar();
+    }
+    
     public void DrawGraphicsViewer(ImGuiRenderer renderer)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
@@ -176,6 +201,11 @@ public class PacManPCB : IArcadeMachine
         ImGui.Begin("Sprite RAM Viewer");
         ImGui.SetWindowSize(new System.Numerics.Vector2(340, 80));
         DrawSpriteRamViewer(renderer);
+        ImGui.End();
+        
+        ImGui.Begin("Memory Viewer");
+        ImGui.SetWindowSize(new System.Numerics.Vector2(460, 200));
+        DrawMemoryViewer();
         ImGui.End();
     }
     

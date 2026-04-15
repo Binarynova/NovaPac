@@ -13,9 +13,10 @@ public class GalagaPCB : IArcadeMachine
     private NamcoWSG soundChip;
     GraphicsDevice _graphicsDevice;
 
-    private byte[] MainCPUMemory = new byte[0x10000];
-    private byte[] SubCPUMemory =  new byte[0x10000];
-    private byte[] Sub2CPUMemory = new byte[0x10000];
+    // 64K of ram for each CPU, ROM separate from RAM
+    private byte[] MainCPUMemory = new byte[0x10000]; // first 0x4000 contains ROM
+    private byte[] SubCPUMemory =  new byte[0x10000]; // first 0x1000 contains ROM
+    private byte[] Sub2CPUMemory = new byte[0x10000]; // first 0x1000 contains ROM
     
     private byte[] _sharedRam = new byte[0x10000];
 
@@ -32,13 +33,13 @@ public class GalagaPCB : IArcadeMachine
     {
         ImGui.Begin("Graphics Viewer");
         ImGui.SetWindowSize(new System.Numerics.Vector2(300, 340));
-        DrawGraphicsViewer(renderer);
+        DrawMemoryViewer(renderer);
         ImGui.End();
     }
-    
-    public void DrawGraphicsViewer(ImGuiRenderer renderer)
+
+    public void DrawMemoryViewer(ImGuiRenderer renderer)
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
         ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
         
         ImGui.PopStyleVar();
