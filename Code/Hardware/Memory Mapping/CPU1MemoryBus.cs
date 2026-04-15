@@ -18,10 +18,7 @@ public class CPU1MemoryBus : IMemoryBus
             return _rom[address];
         
         // everything else is shared
-        if (address >= 0x6800 && address <= 0x6BFF)
-            return _sharedRam[address - 0x6800];
-
-        return 0xFF;
+        return _sharedRam[address - 0x6800];
     }
 
     public void WriteByte(ushort address, byte value)

@@ -49,7 +49,7 @@ public class ZEXDOC : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    public List<DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
         throw new NotImplementedException();
     }

@@ -39,7 +39,7 @@ public class SSTests : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    public List<DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
         throw new NotImplementedException();
     }

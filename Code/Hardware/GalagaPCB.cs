@@ -41,6 +41,8 @@ public class GalagaPCB : IArcadeMachine
     int item_selected_idx = 0; // Here we store our selection data as an index.
     private string previewValue = "maincpu";
     
+    private List<DrawRequest> requests = new ();
+    
     public void DrawDebugUI(ImGuiRenderer renderer)
     {
         ImGui.Begin("Memory Viewer");
@@ -57,7 +59,7 @@ public class GalagaPCB : IArcadeMachine
     public void DrawMemoryViewer()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
-        string[] items = new[] { "maincpu", "subcpu", "sub2cpu", "gfx1", "gfx2", "proms" };
+        string[] items = new[] { "maincpu", "subcpu", "sub2cpu", "gfx1", "gfx2", "proms", "vram" };
         if (ImGui.BeginCombo("Viewing", previewValue))
         {
             for (int n = 0; n < items.Length; n++)
@@ -188,6 +190,24 @@ public class GalagaPCB : IArcadeMachine
                     ImGui.EndTable();
                 }
                 break;
+            case 6:
+                if (ImGui.BeginTable("Memory Viewer", 18, flags))
+                {
+                    for (int j = 0; j < 18; j++)
+                    {
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{(j * 16):X8}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"|");
+                        for (int i = 0; i < 16; i++)
+                        {
+                            ImGui.TableNextColumn();
+                            ImGui.Text($"{cpu1Bus.ReadByte((ushort)(0x8000 + i + 16 * j)):X2}");
+                        }
+                    }
+                    ImGui.EndTable();
+                }
+                break;
         }
         
         
@@ -272,9 +292,11 @@ public class GalagaPCB : IArcadeMachine
         PrepareTileTextures(_graphicsDevice);
     }
 
-    public List<PacManPCB.DrawRequest> GetDrawRequests(bool secondPlayFlip)
+    public List<DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
-        return new List<PacManPCB.DrawRequest>();
+        requests.Clear();
+        DrawGameTiles();
+        return requests;
     }
 
     public void TriggerVBlankInterrupt()
@@ -498,6 +520,31 @@ public class GalagaPCB : IArcadeMachine
             new Color(0x00, 0x97, 0x97),      
             new Color(0x00, 0x00, 0x00)
         ];
+    }
+    
+    private void DrawGameTiles()
+    {
+        // Row 1 and 2
+        for (int i = 0x000; i < 0x020; i++)
+        {
+            for (int row = 0; row < 2; row++)
+            {
+                int tileAddress = 0x8000 + i + 0x20 * row;
+                int paletteAddress = 0x8400 + i + 0x20 * row;
+
+                byte tileIndex = cpu1Bus.ReadByte((ushort)tileAddress);
+                int paletteIndex = cpu1Bus.ReadByte((ushort)paletteAddress) & 0x1F;
+
+                int yPos = 0 + 8 * row;
+                int xPos = 232 - i * 8;
+
+                requests.Add(new DrawRequest
+                {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
     }
 
     private int[,] ExtractRawTileData(int tileIndex)

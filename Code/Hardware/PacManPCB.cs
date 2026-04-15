@@ -50,12 +50,7 @@ public class PacManPCB : IArcadeMachine
     }
     
     private List<DrawRequest> requests = new ();
-    public struct DrawRequest
-    {
-        public Texture2D Texture;
-        public Vector2 Position;
-        public SpriteEffects Effects;
-    }
+    
     
     public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool[] hacks)
     {
