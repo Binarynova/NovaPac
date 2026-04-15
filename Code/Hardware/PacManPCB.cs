@@ -21,6 +21,7 @@ public class PacManPCB : IArcadeMachine
     private NamcoWSG wsg;
     private Z80Cpu cpu;
     byte[] AuxROMs = null;
+    string buttonText = "Tiles";
 
     Texture2D[,] TileTextures = new Texture2D[256, 32];
     Texture2D[,] SpriteTextures = new Texture2D[64, 32];
@@ -168,15 +169,17 @@ public class PacManPCB : IArcadeMachine
         
         ImGui.PopStyleVar();
 
-        if (ImGui.Button("Change"))
+        if (ImGui.Button(buttonText))
         {
             switch (graphicsViewerMode)
             {
                 case 0:
                     graphicsViewerMode = 1;
+                    buttonText = "Sprites";
                     break;
                 case 1:
                     graphicsViewerMode = 0;
+                    buttonText = "Tiles";
                     break;
             }
         }
