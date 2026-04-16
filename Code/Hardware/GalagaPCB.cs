@@ -193,10 +193,10 @@ public class GalagaPCB : IArcadeMachine
             case 6:
                 if (ImGui.BeginTable("Memory Viewer", 18, flags))
                 {
-                    for (int j = 0; j < 18; j++)
+                    for (int j = 0x000; j < 0x040; j++)
                     {
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{(j * 16):X8}");
+                        ImGui.Text($"{(j * 16 + 0x8000):X8}");
                         ImGui.TableNextColumn();
                         ImGui.Text($"|");
                         for (int i = 0; i < 16; i++)
@@ -256,17 +256,23 @@ public class GalagaPCB : IArcadeMachine
     public int Step(bool steppingThrough)
     {
         int cycles = mainCpu.Step(steppingThrough);
-        int subCycles = 0;
-        int sub2Cycles = 0;
 
-        while(subCycles < cycles)
+        if (!cpu1Bus.subCpu1Reset)
         {
-            subCycles += subCpu.Step(steppingThrough);
+            int subCycles = 0;
+            while(subCycles < cycles)
+            {
+                subCycles += subCpu.Step(steppingThrough);
+            }
         }
 
-        while (sub2Cycles < cycles)
+        if (!cpu1Bus.subCpu2Reset)
         {
-            sub2Cycles += subCpu2.Step(steppingThrough);
+            int sub2Cycles = 0;
+            while (sub2Cycles < cycles)
+            {
+                sub2Cycles += subCpu2.Step(steppingThrough);
+            }
         }
         
         soundChip.Update(cycles);
@@ -301,7 +307,9 @@ public class GalagaPCB : IArcadeMachine
 
     public void TriggerVBlankInterrupt()
     {
-        mainCpu.RequestInterrupt();
+        if (cpu1Bus.irqEnable) mainCpu.RequestInterrupt();
+        if (cpu2Bus.irqEnable) subCpu.RequestInterrupt();
+        if (cpu3Bus.irqEnable) subCpu2.RequestInterrupt();
     }
 
     private void LoadROM(string romFileName)
@@ -524,21 +532,63 @@ public class GalagaPCB : IArcadeMachine
     
     private void DrawGameTiles()
     {
-        for (int i = 0x000; i < 0x020; i++)
+        // Top 2 Rows (The Score / High Score) -> 0x83C0 to 0x83FF
+        for (int i = 0x3DF; i >= 0x3C0; i--)
         {
-            for (int row = 0; row < 32; row++)
+            for (int row = 0; row < 2; row++)
             {
                 int tileAddress = 0x8000 + i + 0x20 * row;
                 int paletteAddress = 0x8400 + i + 0x20 * row;
-
+            
                 byte tileIndex = cpu1Bus.ReadByte((ushort)tileAddress);
                 int paletteIndex = cpu1Bus.ReadByte((ushort)paletteAddress) & 0x1F;
 
-                int yPos = 0 + 8 * i;
-                int xPos = 232 - row * 8;
-
-                requests.Add(new DrawRequest
-                {
+                int yPos = 0 + 8 * row;
+                int xPos = 232 - (i - 0x3C0) * 8;
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+        
+        // Main Playfield Grid -> 0x8040 to 0x83BF
+        for (int i = 0x05F; i >= 0x040; i--)
+        {
+            for (int col = 0; col < 28; col++)
+            {
+                int tileAddress = 0x8000 + i + 0x20 * col;
+                int paletteAddress = 0x8400 + i + 0x20 * col;
+            
+                byte tileIndex = cpu1Bus.ReadByte((ushort)tileAddress);
+                int paletteIndex = cpu1Bus.ReadByte((ushort)paletteAddress) & 0x1F;
+        
+                int yPos = 8 * (i - 0x040) + 16;
+                int xPos = 216 - (col) * 8;
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+        
+        // Bottom 2 Rows (Fighters / Status) -> 0x8000 to 0x803F
+        for (int i = 0x01F; i >= 0x000; i--)
+        {
+            for (int row = 0; row < 2; row++)
+            {
+                int tileAddress = 0x8000 + i + 0x20 * row;
+                int paletteAddress = 0x8400 + i + 0x20 * row;
+            
+                byte tileIndex = cpu1Bus.ReadByte((ushort)tileAddress);
+                int paletteIndex = cpu1Bus.ReadByte((ushort)paletteAddress) & 0x1F;
+        
+                int yPos = 272 + 8 * row;
+                int xPos = 232 - (i - 0x000) * 8;
+            
+                requests.Add(new DrawRequest {
                     Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)
                 });

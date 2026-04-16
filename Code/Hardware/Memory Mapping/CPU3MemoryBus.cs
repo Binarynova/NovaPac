@@ -4,6 +4,7 @@ public class CPU3MemoryBus : IMemoryBus
 {
     private byte[] _mainRom;
     private byte[] _sharedRam;
+    public bool irqEnable = false;
 
     public CPU3MemoryBus(byte[] mainRom, byte[] sharedRam)
     {
@@ -24,6 +25,10 @@ public class CPU3MemoryBus : IMemoryBus
     public void WriteByte(ushort address, byte value)
     {
         if (address is >= 0x6800)
+        {
+            if (address == 0x6802)
+                irqEnable = (value & 1) != 0;
             _sharedRam[address - 0x6800] = value;
+        }
     }
 }

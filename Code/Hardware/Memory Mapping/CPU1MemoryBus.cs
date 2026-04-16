@@ -4,6 +4,10 @@ public class CPU1MemoryBus : IMemoryBus
 {
     private byte[] _rom;
     private byte[] _sharedRam;
+    public bool irqEnable = false;
+
+    public bool subCpu1Reset = false;
+    public bool subCpu2Reset = false;
 
     public CPU1MemoryBus(byte[] mainRom, byte[] sharedRam)
     {
@@ -24,6 +28,15 @@ public class CPU1MemoryBus : IMemoryBus
     public void WriteByte(ushort address, byte value)
     {
         if (address is >= 0x6800)
+        {
+            if (address == 0x6800)
+                irqEnable = (value & 1) != 0;
+            if (address == 0x6821)
+                subCpu1Reset = (value & 1) != 0;
+            if (address == 0x6822)
+                subCpu2Reset = (value & 1) != 0;
+            
             _sharedRam[address - 0x6800] = value;
+        }
     }
 }
