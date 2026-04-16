@@ -18,24 +18,23 @@ public class GalagaPCB : IArcadeMachine
     private byte[] SubCPUMemory =  new byte[0x10000]; // first 0x1000 contains ROM
     private byte[] Sub2CPUMemory = new byte[0x10000]; // first 0x1000 contains ROM
 
-    private byte[] gfx1 = new byte[0x1000];
-    private byte[] gfx2 = new byte[0x2000];
+    private byte[] gfx1 =  new byte[0x1000];
+    private byte[] gfx2 =  new byte[0x2000];
     private byte[] proms = new byte[0x220];
     
     CPU1MemoryBus cpu1Bus;
     CPU2MemoryBus cpu2Bus;
     CPU3MemoryBus cpu3Bus;
     
-    private byte[] _sharedRam = new byte[0x10000];
-    Texture2D[,] TileTextures = new Texture2D[256, 32];
+    private byte[] _sharedRam   = new byte[0x10000];
+    Texture2D[,] TileTextures   = new Texture2D[256, 32];
     Texture2D[,] SpriteTextures = new Texture2D[64, 32];
 
-    public int mode { get; set; }
+    public int mode                   { get; set; }
     public List<int> subOptionIndices { get; set; }
-    public bool secondPlayerFlip { get; set; }
-    private static bool steamDeckTwoPlayerMode = false;
-    public int graphicsViewerMode { get; set; }
-    public int tileViewerPaletteIndex { get; set; }
+    public bool secondPlayerFlip      { get; set; }
+    public int graphicsViewerMode     { get; set; }
+    
     List<Color> colors = [];
     List<List<Color>> palettes = [];
     int item_selected_idx = 0; // Here we store our selection data as an index.
@@ -247,7 +246,6 @@ public class GalagaPCB : IArcadeMachine
         subCpu = new Z80Cpu(cpu2Bus);
         subCpu2 = new Z80Cpu(cpu3Bus);
         soundChip = new NamcoWSG(romFileName);
-        steamDeckTwoPlayerMode = twoPlayerScreenFlip;
 
         ClearRAM();
         LoadROM(romFileName);
