@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -26,6 +27,10 @@ public class GalaxianMemoryBus : IMemoryBus
         {
             case < 0x2000:
                 return; // Protect ROM
+            case > 0x5000 and < 0x5400:
+                if (value != 0x10)
+                    Console.WriteLine("Something different written to vram.");
+                break;
         }
 
         _memory[address] = value;

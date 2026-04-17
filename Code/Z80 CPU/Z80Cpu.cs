@@ -88,7 +88,9 @@ public partial class Z80Cpu
                 return 4;              // stay halted, do not fetch opcode
         }
         
+        Console.Write($"PC: {Reg.PC:X4} ");
         byte opcode = _bus.ReadByte(Reg.PC);
+        Console.Write($"Op: {opcode:X2}\n");
         
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
