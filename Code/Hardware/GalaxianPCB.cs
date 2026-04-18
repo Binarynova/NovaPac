@@ -16,12 +16,17 @@ public class GalaxianPCB : IArcadeMachine
     private GalaxianMemoryBus _memoryBus;
     GraphicsDevice _graphicsDevice;
     private List<DrawRequest> requests = new ();
+
+    int[,] testTile = new int[8,8];
     
     public GalaxianPCB(string romFileName,  bool verticalScreenMode)
     {
         LoadRom(romFileName);
         _memoryBus = new GalaxianMemoryBus(_mainMemory);
         cpu = new Z80Cpu(_memoryBus);
+
+        testTile = ExtractRawTileData(0x00);
+        Console.WriteLine("stop");
     }
 
     private void LoadRom(string romFileName)
@@ -174,5 +179,32 @@ public class GalaxianPCB : IArcadeMachine
         }
         
         ImGui.PopStyleVar();
+    }
+    
+    int GetPixelValue(byte tileIndex, int rowIndex, int pixelIndex)
+    {
+        byte pixelData1 = _gfx1[tileIndex + rowIndex];
+        byte pixelData2 = _gfx1[tileIndex + 0x800 + rowIndex];
+        
+        int pixel1 = (pixelData1 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0;  // this returns the 1 or 0 for a given pixel from the first byte
+        int pixel2 = (pixelData2 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0; // same but for the other byte
+
+        int paletteValue = pixel1 << 1 | pixel2;
+        return paletteValue;    // this now returns the 0-3 (0x00 to 0x11) value for the pixel in the tile
+    }
+    
+    private int[,] ExtractRawTileData(byte tileIndex)
+    {
+        int[,] tile = new int[8,8];
+
+        for (int r = 0; r < 8; r++)
+        {
+            for (int b = 0; b < 8; b++)
+            {
+                tile[7-b, 7-r] = GetPixelValue(tileIndex, r, b);
+            }
+        }
+        
+        return tile;
     }
 }
