@@ -1,11 +1,11 @@
 using System.IO.Compression;
 using ImGuiNET;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.ImGuiNet;
 
 public class GalaxianPCB : IArcadeMachine
 {
-    public int mode { get; set; }
     public List<int> subOptionIndices { get; set; }
     public bool secondPlayerFlip { get; }
 
@@ -16,17 +16,17 @@ public class GalaxianPCB : IArcadeMachine
     private GalaxianMemoryBus _memoryBus;
     GraphicsDevice _graphicsDevice;
     private List<DrawRequest> requests = new ();
+    public int mode { get; set; } = 0;
+    private int graphicsViewerMode { get; set; } = 0;
 
-    int[,] testTile = new int[8,8];
+    Texture2D[] TileTextures = new Texture2D[256];
+    List<Color> colors = [];
     
     public GalaxianPCB(string romFileName,  bool verticalScreenMode)
     {
         LoadRom(romFileName);
         _memoryBus = new GalaxianMemoryBus(_mainMemory);
         cpu = new Z80Cpu(_memoryBus);
-
-        testTile = ExtractRawTileData(0x00);
-        Console.WriteLine("stop");
     }
 
     private void LoadRom(string romFileName)
@@ -124,6 +124,8 @@ public class GalaxianPCB : IArcadeMachine
     public void InitializeGraphics(GraphicsDevice device)
     {
         _graphicsDevice = device;
+        PrepareColors();
+        PrepareTileTextures(_graphicsDevice);
     }
 
     public int Step(bool steppingThrough)
@@ -150,6 +152,11 @@ public class GalaxianPCB : IArcadeMachine
 
     public void DrawDebugUI(ImGuiRenderer renderer)
     {
+        ImGui.Begin("Graphics Viewer");
+        ImGui.SetWindowSize(new System.Numerics.Vector2(300, 340));
+        DrawGraphicsViewer(renderer);
+        ImGui.End();
+        
         ImGui.Begin("Memory Viewer");
         ImGui.SetWindowSize(new System.Numerics.Vector2(460, 350));
         DrawMemoryViewer();
@@ -181,10 +188,10 @@ public class GalaxianPCB : IArcadeMachine
         ImGui.PopStyleVar();
     }
     
-    int GetPixelValue(byte tileIndex, int rowIndex, int pixelIndex)
+    int GetPixelValue(int tileIndex, int rowIndex, int pixelIndex)
     {
-        byte pixelData1 = _gfx1[tileIndex + rowIndex];
-        byte pixelData2 = _gfx1[tileIndex + 0x800 + rowIndex];
+        byte pixelData1 = _gfx1[tileIndex*8 + rowIndex];
+        byte pixelData2 = _gfx1[tileIndex*8 + 0x800 + rowIndex];
         
         int pixel1 = (pixelData1 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0;  // this returns the 1 or 0 for a given pixel from the first byte
         int pixel2 = (pixelData2 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0; // same but for the other byte
@@ -193,7 +200,7 @@ public class GalaxianPCB : IArcadeMachine
         return paletteValue;    // this now returns the 0-3 (0x00 to 0x11) value for the pixel in the tile
     }
     
-    private int[,] ExtractRawTileData(byte tileIndex)
+    private int[,] ExtractRawTileData(int tileIndex)
     {
         int[,] tile = new int[8,8];
 
@@ -201,10 +208,68 @@ public class GalaxianPCB : IArcadeMachine
         {
             for (int b = 0; b < 8; b++)
             {
-                tile[7-b, 7-r] = GetPixelValue(tileIndex, r, b);
+                tile[7-r, 7-b] = GetPixelValue(tileIndex, r, b);
             }
         }
         
         return tile;
+    }
+    
+    private void PrepareTileTextures(GraphicsDevice graphicsDevice)
+    {
+        for (int tileIndex = 0; tileIndex < 256; tileIndex++)
+        {
+            int[,] rawTile = ExtractRawTileData(tileIndex);
+            for (int paletteIndex = 0; paletteIndex < 32; paletteIndex++)
+            {
+                Texture2D tileTexture = new (graphicsDevice, 8, 8);
+                Color[] colorData = new Color[8 * 8];
+
+                for (int y = 0; y < 8; y++)
+                {
+                    for (int x = 0; x < 8; x++)
+                    {
+                        int colorId = rawTile[x, y];
+                        colorData[y * 8 + x] = colors[colorId];
+                    }
+                }
+                
+                tileTexture.SetData(colorData);
+                TileTextures[tileIndex] = tileTexture;
+            }
+        }
+    }
+    
+    void PrepareColors()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            colors.Add(new Color((int)_proms[4*i+1],  _proms[4*i+2], _proms[4*i+3], 255));
+        }
+    }
+    
+    
+    public void DrawGraphicsViewer(ImGuiRenderer renderer)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
+        ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
+        
+        switch (graphicsViewerMode)
+        {
+            case 0:
+                if (ImGui.BeginTable("Tiles", 16, flags))
+                {
+                    for (int i = 0; i < 256; i++)
+                    {
+                        ImGui.TableNextColumn();
+                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i]);
+                        ImGui.Image(texturePtr, new System.Numerics.Vector2(16, 16));
+                    }
+                    ImGui.EndTable();
+                }
+                break;
+        }
+        
+        ImGui.PopStyleVar();
     }
 }
