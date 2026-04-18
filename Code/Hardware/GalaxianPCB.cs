@@ -138,6 +138,7 @@ public class GalaxianPCB : IArcadeMachine
     public List<DrawRequest> GetDrawRequests(bool secondPlayFlip)
     {
         requests.Clear();
+        DrawGameTiles();
 
         return requests;
     }
@@ -190,8 +191,8 @@ public class GalaxianPCB : IArcadeMachine
     
     int GetPixelValue(int tileIndex, int rowIndex, int pixelIndex)
     {
-        byte pixelData1 = _gfx1[tileIndex*8 + rowIndex];
-        byte pixelData2 = _gfx1[tileIndex*8 + 0x800 + rowIndex];
+        byte pixelData1 = _gfx1[tileIndex * 8 + rowIndex];
+        byte pixelData2 = _gfx1[tileIndex * 8 + 0x800 + rowIndex];
         
         int pixel1 = (pixelData1 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0;  // this returns the 1 or 0 for a given pixel from the first byte
         int pixel2 = (pixelData2 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0; // same but for the other byte
@@ -271,5 +272,65 @@ public class GalaxianPCB : IArcadeMachine
         }
         
         ImGui.PopStyleVar();
+    }
+    
+    private void DrawGameTiles()
+    {
+        // Row 1 and 2
+        for (int i = 0x3DF; i >= 0x3C0; i--)
+        {
+            for (int row = 0; row < 2; row++)
+            {
+                int tileAddress = 0x4000 + i + 0x20 * row;
+            
+                byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+
+                int yPos = 0 + 8 * row;
+                int xPos = 232 - (i - 0x3C0) * 8;
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+        
+        // Main Grid
+        for (int i = 0x05F; i >= 0x040; i--)
+        {
+            for (int col = 0; col < 28; col++)
+            {
+                int tileAddress = 0x4000 + i + 0x20 * col;
+            
+                byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+        
+                int yPos = 8 * (i - 0x040) + 16;
+                int xPos = 216 - (col) * 8;
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+        
+        // Bottom 2 Rows
+        for (int i = 0x01F; i >= 0x000; i--)
+        {
+            for (int row = 0; row < 2; row++)
+            {
+                int tileAddress = 0x4000 + i + 0x20 * row;
+            
+                byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+        
+                int yPos = 272 + 8 * row;
+                int xPos = 232 - (i - 0x000) * 8;
+            
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
     }
 }
