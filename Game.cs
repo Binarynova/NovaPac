@@ -34,6 +34,15 @@ public class Game : Microsoft.Xna.Framework.Game
 
     IArcadeMachine _activeMachine;
     ImGuiRenderer _renderer;
+    
+    private int _loadState = 0; 
+    // 0 = Not Loading
+    // 1 = Load Triggered (Waiting to Draw)
+    // 2 = Loading Screen Drawn (Ready to Load ROMs)
+
+    private string _pendingRomName;
+    private string _pendingMachineName;
+    private string _pendingWindowTitle;
 
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
@@ -115,6 +124,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private void StartGame(string romFilePath, string windowTitle, string machineName)
     {
+        DrawLoadingMessage();
         Window.Title = windowTitle;
         romFileName = romFilePath;
         CalculateFloatScale(verticalScreenMode);
@@ -165,6 +175,14 @@ public class Game : Microsoft.Xna.Framework.Game
     
     protected override void Update(GameTime gameTime)
     {
+        // If the loading screen was drawn last frame, do the heavy work now
+        if (_loadState == 2)
+        {
+            StartGame(_pendingRomName, _pendingWindowTitle, _pendingMachineName);
+            _loadState = 0; // Reset state
+            paused = false;
+        }
+        
         _currentState = Keyboard.GetState();
         _currentGamePadState =  GamePad.GetState(PlayerIndex.One);
 
@@ -215,8 +233,13 @@ public class Game : Microsoft.Xna.Framework.Game
                         break;
                     case 1 when _selectedSubIndex is >= 0 and <= 1:
                         verticalScreenMode = _selectedSubIndex is 1;
-                        StartGame(_mainMenu[_selectedIndex][1], _mainMenu[_selectedIndex][0], _mainMenu[_selectedIndex][2]);
-                        _isMenuOpen = false;
+                        // Queue the game data
+                        _pendingWindowTitle = _mainMenu[_selectedIndex][0];
+                        _pendingRomName = _mainMenu[_selectedIndex][1];
+                        _pendingMachineName = _mainMenu[_selectedIndex][2];
+    
+                        _loadState = 1;      // Trigger the loading screen
+                        _isMenuOpen = false; // Close the menu
                         paused = false;
                         break;
                 }
@@ -367,6 +390,14 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Draw(GameTime gameTime)
     {
+        if (_loadState == 1)
+        {
+            GraphicsDevice.Clear(Color.Black);
+            DrawLoadingMessage();
+            
+            _loadState = 2;
+            return;
+        }
         // Render game screen
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         GraphicsDevice.Clear(Color.Black);
@@ -464,5 +495,18 @@ public class Game : Microsoft.Xna.Framework.Game
         float scaleY = screenHeight / (float)contentHeight;
 
         _floatScale = Math.Min(scaleX, scaleY);
+    }
+
+    void DrawLoadingMessage()
+    {
+        _spriteBatch.Begin();
+        _pixelTexture.SetData([Color.White]);
+        _spriteBatch.Draw(_pixelTexture,
+            new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
+
+        Vector2 pos = new(100, 100);
+
+        _spriteBatch.DrawString(_font, "LOADING...", pos, Color.Yellow);
+        _spriteBatch.End();
     }
 }
