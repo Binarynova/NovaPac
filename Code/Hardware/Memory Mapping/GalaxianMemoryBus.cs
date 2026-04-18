@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -7,6 +5,7 @@ public class GalaxianMemoryBus : IMemoryBus
 {
     private byte[] _memory;
 
+    public bool NmiEnabled { get; private set; }
     public bool SecondPlayerFlip { get; set; }
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];
@@ -25,8 +24,12 @@ public class GalaxianMemoryBus : IMemoryBus
     {
         switch (address)
         {
-            case < 0x2000:
+            case < 0x4000:
                 return; // Protect ROM
+            case 0x7001:
+                NmiEnabled = (value & 0x01) != 0;
+                Console.WriteLine($"NMI State Changed: {NmiEnabled}");
+                break;
             case > 0x5000 and < 0x5400:
                 if (value != 0x10)
                     Console.WriteLine("Something different written to vram.");

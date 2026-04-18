@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using ImGuiNET;
 using Microsoft.Xna.Framework.Graphics;
@@ -140,7 +137,10 @@ public class GalaxianPCB : IArcadeMachine
 
     public void TriggerVBlankInterrupt()
     {
-        cpu.RequestInterrupt();
+        if (_memoryBus.NmiEnabled)
+        {
+            cpu.TriggerNmi();
+        }
     }
 
     public void DrawDebugUI(ImGuiRenderer renderer)

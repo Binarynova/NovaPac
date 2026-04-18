@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 public partial class Z80Cpu
 {
     Registers Reg;
@@ -10,6 +6,7 @@ public partial class Z80Cpu
     private bool _iff2;
     private bool _halted;
     private IMemoryBus _bus;
+    private Disassembler _disassembler;
 
     public delegate int OpcodeHandler();
     public readonly OpcodeHandler[] _mainOpcodes = new OpcodeHandler[256];
@@ -33,6 +30,7 @@ public partial class Z80Cpu
     
     public Z80Cpu(IMemoryBus memoryBus)
     {
+        _disassembler = new Disassembler();
         Reg = new Registers();
         _bus = memoryBus;
         Reset();
@@ -51,6 +49,13 @@ public partial class Z80Cpu
         InterruptPending = true;
     }
 
+    public void TriggerNmi()
+    {
+        _iff2 = _iff1;
+        _iff1 = false;
+        Reg.PC = 0x0066;
+    }
+    
     public void HandleInterrupt()
     {
         PushWord(Reg.PC);
@@ -88,13 +93,12 @@ public partial class Z80Cpu
                 return 4;              // stay halted, do not fetch opcode
         }
         
-        Console.Write($"PC: {Reg.PC:X4} ");
         byte opcode = _bus.ReadByte(Reg.PC);
-        Console.Write($"Op: {opcode:X2}\n");
         
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
+        Console.Write($"{Reg.PC:X4}: {opcode:X2}   {_disassembler.GetAssemblyOP(opcode)}\n");
         IncrementRegisterR();
         int cycles = _mainOpcodes[opcode]();
 

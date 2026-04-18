@@ -1,8 +1,6 @@
 ﻿// Pac-Man Z80 emulator.
 // Started 1/29/26
 
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

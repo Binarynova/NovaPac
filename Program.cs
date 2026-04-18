@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 
 using var game = new Game(args);
 // Force SDL to use a smaller audio buffer on Linux
