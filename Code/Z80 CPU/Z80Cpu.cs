@@ -98,7 +98,6 @@ public partial class Z80Cpu
         if (SteppingThrough)
             PrintStepThroughDebug(opcode);
         
-        Console.Write($"{Reg.PC:X4}: {opcode:X2}   {_disassembler.GetAssemblyOP(opcode)}\n");
         IncrementRegisterR();
         int cycles = _mainOpcodes[opcode]();
 
