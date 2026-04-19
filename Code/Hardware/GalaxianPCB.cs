@@ -193,11 +193,11 @@ public class GalaxianPCB : IArcadeMachine
     {
         byte pixelData1 = _gfx1[tileIndex * 8 + rowIndex];
         byte pixelData2 = _gfx1[tileIndex * 8 + 0x800 + rowIndex];
-        
-        int pixel1 = (pixelData1 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0;  // this returns the 1 or 0 for a given pixel from the first byte
-        int pixel2 = (pixelData2 & (int)Math.Pow(2,pixelIndex)) != 0 ? 1 : 0; // same but for the other byte
 
-        int paletteValue = pixel1 << 1 | pixel2;
+        int pixelHighBit = pixelData1.GetBit(pixelIndex);
+        int pixelLowBit = pixelData2.GetBit(pixelIndex);
+
+        int paletteValue = pixelHighBit << 1 | pixelLowBit;
         return paletteValue;    // this now returns the 0-3 (0x00 to 0x11) value for the pixel in the tile
     }
     
@@ -221,7 +221,7 @@ public class GalaxianPCB : IArcadeMachine
         for (int tileIndex = 0; tileIndex < 256; tileIndex++)
         {
             int[,] rawTile = ExtractRawTileData(tileIndex);
-            for (int paletteIndex = 0; paletteIndex < 32; paletteIndex++)
+            for (int paletteIndex = 0; paletteIndex < 8; paletteIndex++)
             {
                 Texture2D tileTexture = new (graphicsDevice, 8, 8);
                 Color[] colorData = new Color[8 * 8];
