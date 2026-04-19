@@ -1,4 +1,3 @@
-using System;
 public partial class Z80Cpu
 {
     private int Op_JR_e() // Opcode: 18
