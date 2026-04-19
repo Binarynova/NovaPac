@@ -17,6 +17,8 @@ public class GalaxianMemoryBus : IMemoryBus
     
     public byte ReadByte(ushort address)
     {
+        if (address == 0x0000)
+            Console.WriteLine("__________________Back to Start");
         return _memory[address];
     }
 
