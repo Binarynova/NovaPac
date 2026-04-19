@@ -19,7 +19,7 @@ public class GalaxianPCB : IArcadeMachine
     public int mode { get; set; } = 0;
     private int graphicsViewerMode { get; set; } = 0;
 
-    Texture2D[] TileTextures = new Texture2D[256];
+    Texture2D[,] TileTextures = new Texture2D[256,8];
     List<Color> colors = [];
     
     public GalaxianPCB(string romFileName,  bool verticalScreenMode)
@@ -230,22 +230,44 @@ public class GalaxianPCB : IArcadeMachine
                 {
                     for (int x = 0; x < 8; x++)
                     {
-                        int colorId = rawTile[x, y];
+                        int pixelValue = rawTile[x, y];
+                        int colorId = (paletteIndex * 4) + pixelValue;
                         colorData[y * 8 + x] = colors[colorId];
                     }
                 }
                 
                 tileTexture.SetData(colorData);
-                TileTextures[tileIndex] = tileTexture;
+                TileTextures[tileIndex, paletteIndex] = tileTexture;
             }
         }
     }
     
     void PrepareColors()
     {
-        for (int i = 0; i < 8; i++)
+        colors.Clear();
+        
+        for (int i = 0; i < 32; i++)
         {
-            colors.Add(new Color((int)_proms[4*i+1],  _proms[4*i+2], _proms[4*i+3], 255));
+            byte data = _proms[i];
+            
+            // red
+            int bit0 = data.GetBit(0);
+            int bit1 = data.GetBit(1);
+            int bit2 = data.GetBit(2);
+            int r = 0x21 * bit0 + 0x47 * bit1 + 0x97 * bit2;
+            
+            // green
+            int bit3 = data.GetBit(3);
+            int bit4 = data.GetBit(4);
+            int bit5 = data.GetBit(5);
+            int g = 0x21 * bit3 + 0x47 * bit4 + 0x97 * bit5;
+            
+            // blue
+            int bit6 = data.GetBit(6);
+            int bit7 = data.GetBit(7);
+            int b = 0x55 * bit6 + 0xAA * bit7;
+            
+            colors.Add(new Color(r, g, b));
         }
     }
     
@@ -263,7 +285,7 @@ public class GalaxianPCB : IArcadeMachine
                     for (int i = 0; i < 256; i++)
                     {
                         ImGui.TableNextColumn();
-                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i]);
+                        IntPtr texturePtr = renderer.BindTexture(TileTextures[i,1]);
                         ImGui.Image(texturePtr, new System.Numerics.Vector2(16, 16));
                     }
                     ImGui.EndTable();
@@ -284,12 +306,15 @@ public class GalaxianPCB : IArcadeMachine
                 int tileAddress = 0x4000 + i + 0x20 * row;
             
                 byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+                
+                byte attribute = _memoryBus.ReadByte((ushort)(0x5800 + i));
+                int paletteIndex = attribute & 0x07;
 
                 int yPos = 0 + 8 * row;
                 int xPos = 232 - (i - 0x3C0) * 8;
             
                 requests.Add(new DrawRequest {
-                    Texture = TileTextures[tileIndex],
+                    Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)
                 });
             }
@@ -301,14 +326,16 @@ public class GalaxianPCB : IArcadeMachine
             for (int col = 0; col < 28; col++)
             {
                 int tileAddress = 0x4000 + i + 0x20 * col;
-            
                 byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+
+                byte attribute = _memoryBus.ReadByte((ushort)(0x5800 + i));
+                int paletteIndex = attribute & 0x07;
         
                 int yPos = 8 * (i - 0x040) + 16;
                 int xPos = 216 - (col) * 8;
             
                 requests.Add(new DrawRequest {
-                    Texture = TileTextures[tileIndex],
+                    Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)
                 });
             }
@@ -322,12 +349,14 @@ public class GalaxianPCB : IArcadeMachine
                 int tileAddress = 0x4000 + i + 0x20 * row;
             
                 byte tileIndex = _memoryBus.ReadByte((ushort)tileAddress);
+                byte attribute = _memoryBus.ReadByte((ushort)(0x5800 + i));
+                int paletteIndex = attribute & 0x07;
         
                 int yPos = 272 + 8 * row;
                 int xPos = 232 - (i - 0x000) * 8;
             
                 requests.Add(new DrawRequest {
-                    Texture = TileTextures[tileIndex],
+                    Texture = TileTextures[tileIndex, paletteIndex],
                     Position = new Vector2(xPos, yPos)
                 });
             }
