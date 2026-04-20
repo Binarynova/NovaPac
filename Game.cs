@@ -55,7 +55,6 @@ public class Game : Microsoft.Xna.Framework.Game
     [
         ["Pac-Man", "roms/pacman.zip", "pacman"],
         ["Ms. Pac-Man", "roms/mspacman.zip", "pacman"],
-        ["Galaxian", "roms/galaxian.zip", "galaxian"],
         ["Matrix Demo", "roms/matrix.zip", "pacman"]
     ];
     
@@ -152,9 +151,6 @@ public class Game : Microsoft.Xna.Framework.Game
                  hacks[0] = _selectedSubOptionIndices[0] == 1;
                  hacks[1] = _selectedSubOptionIndices[1] == 1;
                 _activeMachine = new PacManPCB(romFileName, verticalScreenMode, hacks);
-                break;
-            case "galaxian":
-                _activeMachine = new GalaxianPCB(romFileName, verticalScreenMode);
                 break;
         }
         
