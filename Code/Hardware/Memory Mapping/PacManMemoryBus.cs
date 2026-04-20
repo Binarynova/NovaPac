@@ -9,7 +9,7 @@ public class PacManMemoryBus : IMemoryBus
     private byte[] _spriteRam2;
     private NamcoWSG _wsg;
 
-    public bool AuxBoardEnabled { get; set; }
+    public bool PlayingMsPacMan { get; set; }
     public bool DecryptEnabled { get; set; }
     public bool SecondPlayerFlip { get; set; }
     public bool SteamDeckTwoPlayerMode { get; set; }
@@ -26,7 +26,7 @@ public class PacManMemoryBus : IMemoryBus
     
     public byte ReadByte(ushort address)
     {
-        if (AuxBoardEnabled)
+        if (PlayingMsPacMan)
         {
             switch (address)
             {
@@ -70,7 +70,7 @@ public class PacManMemoryBus : IMemoryBus
 
     public void WriteByte(ushort address, byte value)
     {
-        if (AuxBoardEnabled)
+        if (PlayingMsPacMan)
         {
             switch (address)
             {

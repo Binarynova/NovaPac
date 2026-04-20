@@ -56,8 +56,7 @@ public class PacManPCB : IArcadeMachine
         LoadRom(romFileName);
         wsg = new NamcoWSG(romFileName);
         memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
-        memoryBus.AuxBoardEnabled = (romFileName == "roms/mspacman.zip");
-        memoryBus.DecryptEnabled = (romFileName == "roms/mspacman.zip");
+        memoryBus.PlayingMsPacMan = (romFileName == "roms/mspacman.zip");
         memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
         memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
         cpu = new Z80Cpu(memoryBus);
