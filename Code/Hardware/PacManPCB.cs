@@ -64,9 +64,9 @@ public class PacManPCB : IArcadeMachine
         mode = 0;
     }
 
-    public int Step(bool steppingThrough)
+    public int Step()
     {
-        int cycles = cpu.Step(steppingThrough);
+        int cycles = cpu.Step();
         wsg.Update(cycles);
 
         return cycles;

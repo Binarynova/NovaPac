@@ -290,7 +290,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
                 while (_cycleAccumulator > 0)
                 {
-                    int cycles = _activeMachine.Step(SteppingThrough);
+                    int cycles = _activeMachine.Step();
                     _cycleAccumulator -= cycles;
 
                     interruptCycleCounter += cycles;

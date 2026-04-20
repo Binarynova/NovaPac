@@ -10,6 +10,7 @@ public class ZEXDOC : IArcadeMachine
 
     public ZEXDOC()
     {
+        Reg = new Registers();
         _cpu = new Z80Cpu(_memoryMap);
         LoadRom();
     }
@@ -41,7 +42,7 @@ public class ZEXDOC : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public int Step(bool steppingThrough)
+    public int Step()
     {
         throw new NotImplementedException();
     }

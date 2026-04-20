@@ -31,7 +31,7 @@ public class SSTests : IArcadeMachine
         throw new NotImplementedException();
     }
 
-    public int Step(bool steppingThrough)
+    public int Step()
     {
         throw new NotImplementedException();
     }

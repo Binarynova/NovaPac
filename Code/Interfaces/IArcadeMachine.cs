@@ -5,7 +5,7 @@ public interface IArcadeMachine
 {
     short[] GetAudioSamples();
     void InitializeGraphics(GraphicsDevice device);
-    int Step(bool steppingThrough);
+    int Step();
     List<DrawRequest> GetDrawRequests(bool secondPlayFlip);
     void TriggerVBlankInterrupt();
     void DrawDebugUI(ImGuiRenderer renderer);
