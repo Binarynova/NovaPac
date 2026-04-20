@@ -26,7 +26,6 @@ public class Game : Microsoft.Xna.Framework.Game
     const int internalWidth = 224;
     const int internalHeight = 288;
     const int sidePadding = 20;
-    bool SteppingThrough;
     const float _speedMultiplier = 1f;
     bool verticalScreenMode = false;
     float _floatScale = 1.0f;
