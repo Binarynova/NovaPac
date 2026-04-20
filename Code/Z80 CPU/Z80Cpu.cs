@@ -51,6 +51,8 @@ public partial class Z80Cpu
 
     public void TriggerNmi()
     {
+        PushWord(Reg.PC);
+        InterruptPending = _halted = false;
         _iff2 = _iff1;
         _iff1 = false;
         Reg.PC = 0x0066;
