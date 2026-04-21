@@ -120,9 +120,9 @@ public class NamcoWSG
     
     private void LoadRom(string romFileName)
     {
-        if (romFileName is "roms/pacman.zip" or "roms/matrix.zip" or "roms/newpuckx.zip" or "roms/mspacman.zip" or "roms/pacplus.zip")
+        if (romFileName is "pacman" or "matrix" or "pacmanf" or "mspacman" or "mspacmnf")
         {
-            using ZipArchive archive = ZipFile.OpenRead(romFileName);
+            using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
             
             byte[] soundRom1 = ExtractRom(archive, "82s126.1m");
             byte[] soundRom2 = ExtractRom(archive, "82s126.3m");

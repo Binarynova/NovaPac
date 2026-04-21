@@ -40,7 +40,6 @@ public class Game : Microsoft.Xna.Framework.Game
     // 2 = Loading Screen Drawn (Ready to Load ROMs)
 
     private string _pendingRomName;
-    private string _pendingMachineName;
     private string _pendingWindowTitle;
 
     int interruptCycleCounter;
@@ -52,16 +51,17 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<List<string>> _menuOptions = [];
     private List<List<string>> _mainMenu =
     [
-        ["Pac-Man", "roms/pacman.zip", "pacman"],
-        ["Ms. Pac-Man", "roms/mspacman.zip", "pacman"],
-        ["Matrix Demo", "roms/matrix.zip", "pacman"]
+        ["Pac-Man", "pacman"],
+        ["Pac-Man (Fast)", "pacmanf"],
+        ["Ms. Pac-Man", "mspacman"],
+        ["Ms. Pac-Man (Fast)", "mspacmnf"],
+        ["Matrix Demo", "matrix"]
     ];
     
     private List<string> _menuPlay = [ "Play", "Play (Cocktail)" ];
     private List<List<string>> _pacManOptions =
     [
         ["Normal Color", "Neon Hack"],
-        ["Normal Speed", "Fast Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -72,7 +72,6 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<List<string>> _msPacManOptions =
     [
         ["Normal Color", "Neon Hack"],
-        ["Normal Speed", "Fast Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -81,7 +80,7 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = [0, 0, 1, 2, 0, 1, 1];
+    private List<int> _selectedSubOptionIndices = [0, 1, 2, 0, 1, 1];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     private bool _isDebugOpen = false;
@@ -120,7 +119,7 @@ public class Game : Microsoft.Xna.Framework.Game
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
     }
 
-    private void StartGame(string romFilePath, string windowTitle, string machineName)
+    private void StartGame(string romFilePath, string windowTitle)
     {
         DrawLoadingMessage();
         Window.Title = windowTitle;
@@ -142,16 +141,11 @@ public class Game : Microsoft.Xna.Framework.Game
             Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
             _soundOut.SubmitBuffer(byteArray);
         };
+        
         _soundOut.Play();
         bool[] hacks = new bool[2];
-        switch (machineName)
-        {
-            case "pacman":
-                 hacks[0] = _selectedSubOptionIndices[0] == 1;
-                 hacks[1] = _selectedSubOptionIndices[1] == 1;
-                _activeMachine = new PacManPCB(romFileName, verticalScreenMode, hacks);
-                break;
-        }
+        hacks[0] = _selectedSubOptionIndices[0] == 1;
+        _activeMachine = new PacManPCB(romFileName, verticalScreenMode, hacks);
         
         _activeMachine.InitializeGraphics(GraphicsDevice);
         _activeMachine.subOptionIndices = _selectedSubOptionIndices;
@@ -173,7 +167,7 @@ public class Game : Microsoft.Xna.Framework.Game
         // If the loading screen was drawn last frame, do the heavy work now
         if (_loadState == 2)
         {
-            StartGame(_pendingRomName, _pendingWindowTitle, _pendingMachineName);
+            StartGame(_pendingRomName, _pendingWindowTitle);
             _loadState = 0; // Reset state
             paused = false;
         }
@@ -231,7 +225,6 @@ public class Game : Microsoft.Xna.Framework.Game
                         // Queue the game data
                         _pendingWindowTitle = _mainMenu[_selectedIndex][0];
                         _pendingRomName = _mainMenu[_selectedIndex][1];
-                        _pendingMachineName = _mainMenu[_selectedIndex][2];
     
                         _loadState = 1;      // Trigger the loading screen
                         _isMenuOpen = false; // Close the menu
@@ -331,7 +324,7 @@ public class Game : Microsoft.Xna.Framework.Game
             
                     _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
                     pos.Y += _menuItemOffset;
-                    if(i == 2) pos.Y += _menuItemOffset;
+                    if(i == 3) pos.Y += _menuItemOffset;
                 }
 
                 break;

@@ -6,6 +6,10 @@ using MonoGame.ImGuiNet;
 
 public class PacManPCB : IArcadeMachine
 {
+    record RomFile(string Filename, uint Offset, uint Length);
+    record RomRegion(uint Size, string Type, uint Flags, List<RomFile> Files);
+    record MachineRomSet(string Name, List<RomRegion> Regions);
+    
     GraphicsDevice _graphicsDevice;
     private PacManMemoryBus memoryBus;
     private byte[] Memory = new byte[0x10000];
@@ -33,7 +37,6 @@ public class PacManPCB : IArcadeMachine
     private int tileViewerPaletteIndex { get; set; } = 0;
     int pIndex = 0;
     bool neonHackEnabled = false;
-    bool fastHackEnabled = false;
     public bool secondPlayerFlip
     {
         get => memoryBus.SecondPlayerFlip;
@@ -48,15 +51,37 @@ public class PacManPCB : IArcadeMachine
     
     private List<DrawRequest> requests = new ();
     
+    MachineRomSet pacman = new MachineRomSet("pacman", [
+        new RomRegion(0x10000, "maincpu", 0, [
+            new RomFile("pacman.6e", 0x0000, 0x1000),
+            new RomFile("pacman.6f", 0x1000, 0x1000),
+            new RomFile("pacman.6h", 0x2000, 0x1000),
+            new RomFile("pacman.6j", 0x3000, 0x1000)
+        ]),
+
+        new RomRegion(0x2000, "gfx1", 0, [
+            new RomFile("pacman.5e", 0x0000, 0x1000),
+            new RomFile("pacman.5f", 0x1000, 0x1000)
+        ]),
+        
+        new RomRegion(0x0120, "proms", 0, [
+            new RomFile("82s123.7f", 0x0000, 0x0020),
+            new RomFile("82s126.4a", 0x0020, 0x0100)
+        ]),
+        
+        new RomRegion(0x0200, "namco", 0, [
+            new RomFile("82s126.1m", 0x0000, 0x0100),
+            new RomFile("82s126.3m", 0x0100, 0x0100),
+        ])
+    ]);
     
     public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool[] hacks)
     {
         neonHackEnabled = hacks[0];
-        fastHackEnabled = hacks[1];
         LoadRom(romFileName);
         wsg = new NamcoWSG(romFileName);
         memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
-        memoryBus.PlayingMsPacMan = (romFileName == "roms/mspacman.zip");
+        memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
         memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
         memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
         cpu = new Z80Cpu(memoryBus);
@@ -408,9 +433,10 @@ public class PacManPCB : IArcadeMachine
     {
         switch (romFileName)
         {
-            case "roms/pacman.zip" or "roms/matrix.zip":
+            case "pacman" or "matrix":
             {
-                using ZipArchive archive = ZipFile.OpenRead(romFileName);
+                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
+                
                 var romMap = new Dictionary<string, int>
                 {
                     { "pacman.6e", 0x0000 },
@@ -441,31 +467,59 @@ public class PacManPCB : IArcadeMachine
                 charMemory = ExtractRom(archive, "pacman.5e");
                 spriteMemory = ExtractRom(archive, "pacman.5f");
                 paletteMemory = ExtractRom(archive, "82s126.4a");
-                if (romFileName == "roms/pacman.zip")
+                if (romFileName == "pacman")
                 {
                     if(neonHackEnabled)
                         LoadPacmanNeonHack();
-                    if (fastHackEnabled)
-                    {
-                        string fastHackPath = "roms/pacmanf.zip";
-                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
-                        ZipArchiveEntry fastHackEntry = archive2.GetEntry("pacfast.6f");
-                        if (fastHackEntry != null)
-                        {
-                            using Stream s = fastHackEntry.Open();
-                            byte[] buffer = new byte[fastHackEntry.Length];
-                            s.ReadExactly(buffer, 0, buffer.Length);
-                
-                            Buffer.BlockCopy(buffer, 0, Memory, 0x1000, buffer.Length);
-                        }
-                    }
                 }
 
                 break;
             }
-            case "roms/mspacman.zip":
+            case "pacmanf":
             {
-                using ZipArchive archive = ZipFile.OpenRead(romFileName);
+                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
+                
+                var romMap = new Dictionary<string, int>
+                {
+                    { "pacman.6e", 0x0000 },
+                    { "pacfast.6f", 0x1000 },
+                    { "pacman.6h", 0x2000 },
+                    { "pacman.6j", 0x3000 }
+                };
+
+                foreach (var entry in romMap)
+                {
+                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                    if (romEntry != null)
+                    {
+                        using Stream s = romEntry.Open();
+                        byte[] buffer = new byte[romEntry.Length];
+                        s.ReadExactly(buffer, 0, buffer.Length);
+                
+                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                    }
+            
+                    else
+                    {
+                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                    }
+                }
+
+                charMemory = ExtractRom(archive, "pacman.5e");
+                spriteMemory = ExtractRom(archive, "pacman.5f");
+                paletteMemory = ExtractRom(archive, "82s126.4a");
+                if (romFileName == "pacman")
+                {
+                    if(neonHackEnabled)
+                        LoadPacmanNeonHack();
+                }
+
+                break;
+            }
+            case "mspacman":
+            {
+                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
                 var romMap = new Dictionary<string, int>
                 {
                     { "pacman.6e", 0x0000 },
@@ -503,17 +557,6 @@ public class PacManPCB : IArcadeMachine
                 byte[] codeRom1 = ExtractRom(archive, "pacman.6e");
                 byte[] codeRom2 = ExtractRom(archive, "pacman.6f");
                 byte[] codeRom3 = ExtractRom(archive, "pacman.6h");
-
-                if (romFileName == "roms/mspacman.zip")
-                {
-                    if (fastHackEnabled)
-                    {
-                        string fastHackPath = "roms/mspacmnf.zip";
-                        using ZipArchive archive2 = ZipFile.OpenRead(fastHackPath);
-                        codeRom2 = ExtractRom(archive2, "pacfast.6f");
-                    }
-                }
-                
 
                 AuxROMs = new byte[(16 + 10) * 1024];
 
@@ -579,7 +622,121 @@ public class PacManPCB : IArcadeMachine
                     AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
                 }
 
-                if (romFileName == "roms/mspacman.zip")
+                if (romFileName == "mspacman")
+                {
+                    if(neonHackEnabled)
+                        LoadMsPacmanNeonHack();
+                }
+                
+                break;
+            }
+            
+            case "mspacmnf":
+            {
+                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
+                var romMap = new Dictionary<string, int>
+                {
+                    { "pacman.6e", 0x0000 },
+                    { "pacfast.6f", 0x1000 },
+                    { "pacman.6h", 0x2000 },
+                    { "pacman.6j", 0x3000 }
+                };
+
+                foreach (var entry in romMap)
+                {
+                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
+
+                    if (romEntry != null)
+                    {
+                        using Stream s = romEntry.Open();
+                        byte[] buffer = new byte[romEntry.Length];
+                        s.ReadExactly(buffer, 0, buffer.Length);
+                
+                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
+                    }
+            
+                    else
+                    {
+                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
+                    }
+                }
+
+                charMemory = ExtractRom(archive, "5e");
+                spriteMemory = ExtractRom(archive, "5f");
+                paletteMemory = ExtractRom(archive, "82s126.4a");
+            
+                u5 = ExtractRom(archive, "u5");
+                u6 = ExtractRom(archive, "u6");
+                u7 = ExtractRom(archive, "u7");
+                byte[] codeRom1 = ExtractRom(archive, "pacman.6e");
+                byte[] codeRom2 = ExtractRom(archive, "pacfast.6f");
+                byte[] codeRom3 = ExtractRom(archive, "pacman.6h");
+
+                AuxROMs = new byte[(16 + 10) * 1024];
+
+                for (int i = 0; i < 0x1000; i++)
+                {
+                    AuxROMs[decryptAddr1((uint)i) + 0x4000] = (byte)decryptData(u7[i]);
+                    AuxROMs[decryptAddr1((uint)i) + 0x5000] = (byte)decryptData(u6[i]);
+                }
+
+                for (int i = 0; i < 0x0800; i++)
+                {
+                    AuxROMs[decryptAddr2((uint)i) + 0x6000] = (byte)decryptData(u5[i]);
+                }
+            
+                Array.Copy(codeRom1, 0, AuxROMs, 0x0000, 0x1000);
+                Array.Copy(codeRom2, 0, AuxROMs, 0x1000, 0x1000);
+                Array.Copy(codeRom3, 0, AuxROMs, 0x2000, 0x1000);
+                Array.Copy(AuxROMs, 0x4000, AuxROMs, 0x3000, 0x1000);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    AuxROMs[0x0410 + i] = AuxROMs[0x6008 + i];
+                    AuxROMs[0x08E0 + i] = AuxROMs[0x61D8 + i];
+                    AuxROMs[0x0A30 + i] = AuxROMs[0x6118 + i];
+                    AuxROMs[0x0BD0 + i] = AuxROMs[0x60D8 + i];
+                    AuxROMs[0x0C20 + i] = AuxROMs[0x6120 + i];
+                    AuxROMs[0x0E58 + i] = AuxROMs[0x6168 + i];
+                    AuxROMs[0x0EA8 + i] = AuxROMs[0x6198 + i];
+
+                    AuxROMs[0x1000 + i] = AuxROMs[0x6020 + i];
+                    AuxROMs[0x1008 + i] = AuxROMs[0x6010 + i];
+                    AuxROMs[0x1288 + i] = AuxROMs[0x6098 + i];
+                    AuxROMs[0x1348 + i] = AuxROMs[0x6048 + i];
+                    AuxROMs[0x1688 + i] = AuxROMs[0x6088 + i];
+                    AuxROMs[0x16B0 + i] = AuxROMs[0x6188 + i];
+                    AuxROMs[0x16D8 + i] = AuxROMs[0x60C8 + i];
+                    AuxROMs[0x16F8 + i] = AuxROMs[0x61C8 + i];
+                    AuxROMs[0x19A8 + i] = AuxROMs[0x60A8 + i];
+                    AuxROMs[0x19B8 + i] = AuxROMs[0x61A8 + i];
+
+                    AuxROMs[0x2060 + i] = AuxROMs[0x6148 + i];
+                    AuxROMs[0x2108 + i] = AuxROMs[0x6018 + i];
+                    AuxROMs[0x21A0 + i] = AuxROMs[0x61A0 + i];
+                    AuxROMs[0x2298 + i] = AuxROMs[0x60A0 + i];
+                    AuxROMs[0x23E0 + i] = AuxROMs[0x60E8 + i];
+                    AuxROMs[0x2418 + i] = AuxROMs[0x6000 + i];
+                    AuxROMs[0x2448 + i] = AuxROMs[0x6058 + i];
+                    AuxROMs[0x2470 + i] = AuxROMs[0x6140 + i];
+                    AuxROMs[0x2488 + i] = AuxROMs[0x6080 + i];
+                    AuxROMs[0x24B0 + i] = AuxROMs[0x6180 + i];
+                    AuxROMs[0x24D8 + i] = AuxROMs[0x60C0 + i];
+                    AuxROMs[0x24F8 + i] = AuxROMs[0x61C0 + i];
+                    AuxROMs[0x2748 + i] = AuxROMs[0x6050 + i];
+                    AuxROMs[0x2780 + i] = AuxROMs[0x6090 + i];
+                    AuxROMs[0x27B8 + i] = AuxROMs[0x6190 + i];
+                    AuxROMs[0x2800 + i] = AuxROMs[0x6028 + i];
+                    AuxROMs[0x2B20 + i] = AuxROMs[0x6100 + i];
+                    AuxROMs[0x2B30 + i] = AuxROMs[0x6110 + i];
+                    AuxROMs[0x2BF0 + i] = AuxROMs[0x61D0 + i];
+                    AuxROMs[0x2CC0 + i] = AuxROMs[0x60D0 + i];
+                    AuxROMs[0x2CD8 + i] = AuxROMs[0x60E0 + i];
+                    AuxROMs[0x2CF0 + i] = AuxROMs[0x61E0 + i];
+                    AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
+                }
+
+                if (romFileName == "mspacman")
                 {
                     if(neonHackEnabled)
                         LoadMsPacmanNeonHack();

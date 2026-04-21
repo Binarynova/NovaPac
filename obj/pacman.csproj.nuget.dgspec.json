@@ -82,19 +82,11 @@
               "version": "[9.0.13, 9.0.13]"
             },
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
-              "version": "[9.0.13, 9.0.13]"
-            },
-            {
               "name": "Microsoft.NETCore.App.Host.linux-x64",
               "version": "[9.0.13, 9.0.13]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.13, 9.0.13]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Runtime.linux-x64",
               "version": "[9.0.13, 9.0.13]"
             }
           ],
@@ -104,11 +96,6 @@
             }
           },
           "runtimeIdentifierGraphPath": "/var/home/thomas/.dotnet/sdk/10.0.103/PortableRuntimeIdentifierGraph.json"
-        }
-      },
-      "runtimes": {
-        "linux-x64": {
-          "#import": []
         }
       }
     }
