@@ -1,2 +1,2 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/var/home/thomas/Projects/pacman/Content/File.spritefont","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1736151
+"/var/home/thomas/Projects/pacman/Content/File.spritefont","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1687524

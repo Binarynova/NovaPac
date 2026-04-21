@@ -6,22 +6,19 @@ using MonoGame.ImGuiNet;
 
 public class PacManPCB : IArcadeMachine
 {
-    record RomFile(string Filename, uint Offset, uint Length);
-    record RomRegion(uint Size, string Type, uint Flags, List<RomFile> Files);
-    record MachineRomSet(string Name, List<RomRegion> Regions);
-    
     GraphicsDevice _graphicsDevice;
     private PacManMemoryBus memoryBus;
-    private byte[] Memory = new byte[0x10000];
-    byte[] paletteMemory;
-    byte[] charMemory;
-    byte[] spriteMemory;
-    private byte[] u5, u6, u7;
-    private byte[] spriteram = new byte[0x10];
-    private byte[] spriteram2 = new byte[0x10];
     private NamcoWSG wsg;
     private Z80Cpu cpu;
-    byte[] AuxROMs = null;
+    
+    private byte[] _maincpu;
+    private byte[] _gfx1;
+    private byte[] _proms;
+    private byte[] _namco;
+    
+    private byte[] spriteram = new byte[0x10];
+    private byte[] spriteram2 = new byte[0x10];
+    byte[] _decryptedRom = null;
     string buttonText = "Tiles";
 
     Texture2D[,] TileTextures = new Texture2D[256, 32];
@@ -36,7 +33,6 @@ public class PacManPCB : IArcadeMachine
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     private int tileViewerPaletteIndex { get; set; } = 0;
     int pIndex = 0;
-    bool neonHackEnabled = false;
     public bool secondPlayerFlip
     {
         get => memoryBus.SecondPlayerFlip;
@@ -51,36 +47,11 @@ public class PacManPCB : IArcadeMachine
     
     private List<DrawRequest> requests = new ();
     
-    MachineRomSet pacman = new MachineRomSet("pacman", [
-        new RomRegion(0x10000, "maincpu", 0, [
-            new RomFile("pacman.6e", 0x0000, 0x1000),
-            new RomFile("pacman.6f", 0x1000, 0x1000),
-            new RomFile("pacman.6h", 0x2000, 0x1000),
-            new RomFile("pacman.6j", 0x3000, 0x1000)
-        ]),
-
-        new RomRegion(0x2000, "gfx1", 0, [
-            new RomFile("pacman.5e", 0x0000, 0x1000),
-            new RomFile("pacman.5f", 0x1000, 0x1000)
-        ]),
-        
-        new RomRegion(0x0120, "proms", 0, [
-            new RomFile("82s123.7f", 0x0000, 0x0020),
-            new RomFile("82s126.4a", 0x0020, 0x0100)
-        ]),
-        
-        new RomRegion(0x0200, "namco", 0, [
-            new RomFile("82s126.1m", 0x0000, 0x0100),
-            new RomFile("82s126.3m", 0x0100, 0x0100),
-        ])
-    ]);
-    
-    public PacManPCB(string romFileName, bool twoPlayerScreenFlip, bool[] hacks)
+    public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
     {
-        neonHackEnabled = hacks[0];
         LoadRom(romFileName);
-        wsg = new NamcoWSG(romFileName);
-        memoryBus = new PacManMemoryBus(Memory, AuxROMs, spriteram, spriteram2, wsg);
+        wsg = new NamcoWSG(_namco);
+        memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
         memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
         memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
         memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
@@ -428,409 +399,52 @@ public class PacManPCB : IArcadeMachine
     {
         return spriteram2[index];
     }
-    
-    private void LoadRom(string romFileName)
+
+    private void LoadRegionIntoMemory(RomSets.RomRegion region, ZipArchive archive, byte[] destination)
     {
-        switch (romFileName)
+        foreach (var file in region.Files)
         {
-            case "pacman" or "matrix":
-            {
-                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
-                
-                var romMap = new Dictionary<string, int>
-                {
-                    { "pacman.6e", 0x0000 },
-                    { "pacman.6f", 0x1000 },
-                    { "pacman.6h", 0x2000 },
-                    { "pacman.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
+            var entry = archive.GetEntry(file.Filename);
+            if (entry == null) continue;
             
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
+            using Stream s = entry.Open();
 
-                charMemory = ExtractRom(archive, "pacman.5e");
-                spriteMemory = ExtractRom(archive, "pacman.5f");
-                paletteMemory = ExtractRom(archive, "82s126.4a");
-                if (romFileName == "pacman")
-                {
-                    if(neonHackEnabled)
-                        LoadPacmanNeonHack();
-                }
-
-                break;
-            }
-            case "pacmanf":
-            {
-                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
-                
-                var romMap = new Dictionary<string, int>
-                {
-                    { "pacman.6e", 0x0000 },
-                    { "pacfast.6f", 0x1000 },
-                    { "pacman.6h", 0x2000 },
-                    { "pacman.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
+            Span<byte> targetSlice = destination.AsSpan((int)file.Offset, (int)file.Length);
             
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
-
-                charMemory = ExtractRom(archive, "pacman.5e");
-                spriteMemory = ExtractRom(archive, "pacman.5f");
-                paletteMemory = ExtractRom(archive, "82s126.4a");
-                if (romFileName == "pacman")
-                {
-                    if(neonHackEnabled)
-                        LoadPacmanNeonHack();
-                }
-
-                break;
-            }
-            case "mspacman":
-            {
-                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
-                var romMap = new Dictionary<string, int>
-                {
-                    { "pacman.6e", 0x0000 },
-                    { "pacman.6f", 0x1000 },
-                    { "pacman.6h", 0x2000 },
-                    { "pacman.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
-            
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
-
-                charMemory = ExtractRom(archive, "5e");
-                spriteMemory = ExtractRom(archive, "5f");
-                paletteMemory = ExtractRom(archive, "82s126.4a");
-            
-                u5 = ExtractRom(archive, "u5");
-                u6 = ExtractRom(archive, "u6");
-                u7 = ExtractRom(archive, "u7");
-                byte[] codeRom1 = ExtractRom(archive, "pacman.6e");
-                byte[] codeRom2 = ExtractRom(archive, "pacman.6f");
-                byte[] codeRom3 = ExtractRom(archive, "pacman.6h");
-
-                AuxROMs = new byte[(16 + 10) * 1024];
-
-                for (int i = 0; i < 0x1000; i++)
-                {
-                    AuxROMs[decryptAddr1((uint)i) + 0x4000] = (byte)decryptData(u7[i]);
-                    AuxROMs[decryptAddr1((uint)i) + 0x5000] = (byte)decryptData(u6[i]);
-                }
-
-                for (int i = 0; i < 0x0800; i++)
-                {
-                    AuxROMs[decryptAddr2((uint)i) + 0x6000] = (byte)decryptData(u5[i]);
-                }
-            
-                Array.Copy(codeRom1, 0, AuxROMs, 0x0000, 0x1000);
-                Array.Copy(codeRom2, 0, AuxROMs, 0x1000, 0x1000);
-                Array.Copy(codeRom3, 0, AuxROMs, 0x2000, 0x1000);
-                Array.Copy(AuxROMs, 0x4000, AuxROMs, 0x3000, 0x1000);
-
-                for (int i = 0; i < 8; i++)
-                {
-                    AuxROMs[0x0410 + i] = AuxROMs[0x6008 + i];
-                    AuxROMs[0x08E0 + i] = AuxROMs[0x61D8 + i];
-                    AuxROMs[0x0A30 + i] = AuxROMs[0x6118 + i];
-                    AuxROMs[0x0BD0 + i] = AuxROMs[0x60D8 + i];
-                    AuxROMs[0x0C20 + i] = AuxROMs[0x6120 + i];
-                    AuxROMs[0x0E58 + i] = AuxROMs[0x6168 + i];
-                    AuxROMs[0x0EA8 + i] = AuxROMs[0x6198 + i];
-
-                    AuxROMs[0x1000 + i] = AuxROMs[0x6020 + i];
-                    AuxROMs[0x1008 + i] = AuxROMs[0x6010 + i];
-                    AuxROMs[0x1288 + i] = AuxROMs[0x6098 + i];
-                    AuxROMs[0x1348 + i] = AuxROMs[0x6048 + i];
-                    AuxROMs[0x1688 + i] = AuxROMs[0x6088 + i];
-                    AuxROMs[0x16B0 + i] = AuxROMs[0x6188 + i];
-                    AuxROMs[0x16D8 + i] = AuxROMs[0x60C8 + i];
-                    AuxROMs[0x16F8 + i] = AuxROMs[0x61C8 + i];
-                    AuxROMs[0x19A8 + i] = AuxROMs[0x60A8 + i];
-                    AuxROMs[0x19B8 + i] = AuxROMs[0x61A8 + i];
-
-                    AuxROMs[0x2060 + i] = AuxROMs[0x6148 + i];
-                    AuxROMs[0x2108 + i] = AuxROMs[0x6018 + i];
-                    AuxROMs[0x21A0 + i] = AuxROMs[0x61A0 + i];
-                    AuxROMs[0x2298 + i] = AuxROMs[0x60A0 + i];
-                    AuxROMs[0x23E0 + i] = AuxROMs[0x60E8 + i];
-                    AuxROMs[0x2418 + i] = AuxROMs[0x6000 + i];
-                    AuxROMs[0x2448 + i] = AuxROMs[0x6058 + i];
-                    AuxROMs[0x2470 + i] = AuxROMs[0x6140 + i];
-                    AuxROMs[0x2488 + i] = AuxROMs[0x6080 + i];
-                    AuxROMs[0x24B0 + i] = AuxROMs[0x6180 + i];
-                    AuxROMs[0x24D8 + i] = AuxROMs[0x60C0 + i];
-                    AuxROMs[0x24F8 + i] = AuxROMs[0x61C0 + i];
-                    AuxROMs[0x2748 + i] = AuxROMs[0x6050 + i];
-                    AuxROMs[0x2780 + i] = AuxROMs[0x6090 + i];
-                    AuxROMs[0x27B8 + i] = AuxROMs[0x6190 + i];
-                    AuxROMs[0x2800 + i] = AuxROMs[0x6028 + i];
-                    AuxROMs[0x2B20 + i] = AuxROMs[0x6100 + i];
-                    AuxROMs[0x2B30 + i] = AuxROMs[0x6110 + i];
-                    AuxROMs[0x2BF0 + i] = AuxROMs[0x61D0 + i];
-                    AuxROMs[0x2CC0 + i] = AuxROMs[0x60D0 + i];
-                    AuxROMs[0x2CD8 + i] = AuxROMs[0x60E0 + i];
-                    AuxROMs[0x2CF0 + i] = AuxROMs[0x61E0 + i];
-                    AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
-                }
-
-                if (romFileName == "mspacman")
-                {
-                    if(neonHackEnabled)
-                        LoadMsPacmanNeonHack();
-                }
-                
-                break;
-            }
-            
-            case "mspacmnf":
-            {
-                using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
-                var romMap = new Dictionary<string, int>
-                {
-                    { "pacman.6e", 0x0000 },
-                    { "pacfast.6f", 0x1000 },
-                    { "pacman.6h", 0x2000 },
-                    { "pacman.6j", 0x3000 }
-                };
-
-                foreach (var entry in romMap)
-                {
-                    ZipArchiveEntry romEntry =  archive.GetEntry(entry.Key);
-
-                    if (romEntry != null)
-                    {
-                        using Stream s = romEntry.Open();
-                        byte[] buffer = new byte[romEntry.Length];
-                        s.ReadExactly(buffer, 0, buffer.Length);
-                
-                        Buffer.BlockCopy(buffer, 0, Memory, entry.Value, buffer.Length);
-                    }
-            
-                    else
-                    {
-                        throw new FileNotFoundException($"Required ROM file {entry.Key} not found in zip!");
-                    }
-                }
-
-                charMemory = ExtractRom(archive, "5e");
-                spriteMemory = ExtractRom(archive, "5f");
-                paletteMemory = ExtractRom(archive, "82s126.4a");
-            
-                u5 = ExtractRom(archive, "u5");
-                u6 = ExtractRom(archive, "u6");
-                u7 = ExtractRom(archive, "u7");
-                byte[] codeRom1 = ExtractRom(archive, "pacman.6e");
-                byte[] codeRom2 = ExtractRom(archive, "pacfast.6f");
-                byte[] codeRom3 = ExtractRom(archive, "pacman.6h");
-
-                AuxROMs = new byte[(16 + 10) * 1024];
-
-                for (int i = 0; i < 0x1000; i++)
-                {
-                    AuxROMs[decryptAddr1((uint)i) + 0x4000] = (byte)decryptData(u7[i]);
-                    AuxROMs[decryptAddr1((uint)i) + 0x5000] = (byte)decryptData(u6[i]);
-                }
-
-                for (int i = 0; i < 0x0800; i++)
-                {
-                    AuxROMs[decryptAddr2((uint)i) + 0x6000] = (byte)decryptData(u5[i]);
-                }
-            
-                Array.Copy(codeRom1, 0, AuxROMs, 0x0000, 0x1000);
-                Array.Copy(codeRom2, 0, AuxROMs, 0x1000, 0x1000);
-                Array.Copy(codeRom3, 0, AuxROMs, 0x2000, 0x1000);
-                Array.Copy(AuxROMs, 0x4000, AuxROMs, 0x3000, 0x1000);
-
-                for (int i = 0; i < 8; i++)
-                {
-                    AuxROMs[0x0410 + i] = AuxROMs[0x6008 + i];
-                    AuxROMs[0x08E0 + i] = AuxROMs[0x61D8 + i];
-                    AuxROMs[0x0A30 + i] = AuxROMs[0x6118 + i];
-                    AuxROMs[0x0BD0 + i] = AuxROMs[0x60D8 + i];
-                    AuxROMs[0x0C20 + i] = AuxROMs[0x6120 + i];
-                    AuxROMs[0x0E58 + i] = AuxROMs[0x6168 + i];
-                    AuxROMs[0x0EA8 + i] = AuxROMs[0x6198 + i];
-
-                    AuxROMs[0x1000 + i] = AuxROMs[0x6020 + i];
-                    AuxROMs[0x1008 + i] = AuxROMs[0x6010 + i];
-                    AuxROMs[0x1288 + i] = AuxROMs[0x6098 + i];
-                    AuxROMs[0x1348 + i] = AuxROMs[0x6048 + i];
-                    AuxROMs[0x1688 + i] = AuxROMs[0x6088 + i];
-                    AuxROMs[0x16B0 + i] = AuxROMs[0x6188 + i];
-                    AuxROMs[0x16D8 + i] = AuxROMs[0x60C8 + i];
-                    AuxROMs[0x16F8 + i] = AuxROMs[0x61C8 + i];
-                    AuxROMs[0x19A8 + i] = AuxROMs[0x60A8 + i];
-                    AuxROMs[0x19B8 + i] = AuxROMs[0x61A8 + i];
-
-                    AuxROMs[0x2060 + i] = AuxROMs[0x6148 + i];
-                    AuxROMs[0x2108 + i] = AuxROMs[0x6018 + i];
-                    AuxROMs[0x21A0 + i] = AuxROMs[0x61A0 + i];
-                    AuxROMs[0x2298 + i] = AuxROMs[0x60A0 + i];
-                    AuxROMs[0x23E0 + i] = AuxROMs[0x60E8 + i];
-                    AuxROMs[0x2418 + i] = AuxROMs[0x6000 + i];
-                    AuxROMs[0x2448 + i] = AuxROMs[0x6058 + i];
-                    AuxROMs[0x2470 + i] = AuxROMs[0x6140 + i];
-                    AuxROMs[0x2488 + i] = AuxROMs[0x6080 + i];
-                    AuxROMs[0x24B0 + i] = AuxROMs[0x6180 + i];
-                    AuxROMs[0x24D8 + i] = AuxROMs[0x60C0 + i];
-                    AuxROMs[0x24F8 + i] = AuxROMs[0x61C0 + i];
-                    AuxROMs[0x2748 + i] = AuxROMs[0x6050 + i];
-                    AuxROMs[0x2780 + i] = AuxROMs[0x6090 + i];
-                    AuxROMs[0x27B8 + i] = AuxROMs[0x6190 + i];
-                    AuxROMs[0x2800 + i] = AuxROMs[0x6028 + i];
-                    AuxROMs[0x2B20 + i] = AuxROMs[0x6100 + i];
-                    AuxROMs[0x2B30 + i] = AuxROMs[0x6110 + i];
-                    AuxROMs[0x2BF0 + i] = AuxROMs[0x61D0 + i];
-                    AuxROMs[0x2CC0 + i] = AuxROMs[0x60D0 + i];
-                    AuxROMs[0x2CD8 + i] = AuxROMs[0x60E0 + i];
-                    AuxROMs[0x2CF0 + i] = AuxROMs[0x61E0 + i];
-                    AuxROMs[0x2D60 + i] = AuxROMs[0x6160 + i];
-                }
-
-                if (romFileName == "mspacman")
-                {
-                    if(neonHackEnabled)
-                        LoadMsPacmanNeonHack();
-                }
-                
-                break;
-            }
+            s.ReadExactly(targetSlice);
         }
     }
-
-    private void LoadPacmanNeonHack()
-    {
-        Array.Copy(LoadSpriteROM("roms/hacks/neon/pacman/pacman.5f"),spriteMemory,4096);
-        Array.Copy(LoadCharROM("roms/hacks/neon/pacman/pacman.5e"),charMemory,4096);
-    }
-
-    private void LoadMsPacmanNeonHack()
-    {
-        Array.Copy(LoadSpriteROM("roms/hacks/neon/mspacman/5f"),spriteMemory,4096);
-        Array.Copy(LoadCharROM("roms/hacks/neon/mspacman/5e"),charMemory,4096);
-    }
     
-    private static byte[] LoadCharROM(string path)
+    private void LoadRom(string romfile)
     {
-        byte[] charROM = File.ReadAllBytes(path);
-
-        if (charROM.Length != 4096)
-            throw new Exception($"Unexpected ROM size: {charROM.Length} bytes");
-
-        return charROM;
-    }
-
-    private static byte[] LoadSpriteROM(string path)
-    {
-        byte[] spriteROM = File.ReadAllBytes(path);
-
-        if (spriteROM.Length != 4096)
-            throw new Exception($"Unexpected ROM size: {spriteROM.Length} bytes");
-
-        return spriteROM;
-    }
-
-    private static byte[] ExtractRom(ZipArchive archive, string fileName)
-    {
-        ZipArchiveEntry entry = archive.GetEntry(fileName);
-        if (entry == null) throw new FileNotFoundException($"Missing {fileName}");
-
-        using Stream s = entry.Open();
-        byte[] data = new byte[entry.Length];
-        s.ReadExactly(data, 0, data.Length);
-        return data;
-    }
-
-    public void ClearRAM()
-    {
-        Array.Clear(Memory, 0, Memory.Length);
-    }
-
-    // methods for decrypting Ms. Pac-Man data and applying the data to Pac-Man
-    // referenced from JustinCredible and MAME
-    private static uint decryptData(uint data)
-    {
-        uint decryptedData = (data & 0xC0) >> 3;
-        decryptedData |= (data & 0x10) << 2;
-        decryptedData |= (data & 0x0E) >> 1;
-        decryptedData |= (data & 0x01) << 7;
-        decryptedData |= data & 0x20;
+        _maincpu = new byte[RomSets.Get(romfile)["maincpu"].Size];
+        _gfx1 = new byte[RomSets.Get(romfile)["gfx1"].Size];
+        _proms = new byte[RomSets.Get(romfile)["proms"].Size];
+        _namco = new byte[RomSets.Get(romfile)["namco"].Size];
         
-        return decryptedData;
-    }
+        using ZipArchive archive = ZipFile.OpenRead("roms/" + romfile + ".zip");
 
-    private static uint decryptAddr1(uint data)
-    {
-        uint decryptedData = data & 0x807;
-        decryptedData |= (data & 0x400) >> 7;
-        decryptedData |= (data & 0x200) >> 2;
-        decryptedData |= (data & 0x080) << 3;
-        decryptedData |= (data & 0x040) << 2;
-        decryptedData |= (data & 0x138) << 1;
+        if (RomSets.Get(romfile).Parent != null) // Ms. Pac-Man needs Pac-Man loaded first
+        {
+            string romParent = RomSets.Get(romfile).Parent;
+            LoadRegionIntoMemory(RomSets.Get(romParent)["maincpu"], archive, _maincpu);
+            LoadRegionIntoMemory(RomSets.Get(romParent)["gfx1"], archive, _gfx1);
+            LoadRegionIntoMemory(RomSets.Get(romParent)["proms"], archive, _proms);
+            LoadRegionIntoMemory(RomSets.Get(romParent)["namco"], archive, _namco);
+        }
         
-        return decryptedData;
-    }
+        LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
+        LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
+        LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
+        LoadRegionIntoMemory(RomSets.Get(romfile)["namco"], archive, _namco);
+        
+        if(romfile is "mspacman" or "mspacmnf")
+        {
+            var daughterBoard = new MsPacManDaughterBoard(_maincpu);
+            daughterBoard.Initialize();
 
-    private static uint decryptAddr2(uint data)
-    {
-        uint decryptedData = data & 0x807;
-        decryptedData |= (data & 0x040) << 4;
-        decryptedData |= (data & 0x100) >> 3;
-        decryptedData |= (data & 0x080) << 2;
-        decryptedData |= (data & 0x600) >> 2;
-        decryptedData |= (data & 0x028) << 1;
-        decryptedData |= (data & 0x010) >> 1;
-        
-        return decryptedData;
+            _decryptedRom = daughterBoard.DecryptedMemory;
+        }
     }
 
     private void PreparePalettes()
@@ -838,10 +452,10 @@ public class PacManPCB : IArcadeMachine
         for (int i = 0; i < 32; i++)
         {
             palettes.Add([
-                colors[paletteMemory[4*i + 0]],
-                colors[paletteMemory[4*i + 1]],
-                colors[paletteMemory[4*i + 2]],
-                colors[paletteMemory[4*i + 3]]
+                colors[_proms[4*i + 0 + 0x20]],
+                colors[_proms[4*i + 1 + 0x20]],
+                colors[_proms[4*i + 2 + 0x20]],
+                colors[_proms[4*i + 3 + 0x20]]
             ]);
         }
         // second 32 palettes are just black
@@ -926,7 +540,7 @@ public class PacManPCB : IArcadeMachine
         int[,] tile = new int[8,8];
         for(int i = 0; i < 8; i++) // first 8 bytes of tile
         {
-            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            byte pixelQuad = _gfx1[i + (tileIndex * 16)];
             for(int r = 4; r < 8; r++)
             {
                 tile[7-i,r] = GetPixelValue(pixelQuad,r);
@@ -934,7 +548,7 @@ public class PacManPCB : IArcadeMachine
         }
         for(int i = 8; i < 16; i++) // second 8 bytes of tile
         {
-            byte pixelQuad = charMemory[i + (tileIndex * 16)];
+            byte pixelQuad = _gfx1[i + (tileIndex * 16)];
             for(int r = 0; r < 4; r++)
             {
                 tile[15-i,r] = GetPixelValue(pixelQuad, r);
@@ -949,7 +563,7 @@ public class PacManPCB : IArcadeMachine
         int[,] sprite = new int[16,16];
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = spriteMemory[(0x00 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x00 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -958,7 +572,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = spriteMemory[(0x08 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x08 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,r] = GetPixelValue(spriteQuad, r);
@@ -967,7 +581,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = spriteMemory[(0x10 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x10 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -976,7 +590,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = spriteMemory[(0x18 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x18 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -985,7 +599,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = spriteMemory[(0x20 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x20 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -994,7 +608,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = spriteMemory[(0x28 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x28 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,r] = GetPixelValue(spriteQuad, r);
@@ -1003,7 +617,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = spriteMemory[(0x30 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x30 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -1012,7 +626,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = spriteMemory[(0x38 + i) + (0x40 * spriteIndex)];
+            byte spriteQuad = _gfx1[(0x38 + i) + (0x40 * spriteIndex) + 0x1000];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);

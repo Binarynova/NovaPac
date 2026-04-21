@@ -1,6 +1,4 @@
-using System.IO.Compression;
-
-public class NamcoWSG
+public class NamcoWSG(byte[] waveformRom)
 {
     private double _accumulator = 0;
     private const double CyclesPerSample = 3072000.0 / 44100.0;
@@ -9,7 +7,6 @@ public class NamcoWSG
     private const int MaxGain = 90;
     
     private Queue<short> _sampleBuffer = new ();
-    private byte[] waveformROM = new byte[512];
 
     private int Voice1Frequency = 0;
     private byte Voice1Volume = 0x00;
@@ -25,11 +22,6 @@ public class NamcoWSG
     private byte Voice3Volume = 0x00;
     private byte Voice3Waveform = 0x00;
     private double Voice3Accumulator = 0;
-
-    public NamcoWSG(string romFileName)
-    {
-        LoadRom(romFileName);
-    }
 
     public void Update(int cycles)
     {
@@ -69,19 +61,19 @@ public class NamcoWSG
         Voice1Accumulator += Voice1Frequency * soundTicksPerSample;
         Voice1Accumulator %= 0x100000;
         int idx1 = ((int)Voice1Accumulator >> 15) & 0x1F;
-        combinedOutput += (waveformROM[(Voice1Waveform * 32) + idx1] - 8) * Voice1Volume;
+        combinedOutput += (waveformRom[(Voice1Waveform * 32) + idx1] - 8) * Voice1Volume;
 
         // Voice 2 (16-bit)
         Voice2Accumulator += Voice2Frequency * soundTicksPerSample;
         Voice2Accumulator %= 0x100000;
         int idx2 = ((int)Voice2Accumulator >> 11) & 0x1F;
-        combinedOutput += (waveformROM[(Voice2Waveform * 32) + idx2] - 8) * Voice2Volume;
+        combinedOutput += (waveformRom[(Voice2Waveform * 32) + idx2] - 8) * Voice2Volume;
 
         // Voice 3 (16-bit)
         Voice3Accumulator += Voice3Frequency * soundTicksPerSample;
         Voice3Accumulator %= 0x100000;
         int idx3 = ((int)Voice3Accumulator >> 11) & 0x1F;
-        combinedOutput += (waveformROM[(Voice3Waveform * 32) + idx3] - 8) * Voice3Volume;
+        combinedOutput += (waveformRom[(Voice3Waveform * 32) + idx3] - 8) * Voice3Volume;
 
         float finalGain = MasterVolume * MaxGain;
         return (short)(combinedOutput * finalGain);
@@ -116,29 +108,5 @@ public class NamcoWSG
             case 0x505E: Voice3Frequency = (Voice3Frequency & ~0x0F000) | ((value & 0x0F) << 12); break;
             case 0x505F: Voice3Volume = (byte)(value & 0x0F); break;
         }
-    }
-    
-    private void LoadRom(string romFileName)
-    {
-        if (romFileName is "pacman" or "matrix" or "pacmanf" or "mspacman" or "mspacmnf")
-        {
-            using ZipArchive archive = ZipFile.OpenRead("roms/" + romFileName + ".zip");
-            
-            byte[] soundRom1 = ExtractRom(archive, "82s126.1m");
-            byte[] soundRom2 = ExtractRom(archive, "82s126.3m");
-            Array.Copy(soundRom1, 0, waveformROM, 0, 256);
-            Array.Copy(soundRom2, 0, waveformROM, 256, 256);
-        }
-    }
-
-    private static byte[] ExtractRom(ZipArchive archive, string fileName)
-    {
-        ZipArchiveEntry entry = archive.GetEntry(fileName);
-        if (entry == null) throw new FileNotFoundException($"Missing {fileName}");
-
-        using Stream s = entry.Open();
-        byte[] data = new byte[entry.Length];
-        s.ReadExactly(data, 0, data.Length);
-        return data;
     }
 }

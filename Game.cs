@@ -61,7 +61,6 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<string> _menuPlay = [ "Play", "Play (Cocktail)" ];
     private List<List<string>> _pacManOptions =
     [
-        ["Normal Color", "Neon Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -71,7 +70,6 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private List<List<string>> _msPacManOptions =
     [
-        ["Normal Color", "Neon Hack"],
         ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
         ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
         ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
@@ -80,7 +78,7 @@ public class Game : Microsoft.Xna.Framework.Game
     
     private int _selectedIndex = 0;
     private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = [0, 1, 2, 0, 1, 1];
+    private List<int> _selectedSubOptionIndices = [1, 2, 0, 1, 1];
     private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     private bool _isDebugOpen = false;
@@ -143,9 +141,7 @@ public class Game : Microsoft.Xna.Framework.Game
         };
         
         _soundOut.Play();
-        bool[] hacks = new bool[2];
-        hacks[0] = _selectedSubOptionIndices[0] == 1;
-        _activeMachine = new PacManPCB(romFileName, verticalScreenMode, hacks);
+        _activeMachine = new PacManPCB(romFileName, verticalScreenMode);
         
         _activeMachine.InitializeGraphics(GraphicsDevice);
         _activeMachine.subOptionIndices = _selectedSubOptionIndices;
@@ -324,14 +320,13 @@ public class Game : Microsoft.Xna.Framework.Game
             
                     _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
                     pos.Y += _menuItemOffset;
-                    if(i == 3) pos.Y += _menuItemOffset;
                 }
 
                 break;
             }
             case 1:
             {
-                if (_mainMenu[_selectedIndex][0] == "Ms. Pac-Man")
+                if (_mainMenu[_selectedIndex][0] is "Ms. Pac-Man" or "Ms. Pac-Man (Fast)")
                     _menuOptions = _msPacManOptions;
                 else
                     _menuOptions = _pacManOptions;
@@ -347,28 +342,26 @@ public class Game : Microsoft.Xna.Framework.Game
                     pos.Y += _menuItemOffset;
                 }
 
-                if (_selectedIndex < 2)
+                if (_selectedIndex < 4) // Matrix demo doesn't have these options
                 {
                     pos.Y += 20;
                     _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);
                     pos.Y += _menuItemOffset;
-            
+        
                     for (int i = 0; i < _menuOptions.Count; i++)
                     {
                         // The actual index in the vertical list is offset by the Play buttons
                         int listIndex = _menuPlay.Count + i;
                         Color color = (listIndex == _selectedSubIndex) ? Color.Cyan : Color.White;
-                
+            
                         string optionText = _menuOptions[i][_selectedSubOptionIndices[i]];
-                
+            
                         string displayText = (listIndex == _selectedSubIndex) ? $"< {optionText} >" : $"  {optionText}";
-                
+            
                         _spriteBatch.DrawString(_font, displayText, pos, color);
                         pos.Y += _menuItemOffset;
-                        if(i == 1) pos.Y += _menuItemOffset;
                     }
                 }
-
                 break;
             }
         }

@@ -3,8 +3,9 @@ using Microsoft.Xna.Framework.Input;
 
 public class PacManMemoryBus : IMemoryBus
 {
-    private byte[] _memory;
-    private byte[] _auxRoms;
+    private byte[] _maincpu;
+    
+    private byte[] _decryptedRom;
     private byte[] _spriteRam;
     private byte[] _spriteRam2;
     private NamcoWSG _wsg;
@@ -15,13 +16,14 @@ public class PacManMemoryBus : IMemoryBus
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];
     
-    public PacManMemoryBus(byte[] memory, byte[] auxRoms, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg)
+    public PacManMemoryBus(byte[] decryptedRom, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg, byte[] maincpu)
     {
-        _memory = memory;
-        _auxRoms = auxRoms;
+        _decryptedRom = decryptedRom;
         _spriteRam = spriteRam;
         _spriteRam2 = spriteRam2;
         _wsg = wsg;
+
+        _maincpu = maincpu;
     }
     
     public byte ReadByte(ushort address)
@@ -47,11 +49,11 @@ public class PacManMemoryBus : IMemoryBus
             switch (address)
             {
                 case < 0x4000:
-                    return DecryptEnabled ? _auxRoms[address] : _memory[address];
+                    return DecryptEnabled ? _decryptedRom[address] : _maincpu[address];
                 case >= 0x8000 and < 0x8800:
-                    return _auxRoms[address - 0x8000 + 0x6000];
+                    return _decryptedRom[address - 0x8000 + 0x6000];
                 case >= 0x8800 and < 0xA000:
-                    return _auxRoms[(address & 0xFFF) + 0x5000];
+                    return _decryptedRom[(address & 0xFFF) + 0x5000];
             }
         }
         
@@ -64,7 +66,7 @@ public class PacManMemoryBus : IMemoryBus
             case >= 0x5080 and <= 0x50BF:
                 return GetDipSwitchesFromOptions(); // DIPs
             default:
-                return _memory[NormalizeAddress(address)];
+                return _maincpu[NormalizeAddress(address)];
         }
     }
 
@@ -117,7 +119,7 @@ public class PacManMemoryBus : IMemoryBus
         }
 
         // Store the value in our normalized "canonical" RAM block
-        _memory[normAddr] = value;
+        _maincpu[normAddr] = value;
     }
     
     private static ushort NormalizeAddress(ushort address)
@@ -203,11 +205,11 @@ public class PacManMemoryBus : IMemoryBus
     {
         byte dipSwitchValue = 0x00;
 
-        dipSwitchValue |= (byte)SubOptionIndices[1];
-        dipSwitchValue |= (byte)(SubOptionIndices[2] << 2);
-        dipSwitchValue |= (byte)(SubOptionIndices[3] << 4);
-        dipSwitchValue |= (byte)(SubOptionIndices[4] << 6);
-        dipSwitchValue |= (byte)(SubOptionIndices[5] << 7);
+        dipSwitchValue |= (byte)SubOptionIndices[0];
+        dipSwitchValue |= (byte)(SubOptionIndices[1] << 2);
+        dipSwitchValue |= (byte)(SubOptionIndices[2] << 4);
+        dipSwitchValue |= (byte)(SubOptionIndices[3] << 6);
+        dipSwitchValue |= (byte)(SubOptionIndices[4] << 7);
 
         return dipSwitchValue;
     }
