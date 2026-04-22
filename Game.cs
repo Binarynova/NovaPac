@@ -266,41 +266,41 @@ public class Game : Microsoft.Xna.Framework.Game
             {
                 case MenuState.SelectingGame:
                     // Vertical Navigation (Switching Games)
-                    if (KeyPressed(Keys.Up))
+                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) || ButtonPressed(Buttons.LeftThumbstickUp))
                     {
                         _menuVerticalIndex--;
                         if (_menuVerticalIndex < 0) _menuVerticalIndex = _gameMenu.Count - 1; // Wrap to bottom
                     }
 
-                    if (KeyPressed(Keys.Down))
+                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) || ButtonPressed(Buttons.LeftThumbstickDown))
                     {
                         _menuVerticalIndex++;
                         if (_menuVerticalIndex >= _gameMenu.Count) _menuVerticalIndex = 0; // Wrap to top
                     }
 
                     // Horizontal Navigation (Switching ROM variants)
-                    if (KeyPressed(Keys.Left) && currentGame.Variants.Count > 1)
+                    if ((KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft)) && currentGame.Variants.Count > 1)
                     {
                         currentGame.SelectedVariantIndex--;
                         if (currentGame.SelectedVariantIndex < 0)
                             currentGame.SelectedVariantIndex = currentGame.Variants.Count - 1;
                     }
 
-                    if (KeyPressed(Keys.Right) && currentGame.Variants.Count > 1)
+                    if ((KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) || ButtonPressed(Buttons.LeftThumbstickRight)) && currentGame.Variants.Count > 1)
                     {
                         currentGame.SelectedVariantIndex++;
                         if (currentGame.SelectedVariantIndex >= currentGame.Variants.Count)
                             currentGame.SelectedVariantIndex = 0;
                     }
 
-                    if (KeyPressed(Keys.Tab) && currentVariant.DipSwitches.Count > 0)
+                    if ((KeyPressed(Keys.Tab) || ButtonPressed(Buttons.Back)) && currentVariant.DipSwitches.Count > 0)
                     {
                         _currentMenuState = MenuState.ConfiguringDips;
                         _dipVerticalIndex = 0;
                     }
                     
                     // Starting the Game
-                    if (KeyPressed(Keys.Enter))
+                    if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
                     {
                         string selectedRomId = currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
                         string gameName = currentGame.GameName;
@@ -322,14 +322,14 @@ public class Game : Microsoft.Xna.Framework.Game
                 
                 case MenuState.ConfiguringDips:
                     // Up/Down changes WHICH dipswitch we are tweaking
-                    if (KeyPressed(Keys.Up))
+                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) || ButtonPressed(Buttons.LeftThumbstickUp))
                     {
                         _dipVerticalIndex--; /* add bounds wrap */
                         if (_dipVerticalIndex < 0)
                             _dipVerticalIndex = currentVariant.DipSwitches.Count - 1;
                     }
 
-                    if (KeyPressed(Keys.Down))
+                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) || ButtonPressed(Buttons.LeftThumbstickDown))
                     {
                         _dipVerticalIndex++; /* add bounds wrap */
                         if (_dipVerticalIndex >= currentVariant.DipSwitches.Count)
@@ -339,14 +339,14 @@ public class Game : Microsoft.Xna.Framework.Game
                     var activeDip = currentVariant.DipSwitches[_dipVerticalIndex];
 
                     // Left/Right changes the selected OPTION for that switch
-                    if (KeyPressed(Keys.Left))
+                    if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft))
                     {
                         activeDip.SelectedIndex--; /* add bounds wrap */
                         if (activeDip.SelectedIndex < 0)
                             activeDip.SelectedIndex = currentVariant.DipSwitches[_dipVerticalIndex].Options.Count - 1;
                     }
 
-                    if (KeyPressed(Keys.Right))
+                    if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) || ButtonPressed(Buttons.LeftThumbstickRight))
                     {
                         activeDip.SelectedIndex++; /* add bounds wrap */
                         if (activeDip.SelectedIndex >= currentVariant.DipSwitches[_dipVerticalIndex].Options.Count)
@@ -354,7 +354,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     }
 
                     // Press TAB or ESC to go back to game selection
-                    if (KeyPressed(Keys.Tab) || KeyPressed(Keys.Escape))
+                    if (KeyPressed(Keys.Tab) || ButtonPressed(Buttons.Back))
                     {
                         _currentMenuState = MenuState.SelectingGame;
                     }
