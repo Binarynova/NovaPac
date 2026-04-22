@@ -205,11 +205,11 @@ public class PacManMemoryBus : IMemoryBus
     {
         byte dipSwitchValue = 0x00;
 
-        dipSwitchValue |= (byte)SubOptionIndices[0];
-        dipSwitchValue |= (byte)(SubOptionIndices[1] << 2);
-        dipSwitchValue |= (byte)(SubOptionIndices[2] << 4);
-        dipSwitchValue |= (byte)(SubOptionIndices[3] << 6);
-        dipSwitchValue |= (byte)(SubOptionIndices[4] << 7);
+        dipSwitchValue |= (byte)SubOptionIndices[1];
+        dipSwitchValue |= (byte)(SubOptionIndices[2] << 2);
+        dipSwitchValue |= (byte)(SubOptionIndices[3] << 4);
+        dipSwitchValue |= (byte)(SubOptionIndices[4] << 6);
+        dipSwitchValue |= (byte)(SubOptionIndices[5] << 7);
 
         return dipSwitchValue;
     }

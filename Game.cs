@@ -31,6 +31,15 @@ public class Game : Microsoft.Xna.Framework.Game
     float _floatScale = 1.0f;
     bool paused = false;
 
+    private enum MenuState
+    {
+        SelectingGame,
+        ConfiguringDips
+    }
+
+    private MenuState _currentMenuState = MenuState.SelectingGame;
+    private int _dipVerticalIndex = 0; // Tracks which dipswitch you are tweaking
+    
     IArcadeMachine _activeMachine;
     ImGuiRenderer _renderer;
     
@@ -38,7 +47,7 @@ public class Game : Microsoft.Xna.Framework.Game
     // 0 = Not Loading
     // 1 = Load Triggered (Waiting to Draw)
     // 2 = Loading Screen Drawn (Ready to Load ROMs)
-
+    
     private string _pendingRomName;
     private string _pendingWindowTitle;
 
@@ -47,46 +56,121 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private const int _menuTitleOffset = 60;
     private const int _menuItemOffset = 40;
+
+    private List<GameMenuItem> _gameMenu;
+    private int _menuVerticalIndex = 0;
+
+    private void InitializeMenu()
+    {
+        _gameMenu =
+        [
+            new GameMenuItem
+            {
+                GameName = "Pac-Man",
+                Variants =
+                [
+                    new RomVariant
+                    {
+                        DisplayName = "Midway",
+                        RomId = "pacman",
+                        DipSwitches =
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0},
+                            new DipSwitch { Name = "Coinage", Options = ["Free Play", "1 Coin/1 Credit", "1 Coin/2 Credits", "2 Coins/1 Credit"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
+                            new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
+                            new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Ghost Names", Options = ["Alternate", "Normal"], SelectedIndex = 1 }
+                        ]
+                    },
+                    new RomVariant
+                    {
+                        DisplayName = "Speedup Hack",
+                        RomId = "pacmanf",
+                        DipSwitches =
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0},
+                            new DipSwitch { Name = "Coinage", Options = ["Free Play", "1 Coin/1 Credit", "1 Coin/2 Credits", "2 Coins/1 Credit"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
+                            new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
+                            new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Ghost Names", Options = ["Alternate", "Normal"], SelectedIndex = 1 }
+                        ]
+                    }
+                ]
+            },
+            
+            new GameMenuItem
+            {
+                GameName = "Ms. Pac-Man",
+                Variants =
+                [
+                    new RomVariant
+                    {
+                        DisplayName = "Midway/GCC",
+                        RomId = "mspacman",
+                        DipSwitches =
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0},
+                            new DipSwitch { Name = "Coinage", Options = ["Free Play", "1 Coin/1 Credit", "1 Coin/2 Credits", "2 Coins/1 Credit"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
+                            new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
+                            new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 }
+                        ]
+                    },
+                    new RomVariant
+                    {
+                        DisplayName = "Speedup Hack",
+                        RomId = "mspacmnf",
+                        DipSwitches =
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0},
+                            new DipSwitch { Name = "Coinage", Options = ["Free Play", "1 Coin/1 Credit", "1 Coin/2 Credits", "2 Coins/1 Credit"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
+                            new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
+                            new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 }
+                        ]
+                    }
+                ]
+            },
+            
+            new GameMenuItem
+            {
+                GameName = "Matrix Effect",
+                Variants =
+                [
+                    new RomVariant
+                    {
+                        DisplayName = "Demo",
+                        RomId = "matrix",
+                        DipSwitches = 
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0 }
+                        ]
+                    }
+                ]
+            }
+        ];
+    }
     
-    private List<List<string>> _menuOptions = [];
-    private List<List<string>> _mainMenu =
-    [
-        ["Pac-Man", "pacman"],
-        ["Pac-Man (Fast)", "pacmanf"],
-        ["Ms. Pac-Man", "mspacman"],
-        ["Ms. Pac-Man (Fast)", "mspacmnf"],
-        ["Matrix Demo", "matrix"]
-    ];
-    
-    private List<string> _menuPlay = [ "Play", "Play (Cocktail)" ];
-    private List<List<string>> _pacManOptions =
-    [
-        ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
-        ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
-        ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
-        ["Hard", "Normal"],
-        ["Alternate Names", "Normal Names"]
-    ];
-    
-    private List<List<string>> _msPacManOptions =
-    [
-        ["Free Play", "1 Coin Per Game", "1 Coin Per 2 Games", "2 Coins Per Game"],
-        ["1 Life", "2 Lives", "3 Lives", "5 Lives"],
-        ["10,000 Bonus", "15,000 Bonus", "20,000 Bonus", "No Bonus"],
-        ["Hard", "Normal"]
-    ];
-    
-    private int _selectedIndex = 0;
-    private int _selectedSubIndex = 0;
-    private List<int> _selectedSubOptionIndices = [1, 2, 0, 1, 1];
-    private int _menuDepth = 0;
     private bool _isMenuOpen = true;
     private bool _isDebugOpen = false;
     
     string romFileName;
 
+    private List<int> ConvertDipSwitchesToIndices(RomVariant romVariant)
+    {
+        List<int> indices = new();
+
+        for (int i = 0; i < romVariant.DipSwitches.Count; i++)
+            indices.Add(romVariant.DipSwitches[i].SelectedIndex);
+
+        return indices;
+    }
+
     public Game(string[] args)
     {
+        InitializeMenu();
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
         _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
@@ -117,8 +201,10 @@ public class Game : Microsoft.Xna.Framework.Game
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
     }
 
-    private void StartGame(string romFilePath, string windowTitle)
+    private void StartGame(string romFilePath, string windowTitle, List<int> indices)
     {
+        if (indices[0] == 1)
+            verticalScreenMode = true;
         DrawLoadingMessage();
         Window.Title = windowTitle;
         romFileName = romFilePath;
@@ -141,10 +227,9 @@ public class Game : Microsoft.Xna.Framework.Game
         };
         
         _soundOut.Play();
-        _activeMachine = new PacManPCB(romFileName, verticalScreenMode);
+        _activeMachine = new PacManPCB(romFileName, indices);
         
         _activeMachine.InitializeGraphics(GraphicsDevice);
-        _activeMachine.subOptionIndices = _selectedSubOptionIndices;
         _activeMachine.mode = mode;
     }
 
@@ -160,10 +245,14 @@ public class Game : Microsoft.Xna.Framework.Game
     
     protected override void Update(GameTime gameTime)
     {
+        GameMenuItem currentGame = _gameMenu[_menuVerticalIndex];
+        RomVariant currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
+        
         // If the loading screen was drawn last frame, do the heavy work now
         if (_loadState == 2)
         {
-            StartGame(_pendingRomName, _pendingWindowTitle);
+            List<int> indices = ConvertDipSwitchesToIndices(currentVariant);
+            StartGame(_pendingRomName, _pendingWindowTitle, indices);
             _loadState = 0; // Reset state
             paused = false;
         }
@@ -173,74 +262,103 @@ public class Game : Microsoft.Xna.Framework.Game
 
         if (_isMenuOpen)
         {
-            switch (_menuDepth)
+            switch (_currentMenuState)
             {
-                // up / down traverse current menu
-                case 0:
-                {
-                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
-                        _selectedIndex = (_selectedIndex + 1) % _mainMenu.Count;
-                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                        _selectedIndex = (_selectedIndex - 1 + _mainMenu.Count) % _mainMenu.Count;
-                    break;
-                }
-                case 1:
-                {
-                    int _totalSubItems = _menuPlay.Count + _menuOptions.Count;
-                
-                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown))
-                        _selectedSubIndex = (_selectedSubIndex + 1) % _totalSubItems;
-                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp))
-                        _selectedSubIndex = (_selectedSubIndex - 1 + _totalSubItems) % _totalSubItems;
-                
-                    // left/right to change options
-                    if (_selectedSubIndex >= _menuPlay.Count)
+                case MenuState.SelectingGame:
+                    // Vertical Navigation (Switching Games)
+                    if (KeyPressed(Keys.Up))
                     {
-                        int optionIndex = _selectedSubIndex - _menuPlay.Count;
-                        int maxChoices = _menuOptions[optionIndex].Count;
-                    
-                        if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft))
-                            _selectedSubOptionIndices[optionIndex] = (_selectedSubOptionIndices[optionIndex] - 1 + maxChoices) % maxChoices;
-                        if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight))
-                            _selectedSubOptionIndices[optionIndex] = (_selectedSubOptionIndices[optionIndex] + 1) % maxChoices;
+                        _menuVerticalIndex--;
+                        if (_menuVerticalIndex < 0) _menuVerticalIndex = _gameMenu.Count - 1; // Wrap to bottom
                     }
 
-                    break;
-                }
-            }
-            
-            if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
-            {
-                switch (_menuDepth)
-                {
-                    case 0:
-                        _menuDepth = 1;
-                        break;
-                    case 1 when _selectedSubIndex is >= 0 and <= 1:
-                        verticalScreenMode = _selectedSubIndex is 1;
-                        // Queue the game data
-                        _pendingWindowTitle = _mainMenu[_selectedIndex][0];
-                        _pendingRomName = _mainMenu[_selectedIndex][1];
-    
-                        _loadState = 1;      // Trigger the loading screen
+                    if (KeyPressed(Keys.Down))
+                    {
+                        _menuVerticalIndex++;
+                        if (_menuVerticalIndex >= _gameMenu.Count) _menuVerticalIndex = 0; // Wrap to top
+                    }
+
+                    // Horizontal Navigation (Switching ROM variants)
+                    if (KeyPressed(Keys.Left) && currentGame.Variants.Count > 1)
+                    {
+                        currentGame.SelectedVariantIndex--;
+                        if (currentGame.SelectedVariantIndex < 0)
+                            currentGame.SelectedVariantIndex = currentGame.Variants.Count - 1;
+                    }
+
+                    if (KeyPressed(Keys.Right) && currentGame.Variants.Count > 1)
+                    {
+                        currentGame.SelectedVariantIndex++;
+                        if (currentGame.SelectedVariantIndex >= currentGame.Variants.Count)
+                            currentGame.SelectedVariantIndex = 0;
+                    }
+
+                    if (KeyPressed(Keys.Tab) && currentVariant.DipSwitches.Count > 0)
+                    {
+                        _currentMenuState = MenuState.ConfiguringDips;
+                        _dipVerticalIndex = 0;
+                    }
+                    
+                    // Starting the Game
+                    if (KeyPressed(Keys.Enter))
+                    {
+                        string selectedRomId = currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
+                        string gameName = currentGame.GameName;
+                        string gameVariant = currentGame.Variants[currentGame.SelectedVariantIndex].DisplayName;
+
+                        _pendingWindowTitle = gameName + " (" + gameVariant + ") - " + selectedRomId;
+                        _pendingRomName = selectedRomId;
+                        _loadState = 1; // Trigger the loading screen
                         _isMenuOpen = false; // Close the menu
                         paused = false;
-                        break;
-                }
-            }
-            
-            if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
-            {
-                if (_menuDepth == 1)
-                {
-                    _selectedSubIndex = 0;
-                    _menuDepth = 0;
-                }
-            }
-            if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
-            {
-                _isMenuOpen = false;
-                paused = false;
+                    }
+
+                    if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
+                    {
+                        _isMenuOpen = false;
+                        paused = false;
+                    }
+                    break;
+                
+                case MenuState.ConfiguringDips:
+                    // Up/Down changes WHICH dipswitch we are tweaking
+                    if (KeyPressed(Keys.Up))
+                    {
+                        _dipVerticalIndex--; /* add bounds wrap */
+                        if (_dipVerticalIndex < 0)
+                            _dipVerticalIndex = currentVariant.DipSwitches.Count - 1;
+                    }
+
+                    if (KeyPressed(Keys.Down))
+                    {
+                        _dipVerticalIndex++; /* add bounds wrap */
+                        if (_dipVerticalIndex >= currentVariant.DipSwitches.Count)
+                            _dipVerticalIndex = 0;
+                    }
+
+                    var activeDip = currentVariant.DipSwitches[_dipVerticalIndex];
+
+                    // Left/Right changes the selected OPTION for that switch
+                    if (KeyPressed(Keys.Left))
+                    {
+                        activeDip.SelectedIndex--; /* add bounds wrap */
+                        if (activeDip.SelectedIndex < 0)
+                            activeDip.SelectedIndex = currentVariant.DipSwitches[_dipVerticalIndex].Options.Count - 1;
+                    }
+
+                    if (KeyPressed(Keys.Right))
+                    {
+                        activeDip.SelectedIndex++; /* add bounds wrap */
+                        if (activeDip.SelectedIndex >= currentVariant.DipSwitches[_dipVerticalIndex].Options.Count)
+                            activeDip.SelectedIndex = 0;
+                    }
+
+                    // Press TAB or ESC to go back to game selection
+                    if (KeyPressed(Keys.Tab) || KeyPressed(Keys.Escape))
+                    {
+                        _currentMenuState = MenuState.SelectingGame;
+                    }
+                    break;
             }
         }
         else
@@ -300,69 +418,73 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private void DrawMenu()
     {
+        // 1. Get the Game object (e.g., Ms. Pac-Man)
+        var currentGame = _gameMenu[_menuVerticalIndex];
+
+        // 2. Get the specific Variant object (e.g., Fast Hack)
+        var currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
+
+        // 3. (Optional) Get the list of dips for convenience
+        var dips = currentVariant.DipSwitches;
+        
         _spriteBatch.Begin();
         _pixelTexture.SetData([Color.White]);
         _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
 
         Vector2 pos = new (100, 100);
 
-        switch (_menuDepth)
+        _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
+        pos.Y += 80;
+
+        if (_currentMenuState == MenuState.SelectingGame)
         {
-            case 0:
+            for (int i = 0; i < _gameMenu.Count; i++)
             {
-                _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
-                pos.Y += _menuTitleOffset;
+                var game = _gameMenu[i];
+                bool isSelected = (i == _menuVerticalIndex);
 
-                for (int i = 0; i < _mainMenu.Count; i++)
-                {
-                    Color color = (i == _selectedIndex) ? Color.Cyan : Color.White;
-                    string prefix = (i == _selectedIndex) ? "> " : "  ";
+                // Highlight the selected game in Yellow, others in White
+                Color gameColor = isSelected && game.Variants.Count == 1 ? Color.Cyan : Color.White;
+                _spriteBatch.DrawString(_font, game.GameName, pos, gameColor);
+                pos.Y += 30; // Move down for the next line
             
-                    _spriteBatch.DrawString(_font, prefix + _mainMenu[i][0], pos, color);
-                    pos.Y += _menuItemOffset;
+                if (game.Variants.Count > 1)
+                {
+                    // Draw with arrows to indicate horizontal scrolling
+                    string variantText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
+                    _spriteBatch.DrawString(_font, variantText, pos + new Vector2(20, 0), isSelected ? Color.Cyan : Color.White);
+                    pos.Y += 30; // Extra space for the sub-menu
                 }
 
-                break;
+                pos.Y += 20; // Extra spacing between game blocks
             }
-            case 1:
-            {
-                if (_mainMenu[_selectedIndex][0] is "Ms. Pac-Man" or "Ms. Pac-Man (Fast)")
-                    _menuOptions = _msPacManOptions;
-                else
-                    _menuOptions = _pacManOptions;
-                _spriteBatch.DrawString(_font, _mainMenu[_selectedIndex][0].ToUpper(), pos, Color.Yellow);
-                pos.Y += _menuTitleOffset;
-
-                for (int i = 0; i < _menuPlay.Count; i++)
-                {
-                    Color color = (i == _selectedSubIndex) ? Color.Cyan : Color.White;
-                    string prefix = (i == _selectedSubIndex) ? "> " : "  ";
-                
-                    _spriteBatch.DrawString(_font, prefix + _menuPlay[i], pos, color);
-                    pos.Y += _menuItemOffset;
-                }
-
-                if (_selectedIndex < 4) // Matrix demo doesn't have these options
-                {
-                    pos.Y += 20;
-                    _spriteBatch.DrawString(_font, "OPTIONS", pos, Color.Yellow);
-                    pos.Y += _menuItemOffset;
+        }
         
-                    for (int i = 0; i < _menuOptions.Count; i++)
-                    {
-                        // The actual index in the vertical list is offset by the Play buttons
-                        int listIndex = _menuPlay.Count + i;
-                        Color color = (listIndex == _selectedSubIndex) ? Color.Cyan : Color.White;
+        if (_currentMenuState == MenuState.ConfiguringDips)
+        {
+            _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
             
-                        string optionText = _menuOptions[i][_selectedSubOptionIndices[i]];
-            
-                        string displayText = (listIndex == _selectedSubIndex) ? $"< {optionText} >" : $"  {optionText}";
-            
-                        _spriteBatch.DrawString(_font, displayText, pos, color);
-                        pos.Y += _menuItemOffset;
-                    }
-                }
-                break;
+            Vector2 dipPos = new Vector2(120, 150);
+    
+            // Header showing WHICH variant we are editing
+            string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
+            _spriteBatch.DrawString(_font, header, dipPos, Color.Cyan);
+            dipPos.Y += 40;
+
+            for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
+            {
+                var dip = currentVariant.DipSwitches[i];
+                bool isSelected = (i == _dipVerticalIndex);
+                Color textColor = isSelected ? Color.Yellow : Color.White;
+
+                // Draw the name of the setting (e.g., "Lives")
+                _spriteBatch.DrawString(_font, dip.Name, dipPos, textColor);
+
+                // Draw the current setting value (e.g., "< 3 >")
+                string optionText = $"< {dip.Options[dip.SelectedIndex]} >";
+                _spriteBatch.DrawString(_font, optionText, dipPos + new Vector2(200, 0), textColor);
+
+                dipPos.Y += 30;
             }
         }
         
@@ -490,4 +612,30 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.DrawString(_font, "LOADING...", pos, Color.Yellow);
         _spriteBatch.End();
     }
+}
+
+public class RomVariant
+{
+    public string DisplayName { get; set; }
+    public string RomId { get; set; } // The actual string passed to LoadRom (e.g., "pacfast")
+    public List<DipSwitch> DipSwitches { get; set; } = new();
+}
+
+public class GameMenuItem
+{
+    public string GameName { get; set; }
+    public List<RomVariant> Variants { get; set; } = new();
+    
+    // This remembers which variant is currently selected for this specific game
+    public int SelectedVariantIndex { get; set; } = 0; 
+}
+
+public class DipSwitch
+{
+    public string Name { get; set; } // e.g., "Lives", "Bonus", "Coinage"
+    public List<string> Options { get; set; } // e.g., ["3", "4", "5"]
+    public int SelectedIndex { get; set; } = 0; // The current toggle state
+    
+    // Optional: You could add a byte mask here later to easily compile 
+    // these settings into the raw byte the Z80 reads!
 }

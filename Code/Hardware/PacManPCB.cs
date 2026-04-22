@@ -47,14 +47,15 @@ public class PacManPCB : IArcadeMachine
     
     private List<DrawRequest> requests = new ();
     
-    public PacManPCB(string romFileName, bool twoPlayerScreenFlip)
+    public PacManPCB(string romFileName, List<int> indices)
     {
         LoadRom(romFileName);
         wsg = new NamcoWSG(_namco);
         memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
         memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
-        memoryBus.SecondPlayerFlip = twoPlayerScreenFlip;
-        memoryBus.SteamDeckTwoPlayerMode = twoPlayerScreenFlip;
+        memoryBus.SecondPlayerFlip = indices[0] == 1;
+        memoryBus.SteamDeckTwoPlayerMode = indices[0] == 1;
+        memoryBus.SubOptionIndices = new List<int>(indices);
         cpu = new Z80Cpu(memoryBus);
         
         mode = 0;

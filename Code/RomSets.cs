@@ -1,6 +1,7 @@
 public static class RomSets
 {
     public record RomFile(string Filename, uint Offset, uint Length);
+
     public record RomRegion(uint Size, string Type, uint Flags, List<RomFile> Files);
 
     public record MachineRomSet(string Name, string Parent, List<RomRegion> Regions)
