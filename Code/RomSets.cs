@@ -136,6 +136,30 @@ public static class RomSets
         ])
     ]);
     
+    static MachineRomSet Pacmanplus = new ("pacplus", null, [
+        new RomRegion(0x10000, "maincpu", 0, [
+            new RomFile("pacplus.6e", 0x0000, 0x1000),
+            new RomFile("pacplus.6f", 0x1000, 0x1000),
+            new RomFile("pacplus.6h", 0x2000, 0x1000),
+            new RomFile("pacplus.6j", 0x3000, 0x1000)
+        ]),
+
+        new RomRegion(0x2000, "gfx1", 0, [
+            new RomFile("pacplus.5e", 0x0000, 0x1000),
+            new RomFile("pacplus.5f", 0x1000, 0x1000)
+        ]),
+        
+        new RomRegion(0x0120, "proms", 0, [
+            new RomFile("pacplus.7f", 0x0000, 0x0020),
+            new RomFile("pacplus.4a", 0x0020, 0x0100)
+        ]),
+        
+        new RomRegion(0x0200, "namco", 0, [
+            new RomFile("82s126.1m", 0x0000, 0x0100),
+            new RomFile("82s126.3m", 0x0100, 0x0100),
+        ])
+    ]);
+    
     // A helper to find a ROM set by name
     public static MachineRomSet Get(string name) => name.ToLower() switch
     {
@@ -144,6 +168,7 @@ public static class RomSets
         "matrix" => Matrix,
         "mspacman" => MsPacman,
         "mspacmnf" => MsPacmanf,
+        "pacplus" => Pacmanplus,
         _ => throw new Exception("Game not found")
     };
 }

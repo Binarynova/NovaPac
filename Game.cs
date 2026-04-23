@@ -54,9 +54,6 @@ public class Game : Microsoft.Xna.Framework.Game
     int interruptCycleCounter;
     const int CYCLES_PER_INTERRUPT = 51200;
 
-    private const int _menuTitleOffset = 60;
-    private const int _menuItemOffset = 40;
-
     private List<GameMenuItem> _gameMenu;
     private int _menuVerticalIndex = 0;
 
@@ -129,6 +126,28 @@ public class Game : Microsoft.Xna.Framework.Game
                             new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
                             new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
                             new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 }
+                        ]
+                    }
+                ]
+            },
+            
+            new GameMenuItem
+            {
+                GameName = "Pac-Man Plus",
+                Variants =
+                [
+                    new RomVariant
+                    {
+                        DisplayName = "Midway",
+                        RomId = "pacplus",
+                        DipSwitches =
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0},
+                            new DipSwitch { Name = "Coinage", Options = ["Free Play", "1 Coin/1 Credit", "1 Coin/2 Credits", "2 Coins/1 Credit"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Lives", Options = ["1", "2", "3", "5"], SelectedIndex = 2 },
+                            new DipSwitch { Name = "Bonus", Options = ["10,000", "15,000", "20,000", "None"], SelectedIndex = 0 },
+                            new DipSwitch { Name = "Difficulty", Options = ["Hard", "Normal"], SelectedIndex = 1 },
+                            new DipSwitch { Name = "Ghost Names", Options = ["Alternate", "Normal"], SelectedIndex = 1 }
                         ]
                     }
                 ]
@@ -324,14 +343,14 @@ public class Game : Microsoft.Xna.Framework.Game
                     // Up/Down changes WHICH dipswitch we are tweaking
                     if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) || ButtonPressed(Buttons.LeftThumbstickUp))
                     {
-                        _dipVerticalIndex--; /* add bounds wrap */
+                        _dipVerticalIndex--;
                         if (_dipVerticalIndex < 0)
                             _dipVerticalIndex = currentVariant.DipSwitches.Count - 1;
                     }
 
                     if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) || ButtonPressed(Buttons.LeftThumbstickDown))
                     {
-                        _dipVerticalIndex++; /* add bounds wrap */
+                        _dipVerticalIndex++;
                         if (_dipVerticalIndex >= currentVariant.DipSwitches.Count)
                             _dipVerticalIndex = 0;
                     }
@@ -341,14 +360,14 @@ public class Game : Microsoft.Xna.Framework.Game
                     // Left/Right changes the selected OPTION for that switch
                     if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft))
                     {
-                        activeDip.SelectedIndex--; /* add bounds wrap */
+                        activeDip.SelectedIndex--;
                         if (activeDip.SelectedIndex < 0)
                             activeDip.SelectedIndex = currentVariant.DipSwitches[_dipVerticalIndex].Options.Count - 1;
                     }
 
                     if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) || ButtonPressed(Buttons.LeftThumbstickRight))
                     {
-                        activeDip.SelectedIndex++; /* add bounds wrap */
+                        activeDip.SelectedIndex++;
                         if (activeDip.SelectedIndex >= currentVariant.DipSwitches[_dipVerticalIndex].Options.Count)
                             activeDip.SelectedIndex = 0;
                     }
@@ -423,9 +442,6 @@ public class Game : Microsoft.Xna.Framework.Game
 
         // 2. Get the specific Variant object (e.g., Fast Hack)
         var currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
-
-        // 3. (Optional) Get the list of dips for convenience
-        var dips = currentVariant.DipSwitches;
         
         _spriteBatch.Begin();
         _pixelTexture.SetData([Color.White]);
