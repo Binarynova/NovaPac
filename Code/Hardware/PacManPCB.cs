@@ -424,15 +424,6 @@ public class PacManPCB : IArcadeMachine
         _namco = new byte[RomSets.Get(romfile)["namco"].Size];
         
         using ZipArchive archive = ZipFile.OpenRead("roms/" + romfile + ".zip");
-
-        if (RomSets.Get(romfile).Parent != null) // Ms. Pac-Man needs Pac-Man loaded first
-        {
-            string romParent = RomSets.Get(romfile).Parent;
-            LoadRegionIntoMemory(RomSets.Get(romParent)["maincpu"], archive, _maincpu);
-            LoadRegionIntoMemory(RomSets.Get(romParent)["gfx1"], archive, _gfx1);
-            LoadRegionIntoMemory(RomSets.Get(romParent)["proms"], archive, _proms);
-            LoadRegionIntoMemory(RomSets.Get(romParent)["namco"], archive, _namco);
-        }
         
         LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
         LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
@@ -445,6 +436,14 @@ public class PacManPCB : IArcadeMachine
             daughterBoard.Initialize();
 
             _decryptedRom = daughterBoard.DecryptedMemory;
+        }
+
+        if (romfile is "pacplus")
+        {
+            var daughterBoard = new PacManPlusDaughterBoard(_maincpu);
+            daughterBoard.Initialize();
+
+            Array.Copy(daughterBoard.DecryptedMemory, _maincpu, 0x4000);
         }
     }
 
