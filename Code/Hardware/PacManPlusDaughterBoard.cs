@@ -2,22 +2,20 @@ public class PacManPlusDaughterBoard
 {
     private readonly byte[] _rawMainCpu;
     
-    public byte[] DecryptedMemory { get; private set; }
+    public byte[] DecryptedMemory { get; }
 
     public PacManPlusDaughterBoard(byte[] rawMainCpu)
     {
         _rawMainCpu = rawMainCpu;
-        DecryptedMemory = new byte[(16 + 10) * 1024];
+        DecryptedMemory = new byte[0x4000];
     }
-
-    // TODO: replace all this Ms. Pac-Man code with appropriate Pac-Man Plus code.
     
     public void Initialize()
     {
         decodePacPlus();
     }
 
-    private void decodePacPlus()
+    void decodePacPlus()
     {
         for (int i = 0; i < 0x04000; i++)
         {
@@ -25,7 +23,7 @@ public class PacManPlusDaughterBoard
         }
     }
 
-    private static byte decryptPacPlus(ushort addr, byte e)
+    static byte decryptPacPlus(ushort addr, byte e)
     {
         byte[,] swap_xor_table = new byte[,]
         {
@@ -34,7 +32,7 @@ public class PacManPlusDaughterBoard
             { 6,1,3,2,5,7,0,4, 0x96 },
             { 6,1,5,2,3,7,0,4, 0xBE },
             { 0,3,7,6,4,2,1,5, 0xD5 },
-            { 0,3,4,6,7,2,1,5, 0xDD },
+            { 0,3,4,6,7,2,1,5, 0xDD }
         };
 
         byte[] pickTable =
@@ -57,7 +55,7 @@ public class PacManPlusDaughterBoard
         return (byte)(BitSwap8(e, swap_xor_table[method,0], swap_xor_table[method,1], swap_xor_table[method,2], swap_xor_table[method,3], swap_xor_table[method,4], swap_xor_table[method,5], swap_xor_table[method,6], swap_xor_table[method,7]) ^ swap_xor_table[method,8]);
     }
 
-    public static byte BitSwap8(byte val, byte b7, byte b6, byte b5, byte b4, byte b3, byte b2, byte b1, byte b0)
+    static byte BitSwap8(byte val, byte b7, byte b6, byte b5, byte b4, byte b3, byte b2, byte b1, byte b0)
     {
         return (byte)(
             (((val >> b7) & 1) << 7) |

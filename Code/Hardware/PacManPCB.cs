@@ -488,26 +488,25 @@ public class PacManPCB : IArcadeMachine
 
     void PrepareColors()
     {
-        // hard-coded because the ROM stores them as intensities of output on hardware, not as color
-        colors =
-        [
-            new Color(0, 0, 0, 0), // 0 alpha to produce transparency
-            new Color(255, 0, 0, 255),
-            new Color(222, 151, 81, 255),
-            new Color(255, 184, 255, 255),
-            new Color(0, 0, 0, 255),
-            new Color(0, 255, 255, 255),
-            new Color(71, 184, 255, 255),
-            new Color(255, 184, 81, 255),
-            new Color(0, 0, 0, 255),
-            new Color(255, 255, 0, 255),
-            new Color(0, 0, 0, 255),
-            new Color(33, 33, 255, 255),
-            new Color(0, 255, 0, 255),
-            new Color(71, 184, 174, 255),
-            new Color(255, 184, 174, 255),
-            new Color(222, 222, 255, 255)
-        ];
+        colors.Clear();
+        // The palette PROM (7f) is the first 32 bytes of _proms
+        for (int i = 0; i < 32; i++)
+        {
+            byte data = _proms[i];
+
+            // Red: Bits 0, 1, 2 (Weights: 0x21, 0x47, 0x97)
+            int r = 0x21 * ((data >> 0) & 1) + 0x47 * ((data >> 1) & 1) + 0x97 * ((data >> 2) & 1);
+        
+            // Green: Bits 3, 4, 5 (Weights: 0x21, 0x47, 0x97)
+            int g = 0x21 * ((data >> 3) & 1) + 0x47 * ((data >> 4) & 1) + 0x97 * ((data >> 5) & 1);
+        
+            // Blue: Bits 6, 7 (Weights: 0x47, 0x97)
+            int b = 0x47 * ((data >> 6) & 1) + 0x97 * ((data >> 7) & 1);
+
+            int a = (r == 0 && g == 0 && b == 0) ? 0 : 255;
+
+            colors.Add(new Color(r, g, b, a));
+        }
     }
 
     private void PrepareSpriteTextures(GraphicsDevice graphicsDevice)
