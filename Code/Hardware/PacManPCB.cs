@@ -500,8 +500,8 @@ public class PacManPCB : IArcadeMachine
             // Green: Bits 3, 4, 5 (Weights: 0x21, 0x47, 0x97)
             int g = 0x21 * ((data >> 3) & 1) + 0x47 * ((data >> 4) & 1) + 0x97 * ((data >> 5) & 1);
         
-            // Blue: Bits 6, 7 (Weights: 0x47, 0x97)
-            int b = 0x47 * ((data >> 6) & 1) + 0x97 * ((data >> 7) & 1);
+            // Blue: Bits 6, 7 (Weights: 0x51, 0xAE)
+            int b = 0x51 * ((data >> 6) & 1) + 0xAE * ((data >> 7) & 1);
 
             int a = (r == 0 && g == 0 && b == 0) ? 0 : 255;
 
