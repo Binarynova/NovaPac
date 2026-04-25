@@ -1,6 +1,12 @@
 ﻿// Pac-Man Z80 emulator.
 // Started 1/29/26
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -30,6 +36,7 @@ public class Game : Microsoft.Xna.Framework.Game
     bool verticalScreenMode = false;
     float _floatScale = 1.0f;
     bool paused = false;
+    string romPath;
 
     private enum MenuState
     {
@@ -43,7 +50,7 @@ public class Game : Microsoft.Xna.Framework.Game
     IArcadeMachine _activeMachine;
     ImGuiRenderer _renderer;
     
-    private int _loadState = 0; 
+    private int _loadState = 0;
     // 0 = Not Loading
     // 1 = Load Triggered (Waiting to Draw)
     // 2 = Loading Screen Drawn (Ready to Load ROMs)
@@ -175,7 +182,7 @@ public class Game : Microsoft.Xna.Framework.Game
     private bool _isMenuOpen = true;
     private bool _isDebugOpen = false;
     
-    string romFileName;
+    string romFileNameandPath;
 
     private List<int> ConvertDipSwitchesToIndices(RomVariant romVariant)
     {
@@ -210,6 +217,24 @@ public class Game : Microsoft.Xna.Framework.Game
         _renderer = new ImGuiRenderer(this);
         _renderer.RebuildFontAtlas();
         base.Initialize();
+
+        LoadConfigFile();
+    }
+
+    void LoadConfigFile()
+    {
+        string configFile = "config.txt";
+
+        if (!File.Exists(configFile))
+        {
+            Console.WriteLine("Config file not found. Please enter the path to your ROM directory:");
+            string userEnteredRomPath = Console.ReadLine();
+            
+            File.WriteAllText("config.txt", userEnteredRomPath);
+        }
+        
+        List<string> lines = File.ReadAllLines(configFile).ToList();
+        romPath = lines[0];
     }
 
     protected override void LoadContent()
@@ -220,13 +245,13 @@ public class Game : Microsoft.Xna.Framework.Game
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
     }
 
-    private void StartGame(string romFilePath, string windowTitle, List<int> indices)
+    private void StartGame(string romFileName, string windowTitle, List<int> indices)
     {
         if (indices[0] == 1)
             verticalScreenMode = true;
         DrawLoadingMessage();
         Window.Title = windowTitle;
-        romFileName = romFilePath;
+        romFileNameandPath = romPath + romFileName;
         CalculateFloatScale(verticalScreenMode);
         
         _soundOut = new DynamicSoundEffectInstance(44100, AudioChannels.Mono);
@@ -246,7 +271,7 @@ public class Game : Microsoft.Xna.Framework.Game
         };
         
         _soundOut.Play();
-        _activeMachine = new PacManPCB(romFileName, indices);
+        _activeMachine = new PacManPCB(romFileNameandPath, indices);
         
         _activeMachine.InitializeGraphics(GraphicsDevice);
         _activeMachine.mode = mode;
@@ -355,7 +380,7 @@ public class Game : Microsoft.Xna.Framework.Game
                             _dipVerticalIndex = 0;
                     }
 
-                    var activeDip = currentVariant.DipSwitches[_dipVerticalIndex];
+                    DipSwitch activeDip = currentVariant.DipSwitches[_dipVerticalIndex];
 
                     // Left/Right changes the selected OPTION for that switch
                     if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft))
@@ -437,11 +462,8 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private void DrawMenu()
     {
-        // 1. Get the Game object (e.g., Ms. Pac-Man)
-        var currentGame = _gameMenu[_menuVerticalIndex];
-
-        // 2. Get the specific Variant object (e.g., Fast Hack)
-        var currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
+        GameMenuItem currentGame = _gameMenu[_menuVerticalIndex];
+        RomVariant currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
         
         _spriteBatch.Begin();
         _pixelTexture.SetData([Color.White]);
@@ -452,58 +474,66 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
         pos.Y += 80;
 
-        if (_currentMenuState == MenuState.SelectingGame)
+        switch (_currentMenuState)
         {
-            for (int i = 0; i < _gameMenu.Count; i++)
+            case MenuState.SelectingGame:
             {
-                var game = _gameMenu[i];
-                bool isSelected = (i == _menuVerticalIndex);
-
-                // Highlight the selected game in Yellow, others in White
-                Color gameColor = isSelected && game.Variants.Count == 1 ? Color.Cyan : Color.White;
-                _spriteBatch.DrawString(_font, game.GameName, pos, gameColor);
-                pos.Y += 30; // Move down for the next line
-            
-                if (game.Variants.Count > 1)
+                for (int i = 0; i < _gameMenu.Count; i++)
                 {
-                    // Draw with arrows to indicate horizontal scrolling
-                    string variantText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
-                    _spriteBatch.DrawString(_font, variantText, pos + new Vector2(20, 0), isSelected ? Color.Cyan : Color.White);
-                    pos.Y += 30; // Extra space for the sub-menu
+                    GameMenuItem game = _gameMenu[i];
+                    bool isSelected = (i == _menuVerticalIndex);
+
+                    // Highlight the selected game in Yellow, others in White
+                    Color gameColor = isSelected && game.Variants.Count == 1 ? Color.Cyan : Color.White;
+                    _spriteBatch.DrawString(_font, game.GameName, pos, gameColor);
+                    pos.Y += 30; // Move down for the next line
+            
+                    if (game.Variants.Count > 1)
+                    {
+                        // Draw with arrows to indicate horizontal scrolling
+                        string variantText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
+                        _spriteBatch.DrawString(_font, variantText, pos + new Vector2(20, 0), isSelected ? Color.Cyan : Color.White);
+                        pos.Y += 30; // Extra space for the sub-menu
+                    }
+
+                    pos.Y += 20; // Extra spacing between game blocks
                 }
 
-                pos.Y += 20; // Extra spacing between game blocks
+                break;
             }
-        }
-        
-        if (_currentMenuState == MenuState.ConfiguringDips)
-        {
-            _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
-            
-            Vector2 dipPos = new Vector2(120, 150);
-    
-            // Header showing WHICH variant we are editing
-            string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
-            _spriteBatch.DrawString(_font, header, dipPos, Color.Cyan);
-            dipPos.Y += 40;
-
-            for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
+            case MenuState.ConfiguringDips:
             {
-                var dip = currentVariant.DipSwitches[i];
-                bool isSelected = (i == _dipVerticalIndex);
-                Color textColor = isSelected ? Color.Yellow : Color.White;
+                _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
+            
+                Vector2 dipPos = new Vector2(120, 150);
+    
+                // Header showing WHICH variant we are editing
+                string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
+                _spriteBatch.DrawString(_font, header, dipPos, Color.Cyan);
+                dipPos.Y += 40;
 
-                // Draw the name of the setting (e.g., "Lives")
-                _spriteBatch.DrawString(_font, dip.Name, dipPos, textColor);
+                for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
+                {
+                    DipSwitch dip = currentVariant.DipSwitches[i];
+                    bool isSelected = (i == _dipVerticalIndex);
+                    Color textColor = isSelected ? Color.Yellow : Color.White;
 
-                // Draw the current setting value (e.g., "< 3 >")
-                string optionText = $"< {dip.Options[dip.SelectedIndex]} >";
-                _spriteBatch.DrawString(_font, optionText, dipPos + new Vector2(200, 0), textColor);
+                    // Draw the name of the setting (e.g., "Lives")
+                    _spriteBatch.DrawString(_font, dip.Name, dipPos, textColor);
 
-                dipPos.Y += 30;
+                    // Draw the current setting value (e.g., "< 3 >")
+                    string optionText = $"< {dip.Options[dip.SelectedIndex]} >";
+                    _spriteBatch.DrawString(_font, optionText, dipPos + new Vector2(200, 0), textColor);
+
+                    dipPos.Y += 30;
+                    if (i == 0) // first "dipswitch" is always rotation, separate it from the real dipswitches
+                        dipPos.Y += 30;
+                }
+
+                break;
             }
         }
-        
+
         _spriteBatch.End();
     }
 
@@ -526,7 +556,7 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             var frame = _activeMachine.GetDrawRequests(_activeMachine.secondPlayerFlip);
 
-            foreach (var drawRequest in frame)
+            foreach (DrawRequest drawRequest in frame)
             {
                 _spriteBatch.Draw(drawRequest.Texture, drawRequest.Position, null,
                     Color.White, 0f, Vector2.Zero, 1f, drawRequest.Effects, 0f);

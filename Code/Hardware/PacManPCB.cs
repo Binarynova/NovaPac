@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO.Compression;
+using System.IO;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -47,9 +50,10 @@ public class PacManPCB : IArcadeMachine
     
     private List<DrawRequest> requests = new ();
     
-    public PacManPCB(string romFileName, List<int> indices)
+    public PacManPCB(string romFileNameandPath, List<int> indices)
     {
-        LoadRom(romFileName);
+        string romFileName = Path.GetFileName(romFileNameandPath);
+        LoadRom(romFileNameandPath);
         wsg = new NamcoWSG(_namco);
         memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
         memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
@@ -416,14 +420,15 @@ public class PacManPCB : IArcadeMachine
         }
     }
     
-    private void LoadRom(string romfile)
+    private void LoadRom(string romFileNameandPath)
     {
+        string romfile = Path.GetFileName(romFileNameandPath);
         _maincpu = new byte[RomSets.Get(romfile)["maincpu"].Size];
         _gfx1 = new byte[RomSets.Get(romfile)["gfx1"].Size];
         _proms = new byte[RomSets.Get(romfile)["proms"].Size];
         _namco = new byte[RomSets.Get(romfile)["namco"].Size];
         
-        using ZipArchive archive = ZipFile.OpenRead("roms/" + romfile + ".zip");
+        using ZipArchive archive = ZipFile.OpenRead(romFileNameandPath + ".zip");
         
         LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
         LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
@@ -489,7 +494,7 @@ public class PacManPCB : IArcadeMachine
     void PrepareColors()
     {
         colors.Clear();
-        // The palette PROM (7f) is the first 32 bytes of _proms
+        
         for (int i = 0; i < 32; i++)
         {
             byte data = _proms[i];

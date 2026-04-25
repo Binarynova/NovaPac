@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 public static class RomSets
 {
     public record RomFile(string Filename, uint Offset, uint Length);
