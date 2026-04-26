@@ -9,7 +9,6 @@ public class JrPacManMemoryBus : IMemoryBus
     private byte[] _spriteRam2;
     private NamcoWSG _wsg;
 
-    public bool PlayingMsPacMan { get; set; }
     public bool SecondPlayerFlip { get; set; }
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];

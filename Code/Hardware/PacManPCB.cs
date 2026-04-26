@@ -55,14 +55,18 @@ public class PacManPCB : IArcadeMachine
         string romFileName = Path.GetFileName(romFileNameandPath);
         LoadRom(romFileNameandPath);
         wsg = new NamcoWSG(_namco);
-        if (romFileName == "jrpacman")
+        switch (romFileName)
         {
-            memoryBus = new JrPacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
-        }
-        else
-        {
-            memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
-            memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
+            case "jrpacman":
+                memoryBus = new JrPacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
+                break;
+            case "mspacman":
+                memoryBus = new MsPacManMemoryBus(_decryptedRom,spriteram, spriteram2, wsg, _maincpu);
+                break;
+            default:
+                memoryBus = new PacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
+                break;
+                
         }
         memoryBus.SecondPlayerFlip = indices[0] == 1;
         memoryBus.SteamDeckTwoPlayerMode = indices[0] == 1;

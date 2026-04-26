@@ -5,5 +5,4 @@ public interface IMemoryBus
     bool SecondPlayerFlip { get; set; }
     List<int> SubOptionIndices { get; set; }
     bool SteamDeckTwoPlayerMode { get; set; }
-    bool PlayingMsPacMan { get; set; }
 }

@@ -2,20 +2,23 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-public class PacManMemoryBus : IMemoryBus
+public class MsPacManMemoryBus : IMemoryBus
 {
     private byte[] _maincpu;
     
+    private byte[] _decryptedRom;
     private byte[] _spriteRam;
     private byte[] _spriteRam2;
     private NamcoWSG _wsg;
 
+    public bool DecryptEnabled { get; set; }
     public bool SecondPlayerFlip { get; set; }
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];
     
-    public PacManMemoryBus(byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg, byte[] maincpu)
+    public MsPacManMemoryBus(byte[] decryptedRom, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg, byte[] maincpu)
     {
+        _decryptedRom = decryptedRom;
         _spriteRam = spriteRam;
         _spriteRam2 = spriteRam2;
         _wsg = wsg;
@@ -25,6 +28,32 @@ public class PacManMemoryBus : IMemoryBus
     
     public byte ReadByte(ushort address)
     {
+        switch (address)
+        {
+            case >= 0x3FF8 and <= 0x3FFF:
+                DecryptEnabled = true;
+                break;
+            case >= 0x0038 and <= 0x003F:
+            case >= 0x03B0 and <= 0x03B7:
+            case >= 0x1600 and <= 0x1607:
+            case >= 0x2120 and <= 0x2127:
+            case >= 0x3FF0 and <= 0x3FF7:
+            case >= 0x8000 and <= 0x8007:
+            case >= 0x97F0 and <= 0x97F7:
+                DecryptEnabled = false;
+                break;
+        }
+
+        switch (address)
+        {
+            case < 0x4000:
+                return DecryptEnabled ? _decryptedRom[address] : _maincpu[address];
+            case >= 0x8000 and < 0x8800:
+                return _decryptedRom[address - 0x8000 + 0x6000];
+            case >= 0x8800 and < 0xA000:
+                return _decryptedRom[(address & 0xFFF) + 0x5000];
+        }
+        
         switch (address)
         {
             case >= 0x5000 and <= 0x503F:
@@ -40,6 +69,25 @@ public class PacManMemoryBus : IMemoryBus
 
     public void WriteByte(ushort address, byte value)
     {
+        switch (address)
+        {
+            case >= 0x3FF8 and <= 0x3FFF:
+                DecryptEnabled = true;
+                break;
+            case >= 0x0038 and <= 0x003F:
+            case >= 0x03B0 and <= 0x03B7:
+            case >= 0x1600 and <= 0x1607:
+            case >= 0x2120 and <= 0x2127:
+            case >= 0x3FF0 and <= 0x3FF7:
+            case >= 0x8000 and <= 0x8007:
+            case >= 0x97F0 and <= 0x97F7:
+                DecryptEnabled = false;
+                break;
+        }
+
+        if (address is >= 0x8000 and < 0xA000)
+            return;
+        
         switch (address)
         {
             case < 0x4000:
@@ -155,7 +203,6 @@ public class PacManMemoryBus : IMemoryBus
         dipSwitchValue |= (byte)(SubOptionIndices[2] << 2);
         dipSwitchValue |= (byte)(SubOptionIndices[3] << 4);
         dipSwitchValue |= (byte)(SubOptionIndices[4] << 6);
-        dipSwitchValue |= (byte)(SubOptionIndices[5] << 7);
 
         return dipSwitchValue;
     }
