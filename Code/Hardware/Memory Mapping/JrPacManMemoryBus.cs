@@ -66,7 +66,7 @@ public class JrPacManMemoryBus : IMemoryBus
 
             if (address is >= 0x4FF0 and <= 0x4FFF)
             {
-                _spriteRam2[address - 0x4FF0] = value;
+                _spriteRam[address - 0x4FF0] = value;
             }
         }
     }

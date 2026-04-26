@@ -190,6 +190,32 @@ public static class RomSets
         ])
     ]);
     
+    static MachineRomSet JrPacmanf = new ("jrpacmanf", null, [
+        new RomRegion(0x10000, "maincpu", 0, [
+            new RomFile("fast_jr.8d", 0x0000, 0x2000),
+            new RomFile("jr.pac-man_8e_11-9-83.8e", 0x2000, 0x2000),
+            new RomFile("jr.pac-man_8h_11-9-83.8h", 0x8000, 0x2000),
+            new RomFile("jr.pac-man_8j_11-9-83.8j", 0xA000, 0x2000),
+            new RomFile("jr.pac-man_8k_11-9-83.8k", 0xC000, 0x2000),
+        ]),
+
+        new RomRegion(0x4000, "gfx1", 0, [
+            new RomFile("jr.pac-man_2c_11-9-83.2c", 0x0000, 0x2000),
+            new RomFile("jr.pac-man_2e_11-9-83.2e", 0x2000, 0x2000)
+        ]),
+        
+        new RomRegion(0x0120, "proms", 0, [
+            new RomFile("a290-27axv-bxhd.9e", 0x0000, 0x0100),
+            new RomFile("a290-27axv-cxhd.9f", 0x0000, 0x0100),
+            new RomFile("a290-27axv-axhd.9p", 0x0020, 0x0100)
+        ]),
+        
+        new RomRegion(0x0200, "namco", 0, [
+            new RomFile("a290-27axv-dxhd.7p", 0x0000, 0x0100),
+            new RomFile("a290-27axv-exhd.5s", 0x0100, 0x0100),
+        ])
+    ]);
+    
     // A helper to find a ROM set by name
     public static MachineRomSet Get(string name) => name.ToLower() switch
     {
@@ -200,6 +226,7 @@ public static class RomSets
         "mspacmnf" => MsPacmanf,
         "pacplus" => Pacmanplus,
         "jrpacman" => JrPacman,
+        "jrpacmanf" => JrPacmanf,
         _ => throw new Exception("Game not found")
     };
 }

@@ -57,11 +57,11 @@ public class PacManPCB : IArcadeMachine
         wsg = new NamcoWSG(_namco);
         switch (romFileName)
         {
-            case "jrpacman":
+            case "jrpacman" or "jrpacmanf":
                 memoryBus = new JrPacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
                 break;
-            case "mspacman":
-                memoryBus = new MsPacManMemoryBus(_decryptedRom,spriteram, spriteram2, wsg, _maincpu);
+            case "mspacman" or "mspacmnf":
+                memoryBus = new MsPacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
                 break;
             default:
                 memoryBus = new PacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
