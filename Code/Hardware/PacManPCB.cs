@@ -404,6 +404,17 @@ public class PacManPCB : IArcadeMachine
     {
         return spriteram2[index];
     }
+    
+    private static byte[] ExtractRom(ZipArchive archive, string fileName)
+    {
+        ZipArchiveEntry entry = archive.GetEntry(fileName);
+        if (entry == null) throw new FileNotFoundException($"Missing {fileName}");
+
+        using Stream s = entry.Open();
+        byte[] data = new byte[entry.Length];
+        s.ReadExactly(data, 0, data.Length);
+        return data;
+    }
 
     private void LoadRegionIntoMemory(RomSets.RomRegion region, ZipArchive archive, byte[] destination)
     {
@@ -419,6 +430,21 @@ public class PacManPCB : IArcadeMachine
             s.ReadExactly(targetSlice);
         }
     }
+
+    private void LoadMergedRomsIntoMemory(ZipArchive archive)
+    {
+        byte[] prom9e = ExtractRom(archive, "jr.pac-man_9e_11-9-83.9e"); // Low nibble
+        byte[] prom9f = ExtractRom(archive, "jr.pac-man_9f_11-9-83.9f"); // High nibble
+        byte[] prom9p = ExtractRom(archive, "jr.pac-man_9p_11-9-83.9p"); // Lookup table
+
+        for (int i = 0; i < 32; i++)
+        {
+            // 9f (High Nibble) << 4 | 9e (Low Nibble)
+            _proms[i] = (byte)((prom9f[i] << 4) | (prom9e[i] & 0x0F));
+        }
+
+        Array.Copy(prom9p, 0, _proms, 0x20, 256);
+    }
     
     private void LoadRom(string romFileNameandPath)
     {
@@ -432,7 +458,14 @@ public class PacManPCB : IArcadeMachine
         
         LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
         LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
-        LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
+        if (romfile != "jrpacman")
+        {
+            LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
+        }
+        else
+        {
+            LoadMergedRomsIntoMemory(archive);
+        }
         LoadRegionIntoMemory(RomSets.Get(romfile)["namco"], archive, _namco);
         
         if(romfile is "mspacman" or "mspacmnf")
