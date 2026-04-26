@@ -162,6 +162,23 @@ public class Game : Microsoft.Xna.Framework.Game
             
             new GameMenuItem
             {
+                GameName = "Jr. Pac-Man",
+                Variants =
+                [
+                    new RomVariant
+                    {
+                        DisplayName = "Jr. Pac-Man",
+                        RomId = "jrpacman",
+                        DipSwitches = 
+                        [
+                            new DipSwitch { Name = "Rotation", Options = ["Standard", "Rotated"], SelectedIndex = 0 }
+                        ]
+                    }
+                ]
+            },
+            
+            new GameMenuItem
+            {
                 GameName = "Matrix Effect",
                 Variants =
                 [

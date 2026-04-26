@@ -10,7 +10,7 @@ using MonoGame.ImGuiNet;
 public class PacManPCB : IArcadeMachine
 {
     GraphicsDevice _graphicsDevice;
-    private PacManMemoryBus memoryBus;
+    private IMemoryBus memoryBus;
     private NamcoWSG wsg;
     private Z80Cpu cpu;
     
@@ -55,8 +55,15 @@ public class PacManPCB : IArcadeMachine
         string romFileName = Path.GetFileName(romFileNameandPath);
         LoadRom(romFileNameandPath);
         wsg = new NamcoWSG(_namco);
-        memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
-        memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
+        if (romFileName == "jrpacman")
+        {
+            memoryBus = new JrPacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
+        }
+        else
+        {
+            memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
+            memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
+        }
         memoryBus.SecondPlayerFlip = indices[0] == 1;
         memoryBus.SteamDeckTwoPlayerMode = indices[0] == 1;
         memoryBus.SubOptionIndices = new List<int>(indices);
@@ -433,9 +440,9 @@ public class PacManPCB : IArcadeMachine
 
     private void LoadMergedRomsIntoMemory(ZipArchive archive)
     {
-        byte[] prom9e = ExtractRom(archive, "jr.pac-man_9e_11-9-83.9e"); // Low nibble
-        byte[] prom9f = ExtractRom(archive, "jr.pac-man_9f_11-9-83.9f"); // High nibble
-        byte[] prom9p = ExtractRom(archive, "jr.pac-man_9p_11-9-83.9p"); // Lookup table
+        byte[] prom9e = ExtractRom(archive, "a290-27axv-bxhd.9e"); // Low nibble
+        byte[] prom9f = ExtractRom(archive, "a290-27axv-cxhd.9f"); // High nibble
+        byte[] prom9p = ExtractRom(archive, "a290-27axv-axhd.9p"); // Lookup table
 
         for (int i = 0; i < 32; i++)
         {
