@@ -262,6 +262,88 @@ public class PacManPCB : IArcadeMachine
             });
         }
     }
+
+private void DrawJrPacManTiles(JrPacManMemoryBus jrBus)
+{
+    int scrollPixels = jrBus.HorizontalScroll;
+    
+    // --- Top 2 Rows (Static UI) ---
+    // These DO NOT SCROLL and remain at the original Pac-Man offsets (0x3C0 to 0x3FF)
+    for (int i = 0x3DF; i >= 0x3C0; i--)
+    {
+        for (int row = 0; row < 2; row++)
+        {
+            int tileAddress = 0x4000 + i + 0x20 * row;
+            // Jr Pac-Man expanded VRAM, moving Color RAM to 0x4800
+            int paletteAddress = 0x4800 + i + 0x20 * row; 
+        
+            byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+            int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
+
+            int yPos = 0 + 8 * row;
+            int xPos = 232 - (i - 0x3C0) * 8;
+        
+            requests.Add(new DrawRequest {
+                Texture = TileTextures[tileIndex, paletteIndex],
+                Position = new Vector2(xPos, yPos)
+            });
+        }
+    }
+    
+    // --- Bottom 2 Rows (Static UI) ---
+    // These DO NOT SCROLL and remain at the original Pac-Man offsets (0x000 to 0x03F)
+    for (int i = 0x01F; i >= 0x000; i--)
+    {
+        for (int row = 0; row < 2; row++)
+        {
+            int tileAddress = 0x4000 + i + 0x20 * row;
+            int paletteAddress = 0x4800 + i + 0x20 * row;
+        
+            byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+            int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
+    
+            int yPos = 272 + 8 * row;
+            int xPos = 232 - (i - 0x000) * 8;
+        
+            requests.Add(new DrawRequest {
+                Texture = TileTextures[tileIndex, paletteIndex],
+                Position = new Vector2(xPos, yPos)
+            });
+        }
+    }
+
+    // --- Main Grid (Scrolling Maze) ---
+    // The screen shows columns 0 to 27 (28 visible columns)
+    for (int screenCol = 0; screenCol < 28; screenCol++)
+    {
+        // Add 2 because the main scrolling area starts at motherboard column 2.
+        int vramCol = (screenCol + 2 + (scrollPixels / 8)) % 64;
+        
+        for (int row = 0; row < 32; row++)
+        {
+            // VRAM is laid out in columns of 32 bytes
+            int tileAddress = 0x4000 + row + (vramCol * 32);
+            int paletteAddress = 0x4800 + row + (vramCol * 32);
+        
+            byte tileIndex = memoryBus.ReadByte((ushort)tileAddress);
+            int paletteIndex = memoryBus.ReadByte((ushort)paletteAddress) & 0x1F;
+    
+            int yPos = 16 + (row * 8);
+            
+            // Subtract sub-tile scroll for smooth scrolling left
+            int xPos = 216 - (screenCol * 8) - (scrollPixels % 8);
+        
+            // Only draw if within horizontal bounds to avoid clipping artifacts on the left edge
+            if (xPos > -8 && xPos < 224)
+            {
+                requests.Add(new DrawRequest {
+                    Texture = TileTextures[tileIndex, paletteIndex],
+                    Position = new Vector2(xPos, yPos)
+                });
+            }
+        }
+    }
+}
     
     private void DrawGameTiles()
     {
@@ -385,7 +467,14 @@ public class PacManPCB : IArcadeMachine
         switch (mode)
         {
             case 1:
-                DrawGameTiles();
+                if (memoryBus is JrPacManMemoryBus jrBus)
+                {
+                    DrawJrPacManTiles(jrBus);
+                }
+                else
+                {
+                    DrawGameTiles();   
+                }
                 DrawGameSprites(secondPlayFlip);
                 break;
             case 2:
@@ -469,15 +558,27 @@ public class PacManPCB : IArcadeMachine
         
         LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
         LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
-        if (romfile != "jrpacman")
+        LoadRegionIntoMemory(RomSets.Get(romfile)["namco"], archive, _namco);
+        
+        if (romfile == "jrpacman")
         {
-            LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
+            // 1. Extract the PROMs
+            byte[] prom9e = ExtractRom(archive, "a290-27axv-bxhd.9e");
+            byte[] prom9f = ExtractRom(archive, "a290-27axv-cxhd.9f");
+            byte[] prom9p = ExtractRom(archive, "a290-27axv-axhd.9p");
+
+            // 2. Initialize the Daughterboard (passing in the encrypted _maincpu)
+            var jrDaughterBoard = new JrPacManDaughterBoard(_maincpu);
+            jrDaughterBoard.Initialize(prom9e, prom9f, prom9p);
+
+            // 3. Assign the fixed data back to the emulator
+            _proms = jrDaughterBoard.MergedProms;
+            _maincpu = jrDaughterBoard.DecryptedMemory; // Overwrite encrypted memory!
         }
         else
         {
-            LoadMergedRomsIntoMemory(archive);
+            LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
         }
-        LoadRegionIntoMemory(RomSets.Get(romfile)["namco"], archive, _namco);
         
         if(romfile is "mspacman" or "mspacmnf")
         {
@@ -609,9 +710,10 @@ public class PacManPCB : IArcadeMachine
     private int[,] ExtractRawSpriteData(int spriteIndex)
     {
         int[,] sprite = new int[16,16];
+        int spriteOffset = _gfx1.Length > 0x2000 ? 0x2000 : 0x1000;
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = _gfx1[(0x00 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x00 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -620,7 +722,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = _gfx1[(0x08 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x08 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,r] = GetPixelValue(spriteQuad, r);
@@ -629,7 +731,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = _gfx1[(0x10 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x10 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -638,7 +740,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = _gfx1[(0x18 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x18 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -647,7 +749,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = _gfx1[(0x20 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x20 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -656,7 +758,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = _gfx1[(0x28 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x28 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,r] = GetPixelValue(spriteQuad, r);
@@ -665,7 +767,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = _gfx1[(0x30 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x30 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -674,7 +776,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = _gfx1[(0x38 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x38 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
