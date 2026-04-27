@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -50,21 +49,18 @@ public class PacManMemoryBus : IMemoryBus
             case 0x5003: // intercept flip
                 SecondPlayerFlip = value == 1;
                 break;
-            case >= 0x5060 and <= 0x506F: // Handle special non-mirrored I/O writes (Sync bus)
+            case >= 0x5060 and <= 0x506F:
                 _spriteRam2[address - 0x5060] = value;
                 return;
         }
 
         ushort normAddr = NormalizeAddress(address);
 
-        // Sync Sprite RAM 1
-        // 0x4FF0 is the canonical location for sprite data
         if (normAddr is >= 0x4FF0 and <= 0x4FFF)
         {
             _spriteRam[normAddr - 0x4FF0] = value;
         }
 
-        // Store the value in our normalized "canonical" RAM block
         _maincpu[normAddr] = value;
     }
     
@@ -75,9 +71,6 @@ public class PacManMemoryBus : IMemoryBus
             return address;
         }
 
-        // Everything else (0x4000-0x4FFF, 0x8000-0x8FFF, 0xC000-0xCFFF, etc.)
-        // maps down to the primary 4KB RAM block at 0x4000.
-        // (address & 0x0FFF) gets the offset within any 4KB bank.
         return (ushort)(0x4000 | (address & 0x0FFF));
     }
 
