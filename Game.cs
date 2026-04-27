@@ -145,7 +145,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 [
                     new RomVariant
                     {
-                        DisplayName = "Midway",
+                        DisplayName = "Bally Midway",
                         RomId = "pacplus",
                         DipSwitches =
                         [

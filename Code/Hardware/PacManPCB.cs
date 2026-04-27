@@ -10,7 +10,7 @@ using MonoGame.ImGuiNet;
 public class PacManPCB : IArcadeMachine
 {
     GraphicsDevice _graphicsDevice;
-    private PacManMemoryBus memoryBus;
+    private IMemoryBus memoryBus;
     private NamcoWSG wsg;
     private Z80Cpu cpu;
     
@@ -55,8 +55,16 @@ public class PacManPCB : IArcadeMachine
         string romFileName = Path.GetFileName(romFileNameandPath);
         LoadRom(romFileNameandPath);
         wsg = new NamcoWSG(_namco);
-        memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
-        memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
+        switch (romFileName)
+        {
+            case "mspacman" or "mspacmnf":
+                memoryBus = new MsPacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
+                break;
+            default:
+                memoryBus = new PacManMemoryBus(spriteram, spriteram2, wsg, _maincpu);
+                break;
+                
+        }
         memoryBus.SecondPlayerFlip = indices[0] == 1;
         memoryBus.SteamDeckTwoPlayerMode = indices[0] == 1;
         memoryBus.SubOptionIndices = new List<int>(indices);
@@ -404,6 +412,17 @@ public class PacManPCB : IArcadeMachine
     {
         return spriteram2[index];
     }
+    
+    private static byte[] ExtractRom(ZipArchive archive, string fileName)
+    {
+        ZipArchiveEntry entry = archive.GetEntry(fileName);
+        if (entry == null) throw new FileNotFoundException($"Missing {fileName}");
+
+        using Stream s = entry.Open();
+        byte[] data = new byte[entry.Length];
+        s.ReadExactly(data, 0, data.Length);
+        return data;
+    }
 
     private void LoadRegionIntoMemory(RomSets.RomRegion region, ZipArchive archive, byte[] destination)
     {
@@ -419,6 +438,21 @@ public class PacManPCB : IArcadeMachine
             s.ReadExactly(targetSlice);
         }
     }
+
+    private void LoadMergedRomsIntoMemory(ZipArchive archive)
+    {
+        byte[] prom9e = ExtractRom(archive, "a290-27axv-bxhd.9e"); // Low nibble
+        byte[] prom9f = ExtractRom(archive, "a290-27axv-cxhd.9f"); // High nibble
+        byte[] prom9p = ExtractRom(archive, "a290-27axv-axhd.9p"); // Lookup table
+
+        for (int i = 0; i < 32; i++)
+        {
+            // 9f (High Nibble) << 4 | 9e (Low Nibble)
+            _proms[i] = (byte)((prom9f[i] << 4) | (prom9e[i] & 0x0F));
+        }
+
+        Array.Copy(prom9p, 0, _proms, 0x20, 256);
+    }
     
     private void LoadRom(string romFileNameandPath)
     {
@@ -432,7 +466,6 @@ public class PacManPCB : IArcadeMachine
         
         LoadRegionIntoMemory(RomSets.Get(romfile)["maincpu"], archive, _maincpu);
         LoadRegionIntoMemory(RomSets.Get(romfile)["gfx1"], archive, _gfx1);
-        LoadRegionIntoMemory(RomSets.Get(romfile)["proms"], archive, _proms);
         LoadRegionIntoMemory(RomSets.Get(romfile)["namco"], archive, _namco);
         
         if(romfile is "mspacman" or "mspacmnf")
@@ -565,9 +598,10 @@ public class PacManPCB : IArcadeMachine
     private int[,] ExtractRawSpriteData(int spriteIndex)
     {
         int[,] sprite = new int[16,16];
+        int spriteOffset = _gfx1.Length > 0x2000 ? 0x2000 : 0x1000;
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = _gfx1[(0x00 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x00 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -576,7 +610,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = _gfx1[(0x08 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x08 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,r] = GetPixelValue(spriteQuad, r);
@@ -585,7 +619,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = _gfx1[(0x10 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x10 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -594,7 +628,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = _gfx1[(0x18 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x18 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[15-i,8+r] = GetPixelValue(spriteQuad, r);
@@ -603,7 +637,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // bottom right
         {
-            byte spriteQuad = _gfx1[(0x20 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x20 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,12+r] = GetPixelValue(spriteQuad, r);
@@ -612,7 +646,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right
         {
-            byte spriteQuad = _gfx1[(0x28 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x28 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,r] = GetPixelValue(spriteQuad, r);
@@ -621,7 +655,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 2
         {
-            byte spriteQuad = _gfx1[(0x30 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x30 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,4+r] = GetPixelValue(spriteQuad, r);
@@ -630,7 +664,7 @@ public class PacManPCB : IArcadeMachine
 
         for(int i = 0; i < 8; i++) // top right 3
         {
-            byte spriteQuad = _gfx1[(0x38 + i) + (0x40 * spriteIndex) + 0x1000];
+            byte spriteQuad = _gfx1[(0x38 + i) + (0x40 * spriteIndex) + spriteOffset];
             for (int r = 0; r < 4; r++)
             {
                 sprite[7-i,8+r] = GetPixelValue(spriteQuad, r);
