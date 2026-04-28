@@ -78,6 +78,9 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<GameMenuItem> _gameMenu;
     private int _menuVerticalIndex = 0;
 
+    string[] QuitOptions = new string[3] { "Back to Game", "Exit to Menu", "Exit to Desktop" };
+    int QuitOptionsIndex = 0;
+
     private void InitializeMenu()
     {
         _gameMenu =
@@ -476,6 +479,40 @@ public class Game : Microsoft.Xna.Framework.Game
                     break;
                 
                 case MenuState.ConfirmingQuit:
+                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) ||
+                        ButtonPressed(Buttons.LeftThumbstickUp))
+                    {
+                        QuitOptionsIndex--;
+                        if (QuitOptionsIndex < 0) QuitOptionsIndex = 2; // wrap
+                    }
+                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) ||
+                        ButtonPressed(Buttons.LeftThumbstickDown))
+                    {
+                        QuitOptionsIndex++;
+                        if (QuitOptionsIndex > 2) QuitOptionsIndex = 0; // wrap
+                    }
+                    if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A) )
+                    {
+                        switch (QuitOptionsIndex)
+                        {
+                            case 0:
+                                if (!paused)
+                                    _currentMenuState = MenuState.SelectingGame;
+                                else
+                                {
+                                    _isMenuOpen = !_isMenuOpen;
+                                    paused = !paused;
+                                }
+                                break;
+                            case 1:
+                                base.Initialize();
+                                _currentMenuState = MenuState.SelectingGame;
+                                break;
+                            case 2:
+                                Exit();
+                                break;
+                        }
+                    }
                     if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                     {
                         if (!paused)
@@ -485,10 +522,6 @@ public class Game : Microsoft.Xna.Framework.Game
                             _isMenuOpen = !_isMenuOpen;
                             paused = !paused;
                         }
-                    }
-                    if (KeyPressed(Keys.Escape))
-                    {
-                        Exit();
                     }
                     break;
             }
@@ -665,12 +698,12 @@ public class Game : Microsoft.Xna.Framework.Game
             // Header showing variant we are editing
             string header = $"PAUSED";
             _spriteBatch.DrawString(_font, header, dipPos, Color.Yellow);
-            dipPos.Y += 40;
-            _spriteBatch.DrawString(_font, "Back to Game", dipPos, Color.White);
-            dipPos.Y += 40;
-            _spriteBatch.DrawString(_font, "Quit to Menu", dipPos, Color.White);
-            dipPos.Y += 40;
-            _spriteBatch.DrawString(_font, "Quit to Desktop", dipPos, Color.White);
+            for (int i = 0; i < QuitOptions.Length; i++)
+            {
+                dipPos.Y += 40;
+                bool isSelected = (i == QuitOptionsIndex);
+                _spriteBatch.DrawString(_font, QuitOptions[i], dipPos, isSelected ? Color.Cyan : Color.White);
+            }
             
             break;
         }
