@@ -11,7 +11,15 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 using MonoGame.ImGuiNet;
+
+
+public enum MenuMode
+{
+    GridNavigation,
+    BoxNavigation
+}
 
 public class Game : Microsoft.Xna.Framework.Game
 {
@@ -38,10 +46,16 @@ public class Game : Microsoft.Xna.Framework.Game
     bool paused = false;
     string romPath;
 
+    private MenuMode currentMenuMode = MenuMode.GridNavigation;
+    private int selectedCol = 0; // 2x2 boxes column
+    private int selectedRow = 0; // 2x2 boxes row
+    private int configIndex = 0; // 0 for variant selector, 1 for showing config menu, 2 for Start Game
+
     private enum MenuState
     {
         SelectingGame,
-        ConfiguringDips
+        ConfiguringDips,
+        ConfirmingQuit
     }
 
     private MenuState _currentMenuState = MenuState.SelectingGame;
@@ -71,6 +85,7 @@ public class Game : Microsoft.Xna.Framework.Game
             new GameMenuItem
             {
                 GameName = "Pac-Man",
+                BoxArt = null,
                 Variants =
                 [
                     new RomVariant
@@ -107,6 +122,7 @@ public class Game : Microsoft.Xna.Framework.Game
             new GameMenuItem
             {
                 GameName = "Ms. Pac-Man",
+                BoxArt = null,
                 Variants =
                 [
                     new RomVariant
@@ -141,6 +157,7 @@ public class Game : Microsoft.Xna.Framework.Game
             new GameMenuItem
             {
                 GameName = "Pac-Man Plus",
+                BoxArt = null,
                 Variants =
                 [
                     new RomVariant
@@ -163,6 +180,7 @@ public class Game : Microsoft.Xna.Framework.Game
             new GameMenuItem
             {
                 GameName = "Matrix Effect",
+                BoxArt = null,
                 Variants =
                 [
                     new RomVariant
@@ -243,6 +261,11 @@ public class Game : Microsoft.Xna.Framework.Game
         _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
         _font = Content.Load<SpriteFont>("ArcadeFont");
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+
+        _gameMenu[0].BoxArt = Content.Load<Texture2D>("pacman_px");
+        _gameMenu[1].BoxArt = Content.Load<Texture2D>("mspacman_px");
+        _gameMenu[2].BoxArt = Content.Load<Texture2D>("pacplus_px");
+        _gameMenu[3].BoxArt = Content.Load<Texture2D>("matrix_px");
     }
 
     private void StartGame(string romFileName, string windowTitle, List<int> indices)
@@ -309,58 +332,106 @@ public class Game : Microsoft.Xna.Framework.Game
             switch (_currentMenuState)
             {
                 case MenuState.SelectingGame:
-                    // Vertical Navigation (Switching Games)
-                    if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) || ButtonPressed(Buttons.LeftThumbstickUp))
+                    switch (currentMenuMode)
                     {
-                        _menuVerticalIndex--;
-                        if (_menuVerticalIndex < 0) _menuVerticalIndex = _gameMenu.Count - 1; // Wrap to bottom
-                    }
+                        case MenuMode.GridNavigation:
+                            if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) ||
+                                ButtonPressed(Buttons.LeftThumbstickUp))
+                            {
+                                selectedRow--;
+                                if (selectedRow < 0) selectedRow = 1; // wrap
+                            }
+                            if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) ||
+                                ButtonPressed(Buttons.LeftThumbstickDown))
+                            {
+                                selectedRow++;
+                                if (selectedRow > 1) selectedRow = 0; // wrap
+                            }
+                            if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) ||
+                                ButtonPressed(Buttons.LeftThumbstickLeft))
+                            {
+                                selectedCol--;
+                                if (selectedCol < 0) selectedCol = 1; // wrap
+                            }
+                            if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) ||
+                                ButtonPressed(Buttons.LeftThumbstickRight))
+                            {
+                                selectedCol++;
+                                if (selectedCol > 1) selectedCol = 0; // wrap
+                            }
+                            
+                            _menuVerticalIndex = selectedCol + (selectedRow * 2);
 
-                    if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) || ButtonPressed(Buttons.LeftThumbstickDown))
-                    {
-                        _menuVerticalIndex++;
-                        if (_menuVerticalIndex >= _gameMenu.Count) _menuVerticalIndex = 0; // Wrap to top
-                    }
+                            if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
+                            {
+                                currentMenuMode = MenuMode.BoxNavigation;
+                            }
+                            if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
+                            {
+                                _currentMenuState = MenuState.ConfirmingQuit;
+                            }
+                            break;
+                        case MenuMode.BoxNavigation:
+                            if (KeyPressed(Keys.Up) || ButtonPressed(Buttons.DPadUp) ||
+                                ButtonPressed(Buttons.LeftThumbstickUp))
+                            {
+                                configIndex--;
+                                if (configIndex < 0) configIndex = 2; // wrap
+                            }
+                            if (KeyPressed(Keys.Down) || ButtonPressed(Buttons.DPadDown) ||
+                                ButtonPressed(Buttons.LeftThumbstickDown))
+                            {
+                                configIndex++;
+                                if (configIndex > 2) configIndex = 0; // wrap
+                            }
+                            if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) ||
+                                ButtonPressed(Buttons.LeftThumbstickLeft))
+                            {
+                                if (configIndex == 0)
+                                {
+                                    currentGame.SelectedVariantIndex--;
+                                    if (currentGame.SelectedVariantIndex < 0)
+                                        currentGame.SelectedVariantIndex = currentGame.Variants.Count - 1;
+                                }
+                            }
+                            if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) ||
+                                ButtonPressed(Buttons.LeftThumbstickRight))
+                            {
+                                if (configIndex == 0)
+                                {
+                                    currentGame.SelectedVariantIndex++;
+                                    if (currentGame.SelectedVariantIndex >= currentGame.Variants.Count)
+                                        currentGame.SelectedVariantIndex = 0;
+                                }
+                            }
+                            if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
+                            {
+                                currentMenuMode = MenuMode.GridNavigation;
+                            }
+                            if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
+                            {
+                                switch (configIndex)
+                                {
+                                    case 1:
+                                        // show dipswitch menu
+                                        _currentMenuState = MenuState.ConfiguringDips;
+                                        _dipVerticalIndex = 0;
+                                        break;
+                                    case 2:
+                                        // launch game
+                                        string selectedRomId = currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
+                                        string gameName = currentGame.GameName;
+                                        string gameVariant = currentGame.Variants[currentGame.SelectedVariantIndex].DisplayName;
 
-                    // Horizontal Navigation (Switching ROM variants)
-                    if ((KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft)) && currentGame.Variants.Count > 1)
-                    {
-                        currentGame.SelectedVariantIndex--;
-                        if (currentGame.SelectedVariantIndex < 0)
-                            currentGame.SelectedVariantIndex = currentGame.Variants.Count - 1;
-                    }
-
-                    if ((KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) || ButtonPressed(Buttons.LeftThumbstickRight)) && currentGame.Variants.Count > 1)
-                    {
-                        currentGame.SelectedVariantIndex++;
-                        if (currentGame.SelectedVariantIndex >= currentGame.Variants.Count)
-                            currentGame.SelectedVariantIndex = 0;
-                    }
-
-                    if ((KeyPressed(Keys.Tab) || ButtonPressed(Buttons.Back)) && currentVariant.DipSwitches.Count > 0)
-                    {
-                        _currentMenuState = MenuState.ConfiguringDips;
-                        _dipVerticalIndex = 0;
-                    }
-                    
-                    // Starting the Game
-                    if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
-                    {
-                        string selectedRomId = currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
-                        string gameName = currentGame.GameName;
-                        string gameVariant = currentGame.Variants[currentGame.SelectedVariantIndex].DisplayName;
-
-                        _pendingWindowTitle = gameName + " (" + gameVariant + ") - " + selectedRomId;
-                        _pendingRomName = selectedRomId;
-                        _loadState = 1; // Trigger the loading screen
-                        _isMenuOpen = false; // Close the menu
-                        paused = false;
-                    }
-
-                    if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
-                    {
-                        _isMenuOpen = false;
-                        paused = false;
+                                        _pendingWindowTitle = gameName + " (" + gameVariant + ") - " + selectedRomId;
+                                        _pendingRomName = selectedRomId;
+                                        _loadState = 1; // Trigger the loading screen
+                                        _isMenuOpen = false; // Close the menu
+                                        paused = false;
+                                        break;
+                                }
+                            }
+                            break;
                     }
                     break;
                 
@@ -397,23 +468,39 @@ public class Game : Microsoft.Xna.Framework.Game
                             activeDip.SelectedIndex = 0;
                     }
 
-                    // Press TAB or ESC to go back to game selection
-                    if (KeyPressed(Keys.Tab) || ButtonPressed(Buttons.Back))
+                    // Press TAB or the B button to go back to game selection
+                    if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                     {
                         _currentMenuState = MenuState.SelectingGame;
+                    }
+                    break;
+                
+                case MenuState.ConfirmingQuit:
+                    if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
+                    {
+                        if (!paused)
+                            _currentMenuState = MenuState.SelectingGame;
+                        else
+                        {
+                            _isMenuOpen = !_isMenuOpen;
+                            paused = !paused;
+                        }
+                    }
+                    if (KeyPressed(Keys.Escape))
+                    {
+                        Exit();
                     }
                     break;
             }
         }
         else
         {
-            // Y to open menu
-            if (KeyPressed(Keys.Y) || ButtonPressed(Buttons.Y))
+            if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
             {
-                _isMenuOpen = true;
-                paused = true;
+                _isMenuOpen = !_isMenuOpen;
+                _currentMenuState = MenuState.ConfirmingQuit;
+                paused = !paused;
             }
-
             if (KeyPressed(Keys.Delete))
             {
                 _isDebugOpen = !_isDebugOpen;
@@ -427,10 +514,6 @@ public class Game : Microsoft.Xna.Framework.Game
             }
 
             _lastState = _currentState;
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-            {
-                Exit();
-            }
 
             if (_activeMachine != null && !paused)
             {
@@ -459,81 +542,141 @@ public class Game : Microsoft.Xna.Framework.Game
     }
 
     private void DrawMenu()
-    {
-        GameMenuItem currentGame = _gameMenu[_menuVerticalIndex];
-        RomVariant currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
-        
-        _spriteBatch.Begin();
-        _pixelTexture.SetData([Color.White]);
-        _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
-
-        Vector2 pos = new (100, 100);
-
-        _spriteBatch.DrawString(_font, "SELECT GAME", pos, Color.Yellow);
-        pos.Y += 80;
-
-        switch (_currentMenuState)
-        {
-            case MenuState.SelectingGame:
-            {
-                for (int i = 0; i < _gameMenu.Count; i++)
-                {
-                    GameMenuItem game = _gameMenu[i];
-                    bool isSelected = (i == _menuVerticalIndex);
-
-                    // Highlight the selected game in Yellow, others in White
-                    Color gameColor = isSelected && game.Variants.Count == 1 ? Color.Cyan : Color.White;
-                    _spriteBatch.DrawString(_font, game.GameName, pos, gameColor);
-                    pos.Y += 30; // Move down for the next line
-            
-                    if (game.Variants.Count > 1)
-                    {
-                        // Draw with arrows to indicate horizontal scrolling
-                        string variantText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
-                        _spriteBatch.DrawString(_font, variantText, pos + new Vector2(20, 0), isSelected ? Color.Cyan : Color.White);
-                        pos.Y += 30; // Extra space for the sub-menu
-                    }
-
-                    pos.Y += 20; // Extra spacing between game blocks
-                }
-
-                break;
-            }
-            case MenuState.ConfiguringDips:
-            {
-                _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
-            
-                Vector2 dipPos = new Vector2(120, 150);
+{
+    _spriteBatch.Begin();
+    _pixelTexture.SetData([Color.White]);
+    _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
     
-                // Header showing WHICH variant we are editing
-                string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
-                _spriteBatch.DrawString(_font, header, dipPos, Color.Cyan);
-                dipPos.Y += 40;
+    switch (_currentMenuState)
+    {
+        case MenuState.SelectingGame:
+        {
+            // Grid Dimensions and Math
+            int boxWidth = 521;
+            int boxHeight = 200;
+            int spacingX = 60;
+            int spacingY = 100;
+            
+            // Center the entire 2x2 block on the screen
+            int gridStartX = (GraphicsDevice.Viewport.Width / 2) - boxWidth - (spacingX / 2);
+            int gridStartY = (GraphicsDevice.Viewport.Height / 2) - boxHeight - (spacingY / 2) + 20;
 
-                for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
+            Vector2 titleSize = _font.MeasureString("SELECT GAME");
+            _spriteBatch.DrawString(_font, "SELECT GAME", new Vector2((GraphicsDevice.Viewport.Width / 2) - (titleSize.X / 2), 75), Color.Yellow);
+
+            for (int row = 0; row < 2; row++)
+            {
+                for (int col = 0; col < 2; col++)
                 {
-                    DipSwitch dip = currentVariant.DipSwitches[i];
-                    bool isSelected = (i == _dipVerticalIndex);
-                    Color textColor = isSelected ? Color.Yellow : Color.White;
+                    int index = col + (row * 2);
+                    GameMenuItem game = _gameMenu[index];
+                    bool isSelectedBox = (selectedCol == col && selectedRow == row);
 
-                    // Draw the name of the setting (e.g., "Lives")
-                    _spriteBatch.DrawString(_font, dip.Name, dipPos, textColor);
+                    int xPos = gridStartX + (col * (boxWidth + spacingX));
+                    int yPos = gridStartY + (row * (boxHeight + spacingY));
 
-                    // Draw the current setting value (e.g., "< 3 >")
-                    string optionText = $"< {dip.Options[dip.SelectedIndex]} >";
-                    _spriteBatch.DrawString(_font, optionText, dipPos + new Vector2(200, 0), textColor);
+                    if (game.BoxArt != null)
+                    {
+                        _spriteBatch.Draw(game.BoxArt, new Rectangle(xPos, yPos, boxWidth, boxHeight), Color.White);
+                    }
+                    else
+                    {
+                        // Fallback gray box if art is missing
+                        _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos, boxWidth, boxHeight), Color.DarkSlateGray);
+                    }
+                    
+                    // highlight border if this box is selected
+                    Color borderColor = isSelectedBox ? Color.Cyan : Color.DimGray;
+                    int borderThickness = 4;
+                    _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos, boxWidth, borderThickness), borderColor);
+                    _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos + boxHeight, boxWidth, borderThickness), borderColor);
+                    _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos, borderThickness, boxHeight), borderColor);
+                    _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos + boxWidth, yPos, borderThickness, boxHeight + borderThickness), borderColor);
 
-                    dipPos.Y += 30;
-                    if (i == 0) // first "dipswitch" is always rotation, separate it from the real dipswitches
-                        dipPos.Y += 30;
+                    // Draw the Box Navigation / Info
+                    if (isSelectedBox && currentMenuMode == MenuMode.BoxNavigation)
+                    {
+                        // Variant Selector
+                        string varText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
+                        Vector2 varSize = _font.MeasureString(varText);
+                        _spriteBatch.DrawString(_font, varText, new Vector2(xPos + (boxWidth/2) - (varSize.X/2), yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
+
+                        // Settings Button
+                        string dipText = "SETTINGS";
+                        Vector2 dipSize = _font.MeasureString(dipText);
+                        _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + (boxWidth/2) - (dipSize.X/2), yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
+
+                        // Start Button
+                        string startText = "START GAME";
+                        Vector2 startSize = _font.MeasureString(startText);
+                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + (boxWidth/2) - (startSize.X/2), yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
+                    }
+                    else
+                    {
+                        // If not interacting with the box, just show the main game name underneath
+                        Vector2 nameSize = _font.MeasureString(game.GameName);
+                        _spriteBatch.DrawString(_font, game.GameName, new Vector2(xPos + (boxWidth/2) - (nameSize.X/2), yPos + boxHeight + 20), isSelectedBox ? Color.Cyan : Color.Gray);
+                    }
                 }
-
-                break;
             }
+            break;
         }
+        case MenuState.ConfiguringDips:
+        {
+            GameMenuItem currentGame = _gameMenu[_menuVerticalIndex];
+            RomVariant currentVariant = currentGame.Variants[currentGame.SelectedVariantIndex];
+            
+            _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
+            
+            Vector2 dipPos = new Vector2(120, 150);
+    
+            // Header showing variant we are editing
+            string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
+            _spriteBatch.DrawString(_font, header, dipPos, Color.Cyan);
+            dipPos.Y += 40;
 
-        _spriteBatch.End();
+            for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
+            {
+                DipSwitch dip = currentVariant.DipSwitches[i];
+                bool isSelected = (i == _dipVerticalIndex);
+                Color textColor = isSelected ? Color.Yellow : Color.White;
+
+                // Draw the name of the setting (e.g., "Lives")
+                _spriteBatch.DrawString(_font, dip.Name, dipPos, textColor);
+
+                // Draw the current setting value (e.g., "< 3 >")
+                string optionText = $"< {dip.Options[dip.SelectedIndex]} >";
+                _spriteBatch.DrawString(_font, optionText, dipPos + new Vector2(200, 0), textColor);
+
+                dipPos.Y += 30;
+                if (i == 0) // first setting is always rotation, separate it from the real dipswitches
+                    dipPos.Y += 30;
+            }
+
+            break;
+        }
+        case MenuState.ConfirmingQuit:
+        {
+            _spriteBatch.Draw(_pixelTexture,
+                new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
+            
+            Vector2 dipPos = new Vector2(120, 150);
+
+            // Header showing variant we are editing
+            string header = $"PAUSED";
+            _spriteBatch.DrawString(_font, header, dipPos, Color.Yellow);
+            dipPos.Y += 40;
+            _spriteBatch.DrawString(_font, "Back to Game", dipPos, Color.White);
+            dipPos.Y += 40;
+            _spriteBatch.DrawString(_font, "Quit to Menu", dipPos, Color.White);
+            dipPos.Y += 40;
+            _spriteBatch.DrawString(_font, "Quit to Desktop", dipPos, Color.White);
+            
+            break;
+        }
     }
+    _spriteBatch.End();
+}
 
     protected override void Draw(GameTime gameTime)
     {
@@ -669,6 +812,7 @@ public class GameMenuItem
 {
     public string GameName { get; set; }
     public List<RomVariant> Variants { get; set; } = new();
+    public Texture2D BoxArt { get; set; }
     
     // This remembers which variant is currently selected for this specific game
     public int SelectedVariantIndex { get; set; } = 0; 
