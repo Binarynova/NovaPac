@@ -198,8 +198,8 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         InitializeMenu();
         _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = (internalWidth * resScale) + (sidePadding * 2);
-        _graphics.PreferredBackBufferHeight = (internalHeight * resScale) + (sidePadding * 2);
+        _graphics.PreferredBackBufferWidth = 1280;//(internalWidth * resScale) + (sidePadding * 2);
+        _graphics.PreferredBackBufferHeight = 800;//(internalHeight * resScale) + (sidePadding * 2);
         if (args.Length > 0)
         {
             if(args[0] == "-f")
@@ -421,9 +421,7 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         if(mode == 1)
         {
-            if (_currentState.IsKeyDown(Keys.Enter) && 
-                (_currentState.IsKeyDown(Keys.LeftAlt) || _currentState.IsKeyDown(Keys.RightAlt)) &&
-                _lastState.IsKeyUp(Keys.Enter))
+            if (KeyPressed(Keys.F11))
             {
                 ToggleFullscreen();
             }
@@ -618,8 +616,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            _graphics.PreferredBackBufferWidth = (internalWidth * 3) + (sidePadding * 2);
-            _graphics.PreferredBackBufferHeight = (internalHeight * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferWidth = 1280;//(internalWidth * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferHeight = 800;//(internalHeight * 3) + (sidePadding * 2);
         }
 
         _graphics.ApplyChanges();
