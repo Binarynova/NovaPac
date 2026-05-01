@@ -8,9 +8,9 @@ using System.Linq;
 using System.Net;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 using MonoGame.ImGuiNet;
 
@@ -36,7 +36,6 @@ public class Game : Microsoft.Xna.Framework.Game
     GamePadState _currentGamePadState;
     GamePadState _lastGamePadState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
-    const int resScale = 3;
     const int internalWidth = 224;
     const int internalHeight = 288;
     const int sidePadding = 20;
@@ -78,7 +77,7 @@ public class Game : Microsoft.Xna.Framework.Game
     private List<GameMenuItem> _gameMenu;
     private int _menuVerticalIndex = 0;
 
-    string[] QuitOptions = new string[3] { "Back to Game", "Exit to Menu", "Exit to Desktop" };
+    string[] QuitOptions = ["Back to Game", "Exit to Menu", "Exit to Desktop"];
     int QuitOptionsIndex = 0;
 
     private void InitializeMenu()
@@ -205,12 +204,12 @@ public class Game : Microsoft.Xna.Framework.Game
     
     string romFileNameandPath;
 
-    private List<int> ConvertDipSwitchesToIndices(RomVariant romVariant)
+    private static List<int> ConvertDipSwitchesToIndices(RomVariant romVariant)
     {
-        List<int> indices = new();
+        List<int> indices = [];
 
-        for (int i = 0; i < romVariant.DipSwitches.Count; i++)
-            indices.Add(romVariant.DipSwitches[i].SelectedIndex);
+        foreach (DipSwitch t in romVariant.DipSwitches)
+            indices.Add(t.SelectedIndex);
 
         return indices;
     }
@@ -219,8 +218,8 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         InitializeMenu();
         _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = 1280;//(internalWidth * resScale) + (sidePadding * 2);
-        _graphics.PreferredBackBufferHeight = 800;//(internalHeight * resScale) + (sidePadding * 2);
+        _graphics.PreferredBackBufferWidth = 1280; //(internalWidth * resScale) + (sidePadding * 2);
+        _graphics.PreferredBackBufferHeight = 800; //(internalHeight * resScale) + (sidePadding * 2);
         if (args.Length > 0)
         {
             if(args[0] == "-f")
@@ -244,7 +243,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
     void LoadConfigFile()
     {
-        string configFile = "config.txt";
+        const string configFile = "config.txt";
 
         if (!File.Exists(configFile))
         {
@@ -585,10 +584,10 @@ public class Game : Microsoft.Xna.Framework.Game
         case MenuState.SelectingGame:
         {
             // Grid Dimensions and Math
-            int boxWidth = 521;
-            int boxHeight = 200;
-            int spacingX = 60;
-            int spacingY = 100;
+            const int boxWidth = 521;
+            const int boxHeight = 200;
+            const int spacingX = 60;
+            const int spacingY = 100;
             
             // Center the entire 2x2 block on the screen
             int gridStartX = (GraphicsDevice.Viewport.Width / 2) - boxWidth - (spacingX / 2);
@@ -620,7 +619,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     
                     // highlight border if this box is selected
                     Color borderColor = isSelectedBox ? Color.Cyan : Color.DimGray;
-                    int borderThickness = 4;
+                    const int borderThickness = 4;
                     _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos, boxWidth, borderThickness), borderColor);
                     _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos + boxHeight, boxWidth, borderThickness), borderColor);
                     _spriteBatch.Draw(_pixelTexture, new Rectangle(xPos, yPos, borderThickness, boxHeight), borderColor);
@@ -632,23 +631,23 @@ public class Game : Microsoft.Xna.Framework.Game
                         // Variant Selector
                         string varText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
                         Vector2 varSize = _font.MeasureString(varText);
-                        _spriteBatch.DrawString(_font, varText, new Vector2(xPos + (boxWidth/2) - (varSize.X/2), yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, varText, new Vector2(xPos + (boxWidth / 2) - (varSize.X / 2), yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
 
                         // Settings Button
-                        string dipText = "SETTINGS";
+                        const string dipText = "SETTINGS";
                         Vector2 dipSize = _font.MeasureString(dipText);
-                        _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + (boxWidth/2) - (dipSize.X/2), yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + (boxWidth / 2) - (dipSize.X / 2), yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
 
                         // Start Button
-                        string startText = "START GAME";
+                        const string startText = "START GAME";
                         Vector2 startSize = _font.MeasureString(startText);
-                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + (boxWidth/2) - (startSize.X/2), yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + (boxWidth / 2) - (startSize.X / 2), yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
                     }
                     else
                     {
                         // If not interacting with the box, just show the main game name underneath
                         Vector2 nameSize = _font.MeasureString(game.GameName);
-                        _spriteBatch.DrawString(_font, game.GameName, new Vector2(xPos + (boxWidth/2) - (nameSize.X/2), yPos + boxHeight + 20), isSelectedBox ? Color.Cyan : Color.Gray);
+                        _spriteBatch.DrawString(_font, game.GameName, new Vector2(xPos + (boxWidth / 2) - (nameSize.X / 2), yPos + boxHeight + 20), isSelectedBox ? Color.Cyan : Color.Gray);
                     }
                 }
             }
@@ -661,7 +660,7 @@ public class Game : Microsoft.Xna.Framework.Game
             
             _spriteBatch.Draw(_pixelTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
             
-            Vector2 dipPos = new Vector2(120, 150);
+            Vector2 dipPos = new(120, 150);
     
             // Header showing variant we are editing
             string header = $"SETTINGS: {currentGame.GameName} ({currentVariant.DisplayName})";
@@ -671,7 +670,7 @@ public class Game : Microsoft.Xna.Framework.Game
             for (int i = 0; i < currentVariant.DipSwitches.Count; i++)
             {
                 DipSwitch dip = currentVariant.DipSwitches[i];
-                bool isSelected = (i == _dipVerticalIndex);
+                bool isSelected = i == _dipVerticalIndex;
                 Color textColor = isSelected ? Color.Yellow : Color.White;
 
                 // Draw the name of the setting (e.g., "Lives")
@@ -693,10 +692,10 @@ public class Game : Microsoft.Xna.Framework.Game
             _spriteBatch.Draw(_pixelTexture,
                 new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.Black * 0.8f);
             
-            Vector2 dipPos = new Vector2(120, 150);
+            Vector2 dipPos = new(120, 150);
 
             // Header showing variant we are editing
-            string header = $"PAUSED";
+            const string header = "PAUSED";
             _spriteBatch.DrawString(_font, header, dipPos, Color.Yellow);
             for (int i = 0; i < QuitOptions.Length; i++)
             {
@@ -792,8 +791,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            _graphics.PreferredBackBufferWidth = 1280;//(internalWidth * 3) + (sidePadding * 2);
-            _graphics.PreferredBackBufferHeight = 800;//(internalHeight * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferWidth = 1280; //(internalWidth * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferHeight = 800; //(internalHeight * 3) + (sidePadding * 2);
         }
 
         _graphics.ApplyChanges();
@@ -838,13 +837,13 @@ public class RomVariant
 {
     public string DisplayName { get; set; }
     public string RomId { get; set; } // The actual string passed to LoadRom (e.g., "pacfast")
-    public List<DipSwitch> DipSwitches { get; set; } = new();
+    public List<DipSwitch> DipSwitches { get; set; } = [];
 }
 
 public class GameMenuItem
 {
     public string GameName { get; set; }
-    public List<RomVariant> Variants { get; set; } = new();
+    public List<RomVariant> Variants { get; set; } = [];
     public Texture2D BoxArt { get; set; }
     
     // This remembers which variant is currently selected for this specific game

@@ -12,7 +12,7 @@ public class PacManMemoryBus : IMemoryBus
     private NamcoWSG _wsg;
 
     public bool PlayingMsPacMan { get; set; }
-    public bool DecryptEnabled { get; set; }
+    bool DecryptEnabled { get; set; }
     public bool SecondPlayerFlip { get; set; }
     public bool SteamDeckTwoPlayerMode { get; set; }
     public List<int> SubOptionIndices { get; set; } = [];
@@ -31,18 +31,27 @@ public class PacManMemoryBus : IMemoryBus
     {
         if (PlayingMsPacMan)
         {
-            switch (address)
+            switch (address & 0xFFF8)
             {
-                case >= 0x3FF8 and <= 0x3FFF:
+                // the 'address & 0xFFF8' bit mask basically collapses an 8-byte address range down to a single
+                // address. e.g. all values from 0x1370 to 0x1377 AND'd with 0xFFF8 equal 0x1370.
+                // Another way to look at it is the first three digits don't change but a last digit of 0-7
+                // collapses to 0, and a last digit of 8-F collapses to 8.
+                
+                // so because any value from 0x3FF8 to 0x3FFF is changed to 0x3FF8 by the switch expression,
+                // this case will catch all addresses from 0x3FF8 to 0x3FFF
+                case 0x3FF8:
                     DecryptEnabled = true;
                     break;
-                case >= 0x0038 and <= 0x003F:
-                case >= 0x03B0 and <= 0x03B7:
-                case >= 0x1600 and <= 0x1607:
-                case >= 0x2120 and <= 0x2127:
-                case >= 0x3FF0 and <= 0x3FF7:
-                case >= 0x8000 and <= 0x8007:
-                case >= 0x97F0 and <= 0x97F7:
+                
+                // and each of these cases catch all addresses from
+                case 0x0038:    // 0x0038 to 0x003F
+                case 0x03B0:    // 0x03B0 to 0x03B7
+                case 0x1600:    // and so on...
+                case 0x2120:
+                case 0x3FF0:
+                case 0x8000:
+                case 0x97F0:
                     DecryptEnabled = false;
                     break;
             }
@@ -75,18 +84,19 @@ public class PacManMemoryBus : IMemoryBus
     {
         if (PlayingMsPacMan)
         {
-            switch (address)
+            switch (address & 0xFFF8)
             {
-                case >= 0x3FF8 and <= 0x3FFF:
+                case 0x3FF8:
                     DecryptEnabled = true;
                     break;
-                case >= 0x0038 and <= 0x003F:
-                case >= 0x03B0 and <= 0x03B7:
-                case >= 0x1600 and <= 0x1607:
-                case >= 0x2120 and <= 0x2127:
-                case >= 0x3FF0 and <= 0x3FF7:
-                case >= 0x8000 and <= 0x8007:
-                case >= 0x97F0 and <= 0x97F7:
+                
+                case 0x0038:
+                case 0x03B0:
+                case 0x1600:
+                case 0x2120:
+                case 0x3FF0:
+                case 0x8000:
+                case 0x97F0:
                     DecryptEnabled = false;
                     break;
             }
@@ -185,7 +195,7 @@ public class PacManMemoryBus : IMemoryBus
                 | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
                 | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
                 | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
-                | (0x0 << 7) // 1 for upright, 0 for cocktail
+                | 0 // 1 for upright, 0 for cocktail
             );
         }
         
@@ -202,7 +212,7 @@ public class PacManMemoryBus : IMemoryBus
         );
     }
 
-    public byte GetDipSwitchesFromOptions()
+    byte GetDipSwitchesFromOptions()
     {
         byte dipSwitchValue = 0x00;
 

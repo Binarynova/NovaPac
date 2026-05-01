@@ -1,6 +1,6 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/var/home/thomas/Projects/pacman/Content/File.spritefont","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1697518
-"/var/home/thomas/Projects/pacman/Content/matrix_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/matrix_px.xnb","TextureProcessor","Texture2DContent",54293,416885,0.0285561
-"/var/home/thomas/Projects/pacman/Content/mspacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/mspacman_px.xnb","TextureProcessor","Texture2DContent",65967,416885,0.0174948
-"/var/home/thomas/Projects/pacman/Content/pacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacman_px.xnb","TextureProcessor","Texture2DContent",54747,416885,0.0155015
-"/var/home/thomas/Projects/pacman/Content/pacplus_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacplus_px.xnb","TextureProcessor","Texture2DContent",50623,416885,0.0163514
+"/var/home/thomas/Projects/pacman/Content/File.spritefont","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1687181
+"/var/home/thomas/Projects/pacman/Content/matrix_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/matrix_px.xnb","TextureProcessor","Texture2DContent",54293,416885,0.0329159
+"/var/home/thomas/Projects/pacman/Content/mspacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/mspacman_px.xnb","TextureProcessor","Texture2DContent",65967,416885,0.0164169
+"/var/home/thomas/Projects/pacman/Content/pacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacman_px.xnb","TextureProcessor","Texture2DContent",54747,416885,0.0147896
+"/var/home/thomas/Projects/pacman/Content/pacplus_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacplus_px.xnb","TextureProcessor","Texture2DContent",50623,416885,0.016051
