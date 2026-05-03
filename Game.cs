@@ -14,7 +14,11 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using MonoGame.ImGuiNet;
 
-
+public enum ControllerBrand
+{
+    Xbox,
+    Sony
+}
 public enum MenuMode
 {
     GridNavigation,
@@ -274,6 +278,10 @@ public class Game : Microsoft.Xna.Framework.Game
     {
         if (indices[0] == 1)
             verticalScreenMode = true;
+        else
+        {
+            verticalScreenMode = false;
+        }
         DrawLoadingMessage();
         Window.Title = windowTitle;
         romFileNameandPath = romPath + romFileName;

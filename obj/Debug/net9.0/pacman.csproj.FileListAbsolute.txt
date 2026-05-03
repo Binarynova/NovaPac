@@ -47,3 +47,7 @@
 /var/home/thomas/Projects/pacman/obj/Debug/net9.0/refint/pacman.dll
 /var/home/thomas/Projects/pacman/obj/Debug/net9.0/pacman.pdb
 /var/home/thomas/Projects/pacman/bin/Debug/net9.0/Content/ArcadeFont.xnb
+/var/home/thomas/Projects/pacman/bin/Debug/net9.0/Content/matrix_px.xnb
+/var/home/thomas/Projects/pacman/bin/Debug/net9.0/Content/mspacman_px.xnb
+/var/home/thomas/Projects/pacman/bin/Debug/net9.0/Content/pacman_px.xnb
+/var/home/thomas/Projects/pacman/bin/Debug/net9.0/Content/pacplus_px.xnb

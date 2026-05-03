@@ -160,7 +160,7 @@ public class PacManMemoryBus : IMemoryBus
                 | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 0)
                 | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 2)
                 | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-                | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.D5) || gamePadState.Buttons.Y == ButtonState.Pressed ? 0 : 1) << 5)
                 | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
                 | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
             );
@@ -173,7 +173,7 @@ public class PacManMemoryBus : IMemoryBus
             | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
             | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Y == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
             | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
         );
@@ -193,8 +193,8 @@ public class PacManMemoryBus : IMemoryBus
                 | ((state.IsKeyDown(Keys.NumPad6) || gamePadState.ThumbSticks.Right.X >= 0.5f ? 0 : 1) << 3)
                 | ((state.IsKeyDown(Keys.NumPad2) || gamePadState.ThumbSticks.Right.Y <= -0.5f ? 0 : 1) << 1)
                 | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-                | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
-                | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+                | ((state.IsKeyDown(Keys.D1) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
+                | ((state.IsKeyDown(Keys.D2) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 6)
                 | 0 // 1 for upright, 0 for cocktail
             );
         }
@@ -206,8 +206,8 @@ public class PacManMemoryBus : IMemoryBus
             | ((state.IsKeyDown(Keys.NumPad6) ? 0 : 1) << 2)
             | ((state.IsKeyDown(Keys.NumPad2) ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.T) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.Enter) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
-            | ((state.IsKeyDown(Keys.Tab) ? 0 : 1) << 6)
+            | ((state.IsKeyDown(Keys.D1) || gamePadState.Buttons.Start == ButtonState.Pressed ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.D2) || gamePadState.Buttons.Back == ButtonState.Pressed ? 0 : 1) << 6)
             | (0x1 << 7) // 1 for upright, 0 for cocktail
         );
     }
