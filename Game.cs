@@ -398,10 +398,12 @@ public class Game : Microsoft.Xna.Framework.Game
 
                             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
                             {
+                                menuSounds[0].Play();
                                 currentMenuMode = MenuMode.BoxNavigation;
                             }
                             if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                             {
+                                menuSounds[1].Play();
                                 _currentMenuState = MenuState.ConfirmingQuit;
                             }
                             break;
@@ -421,6 +423,7 @@ public class Game : Microsoft.Xna.Framework.Game
                             if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) ||
                                 ButtonPressed(Buttons.LeftThumbstickLeft))
                             {
+                                menuSounds[0].Play();
                                 if (configIndex == 0)
                                 {
                                     currentGame.SelectedVariantIndex--;
@@ -431,6 +434,7 @@ public class Game : Microsoft.Xna.Framework.Game
                             if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) ||
                                 ButtonPressed(Buttons.LeftThumbstickRight))
                             {
+                                menuSounds[0].Play();
                                 if (configIndex == 0)
                                 {
                                     currentGame.SelectedVariantIndex++;
@@ -440,10 +444,12 @@ public class Game : Microsoft.Xna.Framework.Game
                             }
                             if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                             {
+                                menuSounds[1].Play();
                                 currentMenuMode = MenuMode.GridNavigation;
                             }
                             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
                             {
+                                menuSounds[0].Play();
                                 switch (configIndex)
                                 {
                                     case 1:
@@ -505,6 +511,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     // Press TAB or the B button to go back to game selection
                     if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                     {
+                        menuSounds[1].Play();
                         _currentMenuState = MenuState.SelectingGame;
                     }
                     break;
@@ -524,6 +531,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     }
                     if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A) )
                     {
+                        menuSounds[0].Play();
                         switch (QuitOptionsIndex)
                         {
                             case 0:
@@ -546,6 +554,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     }
                     if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
                     {
+                        menuSounds[1].Play();
                         if (!paused)
                             _currentMenuState = MenuState.SelectingGame;
                         else
@@ -561,6 +570,7 @@ public class Game : Microsoft.Xna.Framework.Game
         {
             if (KeyPressed(Keys.Back) || ButtonPressed(Buttons.B))
             {
+                menuSounds[0].Play();
                 _isMenuOpen = !_isMenuOpen;
                 _currentMenuState = MenuState.ConfirmingQuit;
                 paused = !paused;
