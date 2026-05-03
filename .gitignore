@@ -1,0 +1,4 @@
+# .NET and MonoGame Ignore Rules
+bin/
+obj/
+.mgstats
