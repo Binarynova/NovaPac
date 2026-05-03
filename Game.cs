@@ -14,11 +14,6 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using MonoGame.ImGuiNet;
 
-public enum ControllerBrand
-{
-    Xbox,
-    Sony
-}
 public enum MenuMode
 {
     GridNavigation,
@@ -48,6 +43,8 @@ public class Game : Microsoft.Xna.Framework.Game
     float _floatScale = 1.0f;
     bool paused = false;
     string romPath;
+
+    List<Texture2D> controllerButtons = [];
 
     private MenuMode currentMenuMode = MenuMode.GridNavigation;
     private int selectedCol = 0; // 2x2 boxes column
@@ -272,6 +269,13 @@ public class Game : Microsoft.Xna.Framework.Game
         _gameMenu[1].BoxArt = Content.Load<Texture2D>("mspacman_px");
         _gameMenu[2].BoxArt = Content.Load<Texture2D>("pacplus_px");
         _gameMenu[3].BoxArt = Content.Load<Texture2D>("matrix_px");
+        
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_a"));
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_b"));
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_x"));
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_y"));
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_menu"));
+        controllerButtons.Add(Content.Load<Texture2D>("xbox_view"));
     }
 
     private void StartGame(string romFileName, string windowTitle, List<int> indices)
@@ -757,29 +761,41 @@ public class Game : Microsoft.Xna.Framework.Game
                 {
                     _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
                     
-                    _spriteBatch.DrawString(_font, "Y Coin", new Vector2(1025, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
-                    _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(1050, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
-                    _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(1075, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
-                    _spriteBatch.DrawString(_font, "B Menu", new Vector2(1100, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "  Coin", new Vector2(1025, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.Draw(controllerButtons[3], new Vector2(1028, 272), null, Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "  P1 Start", new Vector2(1050, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.Draw(controllerButtons[4], new Vector2(1053, 275), null, Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "  P2 Start", new Vector2(1075, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.Draw(controllerButtons[5], new Vector2(1078, 275), null, Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "  Menu", new Vector2(1100, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.Draw(controllerButtons[1], new Vector2(1103, 272), null, Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
                 }
                 else
                 {
                     _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.None, 0f);
                     
-                    _spriteBatch.DrawString(_font, "Y Coin", new Vector2(-25, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
-                    _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(-50,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
-                    _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(-75,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
-                    _spriteBatch.DrawString(_font, "B Menu", new Vector2(-100,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "  Coin", new Vector2(-25, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.Draw(controllerButtons[3], new Vector2(-17, 720), null, Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "  P1 Start", new Vector2(-50, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.Draw(controllerButtons[4], new Vector2(-47, 721), null, Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "  P2 Start", new Vector2(-77, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.Draw(controllerButtons[5], new Vector2(-72, 721), null, Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "B Menu", new Vector2(-104, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.Draw(controllerButtons[1], new Vector2(-97, 720), null, Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
                 }
             }
             else
             {
                 _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, 0f, textureCenter, _floatScale, SpriteEffects.None, 0f);
                 
-                _spriteBatch.DrawString(_font, "Y Coin", new Vector2(1100,675), Color.White);
-                _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(1100,700), Color.White);
-                _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(1100,725), Color.White);
-                _spriteBatch.DrawString(_font, "B Menu", new Vector2(1100,750), Color.White);
+                _spriteBatch.DrawString(_font, "  Coin", new Vector2(1100, 675), Color.White);
+                _spriteBatch.Draw(controllerButtons[3], new Rectangle(1090, 670, 28, 28), Color.White);
+                _spriteBatch.DrawString(_font, "  P1 Start", new Vector2(1100,703), Color.White);
+                _spriteBatch.Draw(controllerButtons[4], new Rectangle(1090, 698, 24, 24), Color.White);
+                _spriteBatch.DrawString(_font, "  P2 Start", new Vector2(1100, 728), Color.White);
+                _spriteBatch.Draw(controllerButtons[5], new Rectangle(1090, 722, 24, 24), Color.White);
+                _spriteBatch.DrawString(_font, "  Menu", new Vector2(1100, 753), Color.White);
+                _spriteBatch.Draw(controllerButtons[1], new Rectangle(1090, 746, 28, 28), Color.White);
             }
         }
         
