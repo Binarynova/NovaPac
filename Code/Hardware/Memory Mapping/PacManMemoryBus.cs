@@ -173,7 +173,7 @@ public class PacManMemoryBus : IMemoryBus
             | ((state.IsKeyDown(Keys.Right) || gamePadState.DPad.Right == ButtonState.Pressed || gamePadState.ThumbSticks.Left.X >= 0.5f ? 0 : 1) << 2)
             | ((state.IsKeyDown(Keys.Down) || gamePadState.DPad.Down == ButtonState.Pressed || gamePadState.ThumbSticks.Left.Y <= -0.5f ? 0 : 1) << 3)
             | ((state.IsKeyDown(Keys.S) ? 0 : 1) << 4)
-            | ((state.IsKeyDown(Keys.C) || gamePadState.Buttons.Y == ButtonState.Pressed ? 0 : 1) << 5)
+            | ((state.IsKeyDown(Keys.D5) || gamePadState.Buttons.Y == ButtonState.Pressed ? 0 : 1) << 5)
             | ((state.IsKeyDown(Keys.D) ? 0 : 1) << 6)
             | ((state.IsKeyDown(Keys.M) ? 0 : 1) << 7)
         );
