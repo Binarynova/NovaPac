@@ -45,6 +45,7 @@ public class Game : Microsoft.Xna.Framework.Game
     string romPath;
 
     List<Texture2D> controllerButtons = [];
+    List<SoundEffect> menuSounds = [];
 
     private MenuMode currentMenuMode = MenuMode.GridNavigation;
     private int selectedCol = 0; // 2x2 boxes column
@@ -265,17 +266,36 @@ public class Game : Microsoft.Xna.Framework.Game
         _font = Content.Load<SpriteFont>("ArcadeFont");
         _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
 
-        _gameMenu[0].BoxArt = Content.Load<Texture2D>("pacman_px");
-        _gameMenu[1].BoxArt = Content.Load<Texture2D>("mspacman_px");
-        _gameMenu[2].BoxArt = Content.Load<Texture2D>("pacplus_px");
-        _gameMenu[3].BoxArt = Content.Load<Texture2D>("matrix_px");
+        string contentDir = "Content";
+
+        Texture2D LoadTextureRaw(string filename)
+        {
+            string path = Path.Combine(contentDir, filename);
+            if (File.Exists(path))
+            {
+                using (var fileStream = new FileStream(path, FileMode.Open))
+                {
+                    return Texture2D.FromStream(GraphicsDevice, fileStream);
+                }
+            }
+            Console.WriteLine($"Warning: File not found for game art at {filename}");
+            return null;
+        }
+
+        _gameMenu[0].BoxArt = LoadTextureRaw("pacman_px.png");
+        _gameMenu[1].BoxArt = LoadTextureRaw("mspacman_px.png");
+        _gameMenu[2].BoxArt = LoadTextureRaw("pacplus_px.png");
+        _gameMenu[3].BoxArt = LoadTextureRaw("matrix_px.png");
         
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_a"));
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_b"));
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_x"));
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_y"));
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_menu"));
-        controllerButtons.Add(Content.Load<Texture2D>("xbox_view"));
+        controllerButtons.Add(LoadTextureRaw("xbox_a.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_b.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_y.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_x.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_menu.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_view.png"));
+        
+        menuSounds.Add(Content.Load<SoundEffect>("eat_dot_0"));
+        menuSounds.Add(Content.Load<SoundEffect>("eat_dot_1"));
     }
 
     private void StartGame(string romFileName, string windowTitle, List<int> indices)
