@@ -756,15 +756,33 @@ public class Game : Microsoft.Xna.Framework.Game
                 if (_activeMachine.secondPlayerFlip)
                 {
                     _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    
+                    _spriteBatch.DrawString(_font, "Y Coin", new Vector2(1025, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(1050, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(1075, 135), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
+                    _spriteBatch.DrawString(_font, "B Menu", new Vector2(1100, 199), Color.White, rotation, textureCenter, 1, SpriteEffects.FlipHorizontally | SpriteEffects.FlipVertically, 0f );
                 }
                 else
+                {
                     _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, rotation, textureCenter, _floatScale, SpriteEffects.None, 0f);
+                    
+                    _spriteBatch.DrawString(_font, "Y Coin", new Vector2(-25, 725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(-50,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(-75,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                    _spriteBatch.DrawString(_font, "B Menu", new Vector2(-100,725), Color.White, rotation, textureCenter, 1, SpriteEffects.None, 0f );
+                }
             }
             else
             {
                 _spriteBatch.Draw(_nativeRenderTarget, screenCenter, null, Color.White, 0f, textureCenter, _floatScale, SpriteEffects.None, 0f);
+                
+                _spriteBatch.DrawString(_font, "Y Coin", new Vector2(1100,675), Color.White);
+                _spriteBatch.DrawString(_font, "> P1 Start", new Vector2(1100,700), Color.White);
+                _spriteBatch.DrawString(_font, "< P2 Start", new Vector2(1100,725), Color.White);
+                _spriteBatch.DrawString(_font, "B Menu", new Vector2(1100,750), Color.White);
             }
         }
+        
         GraphicsDevice.SetRenderTarget(null);
         _spriteBatch.End();
 
