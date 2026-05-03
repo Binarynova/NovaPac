@@ -25,8 +25,6 @@ public class Disassembler
 
     public string GetAssemblyOP(byte opcode)
     {
-        if (opcodes.ContainsKey(opcode))
-            return opcodes[opcode];
-        return "";
+        return opcodes.GetValueOrDefault(opcode, "");
     }
 }

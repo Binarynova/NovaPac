@@ -3,7 +3,7 @@ public class NamcoWSG(byte[] waveformRom)
     private double _accumulator = 0;
     private const double CyclesPerSample = 3072000.0 / 44100.0;
     
-    public float MasterVolume { get; set; } = 1.0f;
+    private float MasterVolume { get; set; } = 1.0f;
     private const int MaxGain = 90;
     
     private Queue<short> _sampleBuffer = new ();

@@ -11,10 +11,10 @@ public class PacManMemoryBus : IMemoryBus
     private byte[] _spriteRam2;
     private NamcoWSG _wsg;
 
-    public bool PlayingMsPacMan { get; set; }
+    public bool PlayingMsPacMan { get; init; }
     bool DecryptEnabled { get; set; }
     public bool SecondPlayerFlip { get; set; }
-    public bool SteamDeckTwoPlayerMode { get; set; }
+    public bool SteamDeckTwoPlayerMode { get; init; }
     public List<int> SubOptionIndices { get; set; } = [];
     
     public PacManMemoryBus(byte[] decryptedRom, byte[] spriteRam, byte[] spriteRam2, NamcoWSG wsg, byte[] maincpu)
@@ -135,7 +135,7 @@ public class PacManMemoryBus : IMemoryBus
     
     private static ushort NormalizeAddress(ushort address)
     {
-        if (address < 0x4000 || (address >= 0x5000 && address <= 0x50FF))
+        if (address is < 0x4000 or >= 0x5000 and <= 0x50FF)
         {
             return address;
         }

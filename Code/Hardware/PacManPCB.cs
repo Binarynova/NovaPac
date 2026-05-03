@@ -55,11 +55,13 @@ public class PacManPCB : IArcadeMachine
         string romFileName = Path.GetFileName(romFileNameandPath);
         LoadRom(romFileNameandPath);
         wsg = new NamcoWSG(_namco);
-        memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu);
-        memoryBus.PlayingMsPacMan = (romFileName is "mspacman" or "mspacmnf");
-        memoryBus.SecondPlayerFlip = indices[0] == 1;
-        memoryBus.SteamDeckTwoPlayerMode = indices[0] == 1;
-        memoryBus.SubOptionIndices = new List<int>(indices);
+        memoryBus = new PacManMemoryBus(_decryptedRom, spriteram, spriteram2, wsg, _maincpu)
+        {
+            PlayingMsPacMan = romFileName is "mspacman" or "mspacmnf",
+            SecondPlayerFlip = indices[0] == 1,
+            SteamDeckTwoPlayerMode = indices[0] == 1,
+            SubOptionIndices = new List<int>(indices)
+        };
         cpu = new Z80Cpu(memoryBus);
         
         mode = 0;
@@ -83,7 +85,7 @@ public class PacManPCB : IArcadeMachine
         PrepareSpriteTextures(_graphicsDevice);
     }
 
-    public void DrawSpriteRamViewer(ImGuiRenderer renderer)
+    void DrawSpriteRamViewer(ImGuiRenderer renderer)
     {
         if (ImGui.BeginTable("SpriteRam", 8))
         {
@@ -102,7 +104,7 @@ public class PacManPCB : IArcadeMachine
         }
     }
 
-    public void DrawMemoryViewer()
+    void DrawMemoryViewer()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new System.Numerics.Vector2(0, 0));
         ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
@@ -127,7 +129,7 @@ public class PacManPCB : IArcadeMachine
         ImGui.PopStyleVar();
     }
     
-    public void DrawGraphicsViewer(ImGuiRenderer renderer)
+    void DrawGraphicsViewer(ImGuiRenderer renderer)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new System.Numerics.Vector2(0, 0));
         ImGuiTableFlags flags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX;
@@ -395,12 +397,12 @@ public class PacManPCB : IArcadeMachine
         cpu.RequestInterrupt();
     }
     
-    public byte GetSpriteRam(int index)
+    byte GetSpriteRam(int index)
     {
         return spriteram[index];
     }
     
-    public byte GetSpriteRam2(int index)
+    byte GetSpriteRam2(int index)
     {
         return spriteram2[index];
     }
