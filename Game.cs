@@ -289,8 +289,8 @@ public class Game : Microsoft.Xna.Framework.Game
         
         controllerButtons.Add(LoadTextureRaw("xbox_a.png"));
         controllerButtons.Add(LoadTextureRaw("xbox_b.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_y.png"));
         controllerButtons.Add(LoadTextureRaw("xbox_x.png"));
+        controllerButtons.Add(LoadTextureRaw("xbox_y.png"));
         controllerButtons.Add(LoadTextureRaw("xbox_menu.png"));
         controllerButtons.Add(LoadTextureRaw("xbox_view.png"));
         
