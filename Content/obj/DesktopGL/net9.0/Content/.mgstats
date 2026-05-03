@@ -1,12 +1,6 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/var/home/thomas/Projects/pacman/Content/File.spritefont","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1687181
-"/var/home/thomas/Projects/pacman/Content/matrix_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/matrix_px.xnb","TextureProcessor","Texture2DContent",54293,416885,0.0329159
-"/var/home/thomas/Projects/pacman/Content/mspacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/mspacman_px.xnb","TextureProcessor","Texture2DContent",65967,416885,0.0164169
-"/var/home/thomas/Projects/pacman/Content/pacman_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacman_px.xnb","TextureProcessor","Texture2DContent",54747,416885,0.0147896
-"/var/home/thomas/Projects/pacman/Content/pacplus_px.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacplus_px.xnb","TextureProcessor","Texture2DContent",50623,416885,0.016051
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_a.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_a.xnb","TextureProcessor","Texture2DContent",309,3221,0.0941681
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_b.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_b.xnb","TextureProcessor","Texture2DContent",310,3221,0.0018024
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_menu.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_menu.xnb","TextureProcessor","Texture2DContent",270,2389,0.0012235
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_view.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_view.xnb","TextureProcessor","Texture2DContent",278,2389,0.0006472
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_x.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_x.xnb","TextureProcessor","Texture2DContent",326,3221,0.0005882
-"/var/home/thomas/Projects/pacman/Content/tiles/xbox_y.png","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/tiles/xbox_y.xnb","TextureProcessor","Texture2DContent",307,3221,0.0005059
+"/var/home/thomas/Projects/pacman/Content/File.spritefont","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.175508
+"/var/home/thomas/Projects/pacman/Content/matrix_px.png","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/matrix_px.xnb","TextureProcessor","Texture2DContent",54293,416885,0.0294075
+"/var/home/thomas/Projects/pacman/Content/mspacman_px.png","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/mspacman_px.xnb","TextureProcessor","Texture2DContent",65967,416885,0.0186609
+"/var/home/thomas/Projects/pacman/Content/pacman_px.png","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacman_px.xnb","TextureProcessor","Texture2DContent",54747,416885,0.0166471
+"/var/home/thomas/Projects/pacman/Content/pacplus_px.png","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/pacplus_px.xnb","TextureProcessor","Texture2DContent",50623,416885,0.0175684
