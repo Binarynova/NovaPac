@@ -1,4 +1,4 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/var/home/thomas/Projects/pacman/Content/ArcadeFont.spritefont","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.0844638
-"/var/home/thomas/Projects/pacman/Content/eat_dot_0.wav","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/eat_dot_0.xnb","SoundEffectProcessor","SoundEffectContent",7976,8037,0.1014323
-"/var/home/thomas/Projects/pacman/Content/eat_dot_1.wav","/var/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/eat_dot_1.xnb","SoundEffectProcessor","SoundEffectContent",8000,8061,0.0076333
+"/var/home/thomas/Projects/pacman/Content/ArcadeFont.spritefont","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.0916557
+"/var/home/thomas/Projects/pacman/Content/eat_dot_0.wav","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/eat_dot_0.xnb","SoundEffectProcessor","SoundEffectContent",7976,8037,0.0978303
+"/var/home/thomas/Projects/pacman/Content/eat_dot_1.wav","/home/thomas/Projects/pacman/Content/bin/DesktopGL/Content/eat_dot_1.xnb","SoundEffectProcessor","SoundEffectContent",8000,8061,0.0075909

@@ -273,10 +273,8 @@ public class Game : Microsoft.Xna.Framework.Game
             string path = Path.Combine(contentDir, filename);
             if (File.Exists(path))
             {
-                using (var fileStream = new FileStream(path, FileMode.Open))
-                {
-                    return Texture2D.FromStream(GraphicsDevice, fileStream);
-                }
+                using FileStream fileStream = new(path, FileMode.Open);
+                return Texture2D.FromStream(GraphicsDevice, fileStream);
             }
             Console.WriteLine($"Warning: File not found for game art at {filename}");
             return null;
@@ -300,12 +298,8 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private void StartGame(string romFileName, string windowTitle, List<int> indices)
     {
-        if (indices[0] == 1)
-            verticalScreenMode = true;
-        else
-        {
-            verticalScreenMode = false;
-        }
+        verticalScreenMode = indices[0] == 1;
+        
         DrawLoadingMessage();
         Window.Title = windowTitle;
         romFileNameandPath = romPath + romFileName;
@@ -632,22 +626,22 @@ public class Game : Microsoft.Xna.Framework.Game
             const int spacingY = 100;
             
             // Center the entire 2x2 block on the screen
-            int gridStartX = (GraphicsDevice.Viewport.Width / 2) - boxWidth - (spacingX / 2);
-            int gridStartY = (GraphicsDevice.Viewport.Height / 2) - boxHeight - (spacingY / 2) + 20;
+            int gridStartX = GraphicsDevice.Viewport.Width / 2 - boxWidth - spacingX / 2;
+            int gridStartY = GraphicsDevice.Viewport.Height / 2 - boxHeight - spacingY / 2 + 20;
 
             Vector2 titleSize = _font.MeasureString("SELECT GAME");
-            _spriteBatch.DrawString(_font, "SELECT GAME", new Vector2((GraphicsDevice.Viewport.Width / 2) - (titleSize.X / 2), 75), Color.Yellow);
+            _spriteBatch.DrawString(_font, "SELECT GAME", new Vector2(GraphicsDevice.Viewport.Width / 2 - titleSize.X / 2, 75), Color.Yellow);
 
             for (int row = 0; row < 2; row++)
             {
                 for (int col = 0; col < 2; col++)
                 {
-                    int index = col + (row * 2);
+                    int index = col + row * 2;
                     GameMenuItem game = _gameMenu[index];
-                    bool isSelectedBox = (selectedCol == col && selectedRow == row);
+                    bool isSelectedBox = selectedCol == col && selectedRow == row;
 
-                    int xPos = gridStartX + (col * (boxWidth + spacingX));
-                    int yPos = gridStartY + (row * (boxHeight + spacingY));
+                    int xPos = gridStartX + col * (boxWidth + spacingX);
+                    int yPos = gridStartY + row * (boxHeight + spacingY);
 
                     if (game.BoxArt != null)
                     {
@@ -673,23 +667,23 @@ public class Game : Microsoft.Xna.Framework.Game
                         // Variant Selector
                         string varText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
                         Vector2 varSize = _font.MeasureString(varText);
-                        _spriteBatch.DrawString(_font, varText, new Vector2(xPos + (boxWidth / 2) - (varSize.X / 2), yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, varText, new Vector2(xPos + boxWidth / 2 - varSize.X / 2, yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
 
                         // Settings Button
                         const string dipText = "SETTINGS";
                         Vector2 dipSize = _font.MeasureString(dipText);
-                        _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + (boxWidth / 2) - (dipSize.X / 2), yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + boxWidth / 2 - dipSize.X / 2, yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
 
                         // Start Button
                         const string startText = "START GAME";
                         Vector2 startSize = _font.MeasureString(startText);
-                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + (boxWidth / 2) - (startSize.X / 2), yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
+                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + boxWidth / 2 - startSize.X / 2, yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
                     }
                     else
                     {
                         // If not interacting with the box, just show the main game name underneath
                         Vector2 nameSize = _font.MeasureString(game.GameName);
-                        _spriteBatch.DrawString(_font, game.GameName, new Vector2(xPos + (boxWidth / 2) - (nameSize.X / 2), yPos + boxHeight + 20), isSelectedBox ? Color.Cyan : Color.Gray);
+                        _spriteBatch.DrawString(_font, game.GameName, new Vector2(xPos + boxWidth / 2 - nameSize.X / 2, yPos + boxHeight + 20), isSelectedBox ? Color.Cyan : Color.Gray);
                     }
                 }
             }
@@ -742,7 +736,7 @@ public class Game : Microsoft.Xna.Framework.Game
             for (int i = 0; i < QuitOptions.Length; i++)
             {
                 dipPos.Y += 40;
-                bool isSelected = (i == QuitOptionsIndex);
+                bool isSelected = i == QuitOptionsIndex;
                 _spriteBatch.DrawString(_font, QuitOptions[i], dipPos, isSelected ? Color.Cyan : Color.White);
             }
             
@@ -907,15 +901,15 @@ public class Game : Microsoft.Xna.Framework.Game
 
 public class RomVariant
 {
-    public string DisplayName { get; set; }
-    public string RomId { get; set; } // The actual string passed to LoadRom (e.g., "pacfast")
-    public List<DipSwitch> DipSwitches { get; set; } = [];
+    public string DisplayName { get; init; }
+    public string RomId { get; init; } // The actual string passed to LoadRom (e.g., "pacfast")
+    public List<DipSwitch> DipSwitches { get; init; } = [];
 }
 
 public class GameMenuItem
 {
-    public string GameName { get; set; }
-    public List<RomVariant> Variants { get; set; } = [];
+    public string GameName { get; init; }
+    public List<RomVariant> Variants { get; init; } = [];
     public Texture2D BoxArt { get; set; }
     
     // This remembers which variant is currently selected for this specific game
@@ -924,8 +918,8 @@ public class GameMenuItem
 
 public class DipSwitch
 {
-    public string Name { get; set; } // e.g., "Lives", "Bonus", "Coinage"
-    public List<string> Options { get; set; } // e.g., ["3", "4", "5"]
+    public string Name { get; init; } // e.g., "Lives", "Bonus", "Coinage"
+    public List<string> Options { get; init; } // e.g., ["3", "4", "5"]
     public int SelectedIndex { get; set; } = 0; // The current toggle state
     
     // Optional: You could add a byte mask here later to easily compile 
