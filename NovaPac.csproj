@@ -6,6 +6,7 @@
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>pacman</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>

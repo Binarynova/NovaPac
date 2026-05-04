@@ -30,8 +30,8 @@ public class Game : Microsoft.Xna.Framework.Game
     GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private double _cycleAccumulator = 0;
-    KeyboardState _lastState;
-    KeyboardState _currentState;
+    KeyboardState _currentKeyboardState;
+    KeyboardState _lastKeyboardState;
     GamePadState _currentGamePadState;
     GamePadState _lastGamePadState;
     private const double CPU_CLOCK_SPEED = 3072000; // 3.072 MHz
@@ -330,7 +330,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
     private bool KeyPressed(Keys key)
     {
-        return _currentState.IsKeyDown(key) && _lastState.IsKeyUp(key);
+        return _currentKeyboardState.IsKeyDown(key) && _lastKeyboardState.IsKeyUp(key);
     }
 
     private bool ButtonPressed(Buttons button)
@@ -352,7 +352,7 @@ public class Game : Microsoft.Xna.Framework.Game
             paused = false;
         }
         
-        _currentState = Keyboard.GetState();
+        _currentKeyboardState = Keyboard.GetState();
         _currentGamePadState =  GamePad.GetState(PlayerIndex.One);
 
         if (_isMenuOpen)
@@ -525,10 +525,10 @@ public class Game : Microsoft.Xna.Framework.Game
                     }
                     if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A) )
                     {
-                        menuSounds[0].Play();
                         switch (QuitOptionsIndex)
                         {
                             case 0:
+                                menuSounds[0].Play();
                                 if (!paused)
                                     _currentMenuState = MenuState.SelectingGame;
                                 else
@@ -538,6 +538,7 @@ public class Game : Microsoft.Xna.Framework.Game
                                 }
                                 break;
                             case 1:
+                                menuSounds[0].Play();
                                 base.Initialize();
                                 _currentMenuState = MenuState.SelectingGame;
                                 break;
@@ -581,7 +582,7 @@ public class Game : Microsoft.Xna.Framework.Game
                 ToggleFullscreen();
             }
 
-            _lastState = _currentState;
+            _lastKeyboardState = _currentKeyboardState;
 
             if (_activeMachine != null && !paused)
             {
@@ -605,7 +606,7 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         
         _lastGamePadState = _currentGamePadState;
-        _lastState = _currentState;
+        _lastKeyboardState = _currentKeyboardState;
         base.Update(gameTime);
     }
 
@@ -756,7 +757,7 @@ public class Game : Microsoft.Xna.Framework.Game
             _loadState = 2;
             return;
         }
-        // Render game screen
+        
         GraphicsDevice.SetRenderTarget(_nativeRenderTarget);
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp);
@@ -857,8 +858,8 @@ public class Game : Microsoft.Xna.Framework.Game
         }
         else
         {
-            _graphics.PreferredBackBufferWidth = 1280; //(internalWidth * 3) + (sidePadding * 2);
-            _graphics.PreferredBackBufferHeight = 800; //(internalHeight * 3) + (sidePadding * 2);
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 800;
         }
 
         _graphics.ApplyChanges();
@@ -902,7 +903,7 @@ public class Game : Microsoft.Xna.Framework.Game
 public class RomVariant
 {
     public string DisplayName { get; init; }
-    public string RomId { get; init; } // The actual string passed to LoadRom (e.g., "pacfast")
+    public string RomId { get; init; }
     public List<DipSwitch> DipSwitches { get; init; } = [];
 }
 
@@ -912,16 +913,12 @@ public class GameMenuItem
     public List<RomVariant> Variants { get; init; } = [];
     public Texture2D BoxArt { get; set; }
     
-    // This remembers which variant is currently selected for this specific game
     public int SelectedVariantIndex { get; set; } = 0; 
 }
 
 public class DipSwitch
 {
-    public string Name { get; init; } // e.g., "Lives", "Bonus", "Coinage"
-    public List<string> Options { get; init; } // e.g., ["3", "4", "5"]
-    public int SelectedIndex { get; set; } = 0; // The current toggle state
-    
-    // Optional: You could add a byte mask here later to easily compile 
-    // these settings into the raw byte the Z80 reads!
+    public string Name { get; init; }
+    public List<string> Options { get; init; }
+    public int SelectedIndex { get; set; } = 0;
 }
