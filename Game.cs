@@ -236,22 +236,6 @@ public class Game : Microsoft.Xna.Framework.Game
         
         string prefix = "pacman.Content."; 
         // Swap out the default file-based manager for our embedded memory loader
-        
-        // 1. Grab the current assembly reference
-        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-
-// 2. Print out every embedded resource that ends in .xnb
-        Console.WriteLine("=== CHECKING EMBEDDED XNB RESOURCES ===");
-        foreach (string name in assembly.GetManifestResourceNames())
-        {
-            if (name.EndsWith(".xnb", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine($"FOUND XNB: {name}");
-            }
-        }
-        Console.WriteLine("=======================================");
-        
-        
         Content = new EmbeddedContentManager(Services, prefix);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
