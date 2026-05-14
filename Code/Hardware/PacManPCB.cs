@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+#if DEBUG
+using ImGuiNET;
 using MonoGame.ImGuiNet;
+#endif
 
 public class PacManPCB : IArcadeMachine
 {
@@ -22,7 +24,10 @@ public class PacManPCB : IArcadeMachine
     private byte[] spriteram = new byte[0x10];
     private byte[] spriteram2 = new byte[0x10];
     byte[] _decryptedRom = null;
+#if DEBUG
     string buttonText = "Tiles";
+    int pIndex = 0;
+#endif
 
     Texture2D[,] TileTextures = new Texture2D[256, 32];
     Texture2D[,] SpriteTextures = new Texture2D[64, 32];
@@ -35,7 +40,6 @@ public class PacManPCB : IArcadeMachine
     const int spriteWidth = 16;
     List<int> tileViewerPalettes = [1, 3, 5, 7, 9, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31];
     private int tileViewerPaletteIndex { get; set; } = 0;
-    int pIndex = 0;
     public bool secondPlayerFlip
     {
         get => memoryBus.SecondPlayerFlip;
@@ -84,7 +88,7 @@ public class PacManPCB : IArcadeMachine
         PrepareTileTextures(_graphicsDevice);
         PrepareSpriteTextures(_graphicsDevice);
     }
-
+#if DEBUG
     void DrawSpriteRamViewer(ImGuiRenderer renderer)
     {
         if (ImGui.BeginTable("SpriteRam", 8))
@@ -205,6 +209,7 @@ public class PacManPCB : IArcadeMachine
         DrawMemoryViewer();
         ImGui.End();
     }
+#endif
     
     private void DrawGameSprites(bool secondPlayFlip)
     {

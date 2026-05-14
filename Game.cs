@@ -6,13 +6,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+#if DEBUG
+using ImGuiNET;
 using MonoGame.ImGuiNet;
+#endif
+using System.Reflection;
+using Microsoft.Xna.Framework.Content;
 
 public enum MenuMode
 {
@@ -63,7 +67,9 @@ public class Game : Microsoft.Xna.Framework.Game
     private int _dipVerticalIndex = 0; // Tracks which dipswitch you are tweaking
     
     IArcadeMachine _activeMachine;
+#if DEBUG
     ImGuiRenderer _renderer;
+#endif
     
     private int _loadState = 0;
     // 0 = Not Loading
@@ -227,6 +233,26 @@ public class Game : Microsoft.Xna.Framework.Game
             if(args[0] == "-f")
                 ToggleFullscreen();
         }
+        
+        string prefix = "pacman.Content."; 
+        // Swap out the default file-based manager for our embedded memory loader
+        
+        // 1. Grab the current assembly reference
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+
+// 2. Print out every embedded resource that ends in .xnb
+        Console.WriteLine("=== CHECKING EMBEDDED XNB RESOURCES ===");
+        foreach (string name in assembly.GetManifestResourceNames())
+        {
+            if (name.EndsWith(".xnb", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"FOUND XNB: {name}");
+            }
+        }
+        Console.WriteLine("=======================================");
+        
+        
+        Content = new EmbeddedContentManager(Services, prefix);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         IsFixedTimeStep = true;
@@ -236,65 +262,67 @@ public class Game : Microsoft.Xna.Framework.Game
 
     protected override void Initialize()
     {
+#if DEBUG
         _renderer = new ImGuiRenderer(this);
         _renderer.RebuildFontAtlas();
+#endif
         base.Initialize();
-
-        LoadConfigFile();
-    }
-
-    void LoadConfigFile()
-    {
-        const string configFile = "config.txt";
-
-        if (!File.Exists(configFile))
-        {
-            Console.WriteLine("Config file not found. Please enter the path to your ROM directory:");
-            string userEnteredRomPath = Console.ReadLine();
-            
-            File.WriteAllText("config.txt", userEnteredRomPath);
-        }
-        
-        List<string> lines = File.ReadAllLines(configFile).ToList();
-        romPath = lines[0];
+        romPath = "roms/";
     }
 
     protected override void LoadContent()
+{
+    _spriteBatch = new SpriteBatch(GraphicsDevice);
+    _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
+    _font = Content.Load<SpriteFont>("ArcadeFont"); // Assuming the font is still a standard .xnb
+    _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+
+    // 1. Get the current assembly payload
+    var assembly = Assembly.GetExecutingAssembly();
+    
+    // 2. Embedded resources use dot-notation: "RootNamespace.FolderName.Filename.Extension"
+    // Change "MyPacManProject" to your actual project namespace!
+    string resourcePrefix = "pacman.Content."; 
+
+    foreach (string name in assembly.GetManifestResourceNames())
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _nativeRenderTarget = new RenderTarget2D(GraphicsDevice, internalWidth, internalHeight);
-        _font = Content.Load<SpriteFont>("ArcadeFont");
-        _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
-
-        string contentDir = "Content";
-
-        Texture2D LoadTextureRaw(string filename)
-        {
-            string path = Path.Combine(contentDir, filename);
-            if (File.Exists(path))
-            {
-                using FileStream fileStream = new(path, FileMode.Open);
-                return Texture2D.FromStream(GraphicsDevice, fileStream);
-            }
-            Console.WriteLine($"Warning: File not found for game art at {filename}");
-            return null;
-        }
-
-        _gameMenu[0].BoxArt = LoadTextureRaw("pacman_px.png");
-        _gameMenu[1].BoxArt = LoadTextureRaw("mspacman_px.png");
-        _gameMenu[2].BoxArt = LoadTextureRaw("pacplus_px.png");
-        _gameMenu[3].BoxArt = LoadTextureRaw("matrix_px.png");
-        
-        controllerButtons.Add(LoadTextureRaw("xbox_a.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_b.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_x.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_y.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_menu.png"));
-        controllerButtons.Add(LoadTextureRaw("xbox_view.png"));
-        
-        menuSounds.Add(Content.Load<SoundEffect>("eat_dot_0"));
-        menuSounds.Add(Content.Load<SoundEffect>("eat_dot_1"));
+        Console.WriteLine("EMBEDDED: " + name);
     }
+    
+    Texture2D LoadTextureRaw(string filename)
+    {
+        string resourceName = resourcePrefix + filename;
+        
+        // Pull the raw image binary directly from the embedded assembly memory
+        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+        {
+            if (stream != null)
+            {
+                return Texture2D.FromStream(GraphicsDevice, stream);
+            }
+        }
+        
+        Console.WriteLine($"Warning: Embedded resource not found for game art at {resourceName}");
+        return null;
+    }
+
+    // Your existing load assignments stay exactly the same!
+    _gameMenu[0].BoxArt = LoadTextureRaw("pacman_px.png");
+    _gameMenu[1].BoxArt = LoadTextureRaw("mspacman_px.png");
+    _gameMenu[2].BoxArt = LoadTextureRaw("pacplus_px.png");
+    _gameMenu[3].BoxArt = LoadTextureRaw("matrix_px.png");
+    
+    controllerButtons.Add(LoadTextureRaw("xbox_a.png"));
+    controllerButtons.Add(LoadTextureRaw("xbox_b.png"));
+    controllerButtons.Add(LoadTextureRaw("xbox_x.png"));
+    controllerButtons.Add(LoadTextureRaw("xbox_y.png"));
+    controllerButtons.Add(LoadTextureRaw("xbox_menu.png"));
+    controllerButtons.Add(LoadTextureRaw("xbox_view.png"));
+    
+    // Assuming sounds are still standard Content pipeline .xnb files
+    menuSounds.Add(Content.Load<SoundEffect>("eat_dot_0"));
+    menuSounds.Add(Content.Load<SoundEffect>("eat_dot_1"));
+}
 
     private void StartGame(string romFileName, string windowTitle, List<int> indices)
     {
@@ -490,6 +518,7 @@ public class Game : Microsoft.Xna.Framework.Game
                     // Left/Right changes the selected OPTION for that switch
                     if (KeyPressed(Keys.Left) || ButtonPressed(Buttons.DPadLeft) || ButtonPressed(Buttons.LeftThumbstickLeft))
                     {
+                        menuSounds[0].Play();
                         activeDip.SelectedIndex--;
                         if (activeDip.SelectedIndex < 0)
                             activeDip.SelectedIndex = currentVariant.DipSwitches[_dipVerticalIndex].Options.Count - 1;
@@ -497,6 +526,7 @@ public class Game : Microsoft.Xna.Framework.Game
 
                     if (KeyPressed(Keys.Right) || ButtonPressed(Buttons.DPadRight) || ButtonPressed(Buttons.LeftThumbstickRight))
                     {
+                        menuSounds[0].Play();
                         activeDip.SelectedIndex++;
                         if (activeDip.SelectedIndex >= currentVariant.DipSwitches[_dipVerticalIndex].Options.Count)
                             activeDip.SelectedIndex = 0;
@@ -572,7 +602,9 @@ public class Game : Microsoft.Xna.Framework.Game
             }
             if (KeyPressed(Keys.Delete))
             {
+                #if DEBUG
                 _isDebugOpen = !_isDebugOpen;
+#endif
             }
         }
         if(mode == 1)
@@ -840,10 +872,12 @@ public class Game : Microsoft.Xna.Framework.Game
 
     void DrawGraphicsViewerWindow(GameTime gameTime)
     {
+        #if DEBUG
         _renderer.BeginLayout(gameTime);
         GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
         _activeMachine?.DrawDebugUI(_renderer);
         _renderer.EndLayout();
+#endif
     }
     
     private void ToggleFullscreen()
@@ -921,4 +955,34 @@ public class DipSwitch
     public string Name { get; init; }
     public List<string> Options { get; init; }
     public int SelectedIndex { get; set; } = 0;
+}
+
+public class EmbeddedContentManager : ContentManager
+{
+    private readonly Assembly _assembly;
+    private readonly string _resourcePrefix;
+
+    public EmbeddedContentManager(IServiceProvider serviceProvider, string resourcePrefix) 
+        : base(serviceProvider)
+    {
+        _assembly = Assembly.GetExecutingAssembly();
+        _resourcePrefix = resourcePrefix;
+    }
+
+    protected override Stream OpenStream(string assetName)
+    {
+        // Standard asset names don't include the extension, so we append .xnb
+        // Replace backslashes with forward slashes just in case, then map to dot-notation
+        string cleanAssetName = assetName.Replace('\\', '/').Replace('/', '.');
+        string resourceName = _resourcePrefix + cleanAssetName + ".xnb";
+
+        Stream stream = _assembly.GetManifestResourceStream(resourceName);
+        
+        if (stream == null)
+        {
+            throw new ContentLoadException($"Embedded asset '{resourceName}' not found.");
+        }
+
+        return stream;
+    }
 }

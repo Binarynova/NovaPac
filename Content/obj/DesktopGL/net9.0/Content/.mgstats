@@ -1,4 +1,4 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"/var/home/thomas/Projects/NovaPac/Content/ArcadeFont.spritefont","/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.1014854
-"/var/home/thomas/Projects/NovaPac/Content/eat_dot_0.wav","/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/eat_dot_0.xnb","SoundEffectProcessor","SoundEffectContent",7976,8037,0.1227797
-"/var/home/thomas/Projects/NovaPac/Content/eat_dot_1.wav","/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/eat_dot_1.xnb","SoundEffectProcessor","SoundEffectContent",8000,8061,0.0078316
+"/var/home/thomas/Projects/NovaPac/Content/ArcadeFont.spritefont","/var/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/ArcadeFont.xnb","FontDescriptionProcessor","SpriteFontContent",2020,37914,0.0836537
+"/var/home/thomas/Projects/NovaPac/Content/eat_dot_0.wav","/var/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/eat_dot_0.xnb","SoundEffectProcessor","SoundEffectContent",7976,8037,0.0974853
+"/var/home/thomas/Projects/NovaPac/Content/eat_dot_1.wav","/var/home/thomas/Projects/NovaPac/Content/bin/DesktopGL/Content/eat_dot_1.xnb","SoundEffectProcessor","SoundEffectContent",8000,8061,0.0077043
