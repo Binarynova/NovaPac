@@ -252,6 +252,8 @@ public class Game : Microsoft.Xna.Framework.Game
 #endif
         base.Initialize();
         romPath = "roms/";
+
+        ScanRoms();
     }
 
     protected override void LoadContent()
@@ -455,25 +457,34 @@ public class Game : Microsoft.Xna.Framework.Game
                             }
                             if (KeyPressed(Keys.Enter) || ButtonPressed(Buttons.A))
                             {
-                                menuSounds[0].Play();
                                 switch (configIndex)
                                 {
                                     case 1:
                                         // show dipswitch menu
+                                        menuSounds[0].Play();
                                         _currentMenuState = MenuState.ConfiguringDips;
                                         _dipVerticalIndex = 0;
                                         break;
                                     case 2:
                                         // launch game
-                                        string selectedRomId = currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
-                                        string gameName = currentGame.GameName;
-                                        string gameVariant = currentGame.Variants[currentGame.SelectedVariantIndex].DisplayName;
+                                        RomVariant selectedVariantToLaunch = currentGame.Variants[currentGame.SelectedVariantIndex];
+                                        if (selectedVariantToLaunch.IsAvailable)
+                                        {
+                                            menuSounds[0].Play();
+                                            string selectedRomId =
+                                                currentGame.Variants[currentGame.SelectedVariantIndex].RomId;
+                                            string gameName = currentGame.GameName;
+                                            string gameVariant = currentGame.Variants[currentGame.SelectedVariantIndex]
+                                                .DisplayName;
 
-                                        _pendingWindowTitle = gameName + " (" + gameVariant + ") - " + selectedRomId;
-                                        _pendingRomName = selectedRomId;
-                                        _loadState = 1; // Trigger the loading screen
-                                        _isMenuOpen = false; // Close the menu
-                                        paused = false;
+                                            _pendingWindowTitle =
+                                                gameName + " (" + gameVariant + ") - " + selectedRomId;
+                                            _pendingRomName = selectedRomId;
+                                            _loadState = 1; // Trigger the loading screen
+                                            _isMenuOpen = false; // Close the menu
+                                            paused = false;
+                                        }
+
                                         break;
                                 }
                             }
@@ -555,6 +566,7 @@ public class Game : Microsoft.Xna.Framework.Game
                                 menuSounds[0].Play();
                                 base.Initialize();
                                 _currentMenuState = MenuState.SelectingGame;
+                                currentMenuMode = MenuMode.GridNavigation;
                                 break;
                             case 2:
                                 Exit();
@@ -681,20 +693,32 @@ public class Game : Microsoft.Xna.Framework.Game
                     // Draw the Box Navigation / Info
                     if (isSelectedBox && currentMenuMode == MenuMode.BoxNavigation)
                     {
+                        RomVariant currentVar = game.Variants[game.SelectedVariantIndex];
+                        
                         // Variant Selector
-                        string varText = $"< {game.Variants[game.SelectedVariantIndex].DisplayName} >";
+                        string varText = configIndex == 0 ? $"< {currentVar.DisplayName} >" : currentVar.DisplayName;
                         Vector2 varSize = _font.MeasureString(varText);
                         _spriteBatch.DrawString(_font, varText, new Vector2(xPos + boxWidth / 2 - varSize.X / 2, yPos + boxHeight + 15), configIndex == 0 ? Color.Yellow : Color.White);
 
                         // Settings Button
-                        const string dipText = "SETTINGS";
+                        string dipText = configIndex == 1 ? "> SETTINGS <" : "SETTINGS";
                         Vector2 dipSize = _font.MeasureString(dipText);
                         _spriteBatch.DrawString(_font, dipText, new Vector2(xPos + boxWidth / 2 - dipSize.X / 2, yPos + boxHeight + 45), configIndex == 1 ? Color.Yellow : Color.White);
 
                         // Start Button
-                        const string startText = "START GAME";
+                        string baseStartText = currentVar.IsAvailable ? "START GAME" : "ROM MISSING";
+                        string startText = configIndex == 2 ? $"> {baseStartText} <" : baseStartText;
                         Vector2 startSize = _font.MeasureString(startText);
-                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + boxWidth / 2 - startSize.X / 2, yPos + boxHeight + 75), configIndex == 2 ? Color.Yellow : Color.White);
+                        Color startColor;
+                        if (configIndex == 2)
+                        {
+                            startColor = currentVar.IsAvailable ? Color.Yellow : Color.Red;
+                        }
+                        else
+                        {
+                            startColor = currentVar.IsAvailable ? Color.White : Color.DimGray;
+                        }
+                        _spriteBatch.DrawString(_font, startText, new Vector2(xPos + boxWidth / 2 - startSize.X / 2, yPos + boxHeight + 75), startColor);
                     }
                     else
                     {
@@ -919,6 +943,20 @@ public class Game : Microsoft.Xna.Framework.Game
         _spriteBatch.DrawString(_font, "LOADING...", pos, Color.Yellow);
         _spriteBatch.End();
     }
+
+    private void ScanRoms()
+    {
+        foreach (var game in _gameMenu)
+        {
+            foreach (var variant in game.Variants)
+            {
+                // expected path
+                string expectedPath = Path.Combine(romPath, variant.RomId + ".zip");
+                // set availability flag
+                variant.IsAvailable = File.Exists(expectedPath);
+            }
+        }
+    }
 }
 
 public class RomVariant
@@ -926,6 +964,7 @@ public class RomVariant
     public string DisplayName { get; init; }
     public string RomId { get; init; }
     public List<DipSwitch> DipSwitches { get; init; } = [];
+    public bool IsAvailable { get; set; } = false;
 }
 
 public class GameMenuItem
