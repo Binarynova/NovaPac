@@ -1,4 +1,4 @@
-# Pac-Man-Emulator
+# NovaPac
 
 Started Jan. 29, 2026
 
