@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NovaPac
+Comment=A custom Pac-Man emulator
+Exec=pacman
+Icon=novapac
+Categories=Game;Emulator;
+Terminal=false

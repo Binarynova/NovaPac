@@ -1,4 +1,15 @@
-# .NET and MonoGame Ignore Rules
+# .NET Core
 bin/
 obj/
+
+# Visual Studio / IDEs
+.vs/
+.idea/
+*.user
+
+# MonoGame Custom Build Artifacts
+PacMan.AppDir/
+*.AppImage
+*.zip
+runtime-x86_64
 .mgstats

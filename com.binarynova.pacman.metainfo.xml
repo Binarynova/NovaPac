@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>com.binarynova.novapac</id>
+
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>MIT</project_license>
+
+    <name>NovaPac</name>
+    <summary>A custom Pac-Man emulator.</summary>
+
+    <description>
+        <p>NovaPac is a fully self-contained, cross-platform arcade emulator built with MonoGame.</p>
+    </description>
+
+    <launchable type="desktop-id">com.binarynova.novapac.desktop</launchable>
+    <developer_name>Binarynova</developer_name>
+    <url type="homepage">www.github.com/Binarynova/NovaPac</url>
+</component>

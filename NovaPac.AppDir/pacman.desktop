@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=NovaPac
+Exec=pacman
+Icon=novapac
+Categories=Game;Emulator;
+Terminal=false
