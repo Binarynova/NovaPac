@@ -6,8 +6,7 @@ Available for Steam Deck/Linux Desktop as well as Windows. Controller recommende
 
 Supports rotated screen and controls, making playing on a Steam Deck a particularly great way to simulate playing on a cocktail cabinet with a friend.
 
-
-Supports the following ROM files:
+## Supported ROMs
 - pacman
 - pacmanf
 - mspacman
@@ -15,8 +14,7 @@ Supports the following ROM files:
 - pacplus
 - matrix (the unofficial matrix code demo)
 
-Screenshots
-
+## Screenshots
 <img width="322" height="208" alt="novapac1" src="https://github.com/user-attachments/assets/b77f9d3b-bb52-4f2e-97ed-ce4bcabb9f24" />
 <img width="322" height="208" alt="novapac2" src="https://github.com/user-attachments/assets/cf548957-53ba-4a47-a979-7a90a4131ffd" />
 <img width="322" height="208" alt="novapac3" src="https://github.com/user-attachments/assets/21ae2ef7-dbfc-46ca-a3ef-dd163f439e3a" />
