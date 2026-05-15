@@ -8,7 +8,7 @@ obj/
 *.user
 
 # MonoGame Custom Build Artifacts
-PacMan.AppDir/
+NovaPac.AppDir/
 *.AppImage
 *.zip
 runtime-x86_64
