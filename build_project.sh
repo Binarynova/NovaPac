@@ -15,18 +15,38 @@ distrobox enter universal-packager -- bash -c "
 "
 
 echo "Cleaning old AppDir staging binaries..."
+mkdir -p ~/Projects/NovaPac/NovaPac.AppDir/usr/bin
 rm -rf ~/Projects/NovaPac/NovaPac.AppDir/usr/bin/*
 
 echo "Staging universal Linux binaries..."
+mkdir -p ~/Projects/NovaPac/NovaPac.AppDir/usr/bin
+mkdir -p ~/Projects/NovaPac/NovaPac.AppDir/usr/share/metainfo
+cp -r ~/Projects/NovaPac/novapac.png ~/Projects/NovaPac/NovaPac.AppDir/
 cp -r ~/Projects/NovaPac/bin/Release/net8.0/linux-x64/publish/* ~/Projects/NovaPac/NovaPac.AppDir/usr/bin/
 
 echo "Adding AppStream Metadata..."
 cp ~/Projects/NovaPac/com.binarynova.pacman.desktop ~/Projects/NovaPac/NovaPac.AppDir/
-mkdir -p ~/Projects/NovaPac/NovaPac.AppDir/usr/share/metainfo
 cp ~/Projects/NovaPac/com.binarynova.pacman.metainfo.xml ~/Projects/NovaPac/NovaPac.AppDir/usr/share/metainfo/
 
+echo "🏃 Generating AppRun wrapper for audio routing..."
+# This uses 'cat' to write a multi-line text file directly into the AppDir
+cat << 'EOF' > ~/Projects/NovaPac/NovaPac.AppDir/AppRun
+#!/bin/bash
+# Find the absolute path where the AppImage was mounted
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+# Force the game to look in our custom libs/ folder for OpenAL/Sndio FIRST
+export LD_LIBRARY_PATH="${HERE}/usr/bin/libs:${LD_LIBRARY_PATH}"
+
+# Launch the actual game executable
+exec "${HERE}/usr/bin/NovaPac" "$@"
+EOF
+
+# Make sure Linux knows the newly created file is allowed to be executed
+chmod +x ~/Projects/NovaPac/NovaPac.AppDir/AppRun
+
 echo "Bundling AppImage..."
-./appimagetool --runtime-file ~/Projects/NovaPac/runtime-x86_64 ~/Projects/NovaPac/NovaPac.AppDir NovaPac-x86_64.AppImage
+./appimagetool.AppImage --runtime-file ~/Projects/NovaPac/runtime-x86_64 ~/Projects/NovaPac/NovaPac.AppDir NovaPac-x86_64.AppImage
 
 echo "Cleaning old win-x64 published binaries..."
 rm -rf ~/Projects/NovaPac/bin/Release/net8.0/win-x64/publish/*
